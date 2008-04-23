@@ -348,6 +348,9 @@
 } // mouseUp
 
 
+int decodeToString(NSString * src, NSMutableString * dest);
+
+
 
 // Open specified file and display
 - (bool) openFile:(NSString *)name start:(int)startChar {
@@ -360,11 +363,23 @@
     	// Build the full path
 		NSString *path = [NSString stringWithFormat:@"%@%@", TEXTREADER_PATH, name];
 
-    	// Read in the file
-		newText = [[NSMutableString 
-					stringWithContentsOfFile:path
-					encoding:kCGEncodingMacRoman
-					error:&error] retain];
+		// Read in the requested file ...
+		if ([trApp getFileType:path] == kTextFileTypePDB)
+		{
+			newText = [[NSMutableString alloc] initWithString:@""];
+			
+			if (decodeToString(path, newText))
+			{
+				[newText release];
+				newText = nil;
+			}
+		}
+		else
+			// Read in the text file - let NSMutableString do the work
+			newText = [[NSMutableString 
+						stringWithContentsOfFile:path
+						encoding:kCGEncodingMacRoman
+						error:&error] retain];
 
 		if (newText)
 		{

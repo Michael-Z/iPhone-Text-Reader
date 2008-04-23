@@ -62,7 +62,11 @@
 #define kTopBarResizeMask resize_SpringWidth
 #define kBottomBarResizeMask (resize_SpringWidth | resize_SpringTop)
 
-
+typedef enum _TextFileType {
+	kTextFileTypeUnknown = 0,
+	kTextFileTypeTXT = 1,
+	kTextFileTypePDB = 2
+} TextFileType;
 
 
 @class FileTable;
@@ -115,6 +119,8 @@ typedef enum _MyViewName {
 
 - (CGPoint) getOrientedEventLocation:(struct __GSEvent *)event;
 - (NSString*) getFileName;
+
+- (TextFileType) getFileType:(NSString*)fileName;
 
 - (void) redraw;
 

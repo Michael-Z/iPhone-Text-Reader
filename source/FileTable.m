@@ -38,10 +38,6 @@
 } // setPath
 
 
-- (void) setExtension:(NSString *)_extension {
-    extension = [ _extension copy ];
-} // setExtension
-
 
 - (void) reloadData {
     NSFileManager *fileManager = [ NSFileManager defaultManager ];
@@ -59,8 +55,10 @@
  
     dirEnum = [ [ NSFileManager defaultManager ] enumeratorAtPath: path ];
     while ((file = [ dirEnum nextObject ])) {
-        if ([ file hasSuffix: extension ] == YES) {
-            [ fileList addObject: file ];
+    
+        if ([trApp getFileType:file]) {
+        
+            [fileList addObject:file];
             
             // Is this the currently open book?
             if (openFile && (highlight < 0) && [openFile isEqualToString:file])
@@ -92,13 +90,25 @@
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
 
-        UIImageView *image = [ [ UIImage alloc ] 
-              initWithContentsOfFile: [ [ NSString alloc ] 
-              initWithFormat: @"/Applications/%@/icon.png", 
-                              [ fileList  objectAtIndex: row ] ] ];
+		if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/txt_64x64.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+		}
+		if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/pdb_64x64.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+		}
+                              
         [ cell setTitle: [ [ fileList objectAtIndex: row ]
-        stringByDeletingPathExtension ]];
-        [ cell setImage: image ];
+                           stringByDeletingPathExtension ]];
 		[ cell setShowDisclosure: YES ];
 		[ cell setDisclosureStyle: 3 ];
         return [ cell autorelease ];

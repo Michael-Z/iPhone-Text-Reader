@@ -152,7 +152,6 @@
 				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
 				fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
 				[fileTable setPath:TEXTREADER_PATH];
-				[fileTable setExtension:TEXTREADER_EXT];
 				[fileTable setTextReader:self];
 				[fileTable reloadData];
 				
@@ -500,6 +499,41 @@
 	else
 		[self showView:My_Info_View];
 } // openFile
+
+
+- (TextFileType) getFileType:(NSString*)fileName {
+
+	TextFileType type = kTextFileTypeUnknown;
+
+	if ([fileName length] > 4 && 
+	    [fileName characterAtIndex:[fileName length]-4] == '.')
+	{
+		NSString * ext = [fileName substringFromIndex:[fileName length]-3];
+		
+		if (![ext compare:@"txt" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypeTXT;
+			
+		else if (![ext compare:@"pdb" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypePDB;
+		
+		//[ext release];
+	}
+	else if ([fileName length] > 5 && 
+	         [fileName characterAtIndex:[fileName length]-5] == '.')
+	{
+		NSString * ext = [fileName substringFromIndex:[fileName length]-3];
+		
+		if (![ext compare:@"text" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypeTXT;
+
+		//[ext release];
+	}
+
+	return type;
+} // getFileType
+
+
+
 
 @end // @implementation textReader
 
