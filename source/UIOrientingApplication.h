@@ -12,6 +12,19 @@
 #import <UIKit/UIApplication.h>
 #import <GraphicsServices/GraphicsServices.h>
 
+
+#define resize_SpringLeft   		0x01
+#define resize_SpringWidth  		0x02
+#define resize_SpringRight  		0x04
+#define resize_SpringTop    		0x08
+#define resize_SpringHeight 		0x10
+#define resize_SpringBottom 		0x20
+#define kMainAreaResizeMask (resize_SpringWidth | resize_SpringHeight)
+#define kTopBarResizeMask resize_SpringWidth
+#define kBottomBarResizeMask (resize_SpringWidth | resize_SpringTop)
+
+
+
 @interface UIOrientingApplication : UIApplication {
 	CGRect FullKeyBounds;
 	CGRect FullContentBounds;

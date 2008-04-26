@@ -6,7 +6,7 @@
 //   * jYopp - http://jyopp.com/iphone.php - UIOrientingApplication example
 //   * mxweas - UITransitionView example
 //   * thebends.org - textDrawing example
-//   * "iPhone Open Application Development" by Jonathan Zdziarski - FileTable/UIDeletableCell example
+//   * "iPhone Open Application Development" by Jonathan Zdziarski - FileTable/UIDeletableCell/Preferences example
 //   * BooksApp, written by Zachary Brewster-Geisz (and others)
 //   
 //   This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #import "textReader.h"
 #import "MyTextView.h"
 #import "UIDeletableCell.h"
+#import "PrefsTable.h"
 
 
 
@@ -48,6 +49,8 @@
 	currentOrientation 	= -9999;
 	transView  			= nil;
 	textView  			= nil;
+	fileTable           = nil;
+	prefsTable          = nil;
 	navBar    			= nil;
 	slider              = nil;
 	currentView         = My_No_View;
@@ -77,10 +80,14 @@
 // Write current preferences and clean up
 - (void) applicationWillSuspend {
 
-// JIMB BUG BUG - This needs a LOT of work!!!
-
 	[defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
 	
+	[defaults setInteger:[textView getIgnoreNewLine] forKey:TEXTREADER_IGNORELF];
+
+	[defaults setObject:[textView getFont] forKey:TEXTREADER_FONT];
+
+	[defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
+
 	// Save currently open book so we can reopen it later
 	NSString * fileName = [textView getFileName];
 	if (fileName)
@@ -106,10 +113,25 @@
 
 - (void) loadDefaults {
 
+	// Restore general prefs
 	[textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
 
-// JIMB BUG BUG - save positions for ALL books instead of just the current ...
-	// Open last opened file ...	
+	[textView setIgnoreNewLine:[defaults integerForKey:TEXTREADER_IGNORELF]];
+
+	// Restore font prefs
+	int fontSize = [defaults integerForKey:TEXTREADER_FONTSIZE];
+	if (fontSize < 1 || fontSize > 40)
+		[textView setFontSize:TEXTREADER_DFLT_FONTSIZE];
+	else
+		[textView setFontSize:fontSize];
+
+	NSString * font = [defaults stringForKey:TEXTREADER_FONT];
+	if (!font || [font length] < 4)
+		[textView setFont:TEXTREADER_DFLT_FONT];
+	else
+		[textView setFont:font];
+
+	// Open last opened file at last position
 	NSString * name = [defaults stringForKey:TEXTREADER_OPEN];
 	if (name)
 		[self openFile:name start:[self getDefaultStart:name]];
@@ -128,6 +150,45 @@
 	switch (viewName)
 	{
 		case My_No_View:
+			break;
+			
+		case My_Prefs_View:
+			if (currentView != My_Prefs_View)
+			{			
+				// A view with a Status Bar, NavBar and Table
+				UIView * prefsView = [[UIView alloc ] initWithFrame:FSrect];;
+				[prefsView setAutoresizingMask: kMainAreaResizeMask];
+				[prefsView setAutoresizesSubviews: YES];
+
+				FSrect.origin.y += [UIHardware statusBarHeight];
+				FSrect.size.height = [UINavigationBar defaultSize].height;
+				UINavigationBar * prefsBar	= [[UINavigationBar alloc] initWithFrame:FSrect];
+				[prefsBar setBarStyle: 0];
+				[prefsBar showButtonsWithLeft: @"Done" right:@"About" leftBack: YES];
+				[prefsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Settings"]];
+				[prefsBar setAutoresizingMask: kTopBarResizeMask];
+				
+				FSrect = [self getOrientedViewRect];
+				FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+				prefsTable = [ [ MyPreferencesTable alloc ] initWithFrame:FSrect];
+				[prefsTable setTextReader:self];
+				[prefsTable setTextView:textView];
+				[prefsTable reloadData];
+				
+				[prefsBar setDelegate:prefsTable];
+
+				[prefsView addSubview:prefsBar];	
+				[prefsView addSubview:prefsTable];
+
+				[super hideStatus: false];
+			
+				// Switch views
+				[transView transition:1 toView:prefsView];
+				currentView = My_Prefs_View;
+
+				[self redraw];
+			}
 			break;
 			
 		case My_File_View:
@@ -193,10 +254,11 @@
 					[slider setAlpha:0];
 
 				// Switch views
-				[transView transition:0 toView:textView];
+				[transView transition:1 toView:textView];
 				currentView = My_Info_View;
 				
 				fileTable = nil;
+				prefsTable = nil;
 				
 				[self redraw];
 			}
@@ -216,12 +278,13 @@
 				
 				// Switch views
 				if (currentView == My_File_View)
-					[transView transition:0 toView:textView];
+					[transView transition:1 toView:textView];
 				else
 					[transView transition:2 toView:textView];
 				currentView = My_Text_View;
 				
 				fileTable = nil;
+				prefsTable = nil;
 				
 				[self redraw];				
 			}
@@ -267,7 +330,7 @@
 	navBar	= [[[UINavigationBar alloc] initWithFrame: navBarRect] retain];
 	[navBar setBarStyle: 0];
 	[navBar setDelegate: self];
-	[navBar showButtonsWithLeft: @"Open" right: @"Invert" leftBack: YES];
+	[navBar showButtonsWithLeft: @"Open" right: @"Settings" leftBack: YES];
 	[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME]];
 	[navBar setAutoresizingMask: kTopBarResizeMask];	
     [navBar setAlpha:0];
@@ -468,9 +531,8 @@
 	else
 	{
 		switch (button) {
-			case 0: // Invert - eventually this will be settings
-				// Toggle the color ...
-				[textView setColor:([textView getColor] ? 0 : 1)];
+			case 0: // Settings
+				[self showView:My_Prefs_View];
 				break;
 
 			case 1: // Open
@@ -487,6 +549,8 @@
 		[textView setNeedsDisplay];
 	else if (currentView == My_File_View)
 		[fileTable resize];
+	else if (currentView == My_Prefs_View)
+		[prefsTable resize];
 } // redraw
 
 
@@ -533,6 +597,13 @@
 } // getFileType
 
 
+// This view's alert sheets are just informational ...
+// Dismiss them without doing anything special
+- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
+{
+  [sheet dismissAnimated:YES];
+  [sheet release];
+} // alertSheet
 
 
 @end // @implementation textReader

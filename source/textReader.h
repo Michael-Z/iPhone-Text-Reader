@@ -40,27 +40,22 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
+#define TEXTREADER_VERSION  		@"0.3.0"
 
 #define TEXTREADER_PATH 			@"/var/mobile/Media/textReader/"
-#define TEXTREADER_EXT      		@"txt"
 
 #define TEXTREADER_DFLT_FONT   		@"CourierNewBold"
-#define TEXTREADER_DFLT_FONTSIZE 	18
+#define TEXTREADER_DFLT_FONTSIZE 	20
 
 
 #define TEXTREADER_COLOR    		@"color"
+#define TEXTREADER_IGNORELF 		@"ignoreLF"
+
+#define TEXTREADER_FONT 			@"font"
+#define TEXTREADER_FONTSIZE 		@"fontSize"
+
 #define TEXTREADER_OPEN     		@"OpenFileName"
 
-
-#define resize_SpringLeft   		0x01
-#define resize_SpringWidth  		0x02
-#define resize_SpringRight  		0x04
-#define resize_SpringTop    		0x08
-#define resize_SpringHeight 		0x10
-#define resize_SpringBottom 		0x20
-#define kMainAreaResizeMask (resize_SpringWidth | resize_SpringHeight)
-#define kTopBarResizeMask resize_SpringWidth
-#define kBottomBarResizeMask (resize_SpringWidth | resize_SpringTop)
 
 typedef enum _TextFileType {
 	kTextFileTypeUnknown = 0,
@@ -71,6 +66,7 @@ typedef enum _TextFileType {
 
 @class FileTable;
 @class MyTextView;
+@class MyPreferencesTable;
 
 
 // *****************************************************************************
@@ -78,7 +74,8 @@ typedef enum _MyViewName {
 	My_No_View,
 	My_Info_View,
 	My_Text_View,
-	My_File_View
+	My_File_View,
+	My_Prefs_View
 } MyViewName;
 
 @interface textReader : UIOrientingApplication {
@@ -90,6 +87,8 @@ typedef enum _MyViewName {
 	UISliderControl         *slider;
 
 	FileTable 				*fileTable;
+
+	MyPreferencesTable      *prefsTable;
 
 	CGPoint         		 mouseDown;
 	int             		 currentOrientation;

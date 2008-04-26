@@ -52,6 +52,7 @@
 	NSString         *font;
 	float             fontSize;
 	int               color;
+	bool              ignoreNewLine;
 
 	NSString         *fileName;
 
@@ -65,6 +66,8 @@
 
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setColor:(int)newColor;
+- (void) setIgnoreNewLine:(bool)ignore;
+- (bool) getIgnoreNewLine;
 - (int)  getColor;
 - (void) pageUp;
 - (void) pageDown;
@@ -75,6 +78,11 @@
 - (int)               getStart;
 - (int)               getEnd;
 - (NSString*)         getFileName;
+
+- (NSString *)getFont;
+- (bool)setFont:(NSString*)newFont;
+- (int)getFontSize;
+- (bool)setFontSize:(int)newSize;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;

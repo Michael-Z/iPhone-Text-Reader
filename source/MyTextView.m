@@ -78,7 +78,13 @@
 } // setColor
 
 
+- (void) setIgnoreNewLine:(bool)ignore {
+	ignoreNewLine = ignore;
+	[self setNeedsDisplay];
+}
+
 - (int) getColor { return color; }
+- (bool) getIgnoreNewLine { return ignoreNewLine; }
 - (NSMutableString *) getText  { return text; }
 - (int) getStart { return start; }
 - (int) getEnd   { return end; }
@@ -136,6 +142,22 @@
 	}
 	
 } // fillBkgGroundRect
+
+
+- (char) currentChar:(int)current loops:(int)loops{
+	char nextc = 0x00;			
+	if (loops)
+	{
+		if (current >= 0)
+			nextc = [text characterAtIndex:current];
+	}
+	else
+	{
+		if (current+1 < [text length])
+			nextc = [text characterAtIndex:current];
+	}
+	return nextc;
+} // currentChar
 
 
 - (void)drawRect:(struct CGRect)rect
@@ -222,25 +244,45 @@
 		         (!loops && (current < [text length])))
 		{
 			struct CGPoint beginPoint = CGContextGetTextPosition(context);
-			char c = [text characterAtIndex:current];
-			
+			char c = [self currentChar:current loops:loops];
+
 			// Move backwards or forwards as needed
 			current = loops ? MAX(0,current-1) : current+1;
 
+			// Find the next character
+			char nextc = [self currentChar:current loops:loops];
+			
 			// Special case for Windows CRLF x0d0a- only use one
 			if (loops)
 			{
-				if (c == 0x0a && (current > 0) && 
-					[text characterAtIndex:current] == 0x0d)
+				if (c == 0x0a && nextc == 0x0d)
+				{
 					current--;
+					nextc = [self currentChar:current loops:loops];
+				}
 			}
 			else
 			{
-				if (c == 0x0d && (current+1 < [text length]) && 
-					[text characterAtIndex:current] == 0x0a)
+				if (c == 0x0d && nextc == 0x0a)
+				{
 					current++;
+					nextc = [self currentChar:current loops:loops];
+				}
 			}
 
+
+			// Handle ignore single LF option
+			if (ignoreNewLine && (c == '\n' || c == 0x0d || c == 0x0a))
+			{
+				if (nextc != '\n' && nextc != 0x0d && nextc != 0x0a)
+				{
+				   afterCrLf = true;
+				   if (nextc == ' ' || nextc == '\t')
+				   	  continue;
+				   c = ' ';
+				}
+			}
+			   
 			// Special case for white space chars
 			if (c == '\n' || c == 0x0d || c == 0x0a)
 			{
@@ -252,10 +294,10 @@
 			if (c == ' ' && emptyLine && !afterCrLf)
 			   continue;
 
-// JIMB BUG BUG - create a doc with tabs to check behavior    	
+// JIMB BUG BUG - allow breaking a line of text at a '-' as well
 			// Remember blanks - we will back up to 
 			// here when we run out of space (tabs should work correctly ... I hope)
-			if (c == ' ' || c == '\t')
+			if (c == ' ' || c == '\t' /* || c == '-' */)
 			{
 				lastBlankIndex = current; // this is actually 1 past ...
 				lastBlankPoint = CGContextGetTextPosition(context);
@@ -263,9 +305,13 @@
 
 			// At this point, we are going to try to write something ...
 			emptyLine = false;
-			afterCrLf = true;
+			afterCrLf = false;
 
-			CGContextShowText(context, &c, 1);
+			if (c == '\t')		
+				CGContextShowText(context, "    ", 4);	
+			else if (c)
+				CGContextShowText(context, &c, 1);
+			
 			struct CGPoint endPoint = CGContextGetTextPosition(context);
 			if (endPoint.x > width)
 			{
@@ -428,6 +474,33 @@ int decodeToString(NSString * src, NSMutableString * dest);
 } // alertSheet
 
 
-@end // @implementation MyTextView
+- (NSString *)getFont {
+	return font;
+} // getFont
 
+
+- (bool)setFont:(NSString*)newFont {
+	// JIMB BUG BUG - implement this!!!
+	font = [newFont copy];
+	[self setNeedsDisplay];
+
+	return true;
+} // setFont
+
+
+- (int)getFontSize {
+	return fontSize;
+} // getFontSize
+
+
+- (bool)setFontSize:(int)newSize {
+	// JIMB BUG BUG - implement this!!!
+	fontSize = newSize;
+	[self setNeedsDisplay];
+
+	return true;
+} // setFontSize
+
+
+@end // @implementation MyTextView
 
