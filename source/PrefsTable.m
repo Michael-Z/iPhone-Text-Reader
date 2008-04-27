@@ -193,7 +193,6 @@
                     [ cell setTitle:@"Font Size" ];
                     [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
 					[ cell setShowDisclosure:YES];
-					fontCell = cell;
 					fontSizeCell = cell;
                     break;
            }

@@ -30,7 +30,7 @@
 #import "MyTextView.h"
 #import "UIDeletableCell.h"
 #import "PrefsTable.h"
-
+#import "DownloadTable.h"
 
 
 
@@ -51,6 +51,7 @@
 	textView  			= nil;
 	fileTable           = nil;
 	prefsTable          = nil;
+	downloadTable       = nil;
 	navBar    			= nil;
 	slider              = nil;
 	currentView         = My_No_View;
@@ -150,6 +151,45 @@
 	switch (viewName)
 	{
 		case My_No_View:
+			break;
+			
+		case My_Download_View:
+			if (currentView != My_Download_View)
+			{			
+				// A view with a Status Bar, NavBar and Table
+				UIView * downloadView = [[UIView alloc ] initWithFrame:FSrect];;
+				[downloadView setAutoresizingMask: kMainAreaResizeMask];
+				[downloadView setAutoresizesSubviews: YES];
+
+				FSrect.origin.y += [UIHardware statusBarHeight];
+				FSrect.size.height = [UINavigationBar defaultSize].height;
+				UINavigationBar * downloadBar	= [[UINavigationBar alloc] initWithFrame:FSrect];
+				[downloadBar setBarStyle: 0];
+				[downloadBar showButtonsWithLeft: @"Done" right:nil leftBack: YES];
+				[downloadBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Download File via URL"]];
+				[downloadBar setAutoresizingMask: kTopBarResizeMask];
+				
+				FSrect = [self getOrientedViewRect];
+				FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+				downloadTable = [ [ MyDownloadTable alloc ] initWithFrame:FSrect];
+				[downloadTable setTextReader:self];
+				//[downloadTable setTextView:textView];
+				[downloadTable reloadData];
+				
+				[downloadBar setDelegate:downloadTable];
+
+				[downloadView addSubview:downloadBar];	
+				[downloadView addSubview:downloadTable];
+
+				[super hideStatus: false];
+			
+				// Switch views
+				[transView transition:1 toView:downloadView];
+				currentView = My_Download_View;
+
+				[self redraw];
+			}
 			break;
 			
 		case My_Prefs_View:
@@ -259,6 +299,7 @@
 				
 				fileTable = nil;
 				prefsTable = nil;
+				downloadTable = nil;
 				
 				[self redraw];
 			}
@@ -285,6 +326,7 @@
 				
 				fileTable = nil;
 				prefsTable = nil;
+				downloadTable = nil;
 				
 				[self redraw];				
 			}
@@ -551,6 +593,8 @@
 		[fileTable resize];
 	else if (currentView == My_Prefs_View)
 		[prefsTable resize];
+	else if (currentView == My_Download_View)
+		[downloadTable resize];
 } // redraw
 
 

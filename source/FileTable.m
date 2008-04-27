@@ -52,6 +52,9 @@
     } 
 
     [ fileList removeAllObjects ];
+
+	// Add download option!
+	[fileList addObject:TEXTREADER_DOWNLOAD_TITLE];
  
     dirEnum = [ [ NSFileManager defaultManager ] enumeratorAtPath: path ];
     while ((file = [ dirEnum nextObject ])) {
@@ -90,7 +93,16 @@
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
 
-		if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
+		// Set the icon for this row
+		if (row == 0) 
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/globe_48.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+		}
+		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
@@ -98,7 +110,7 @@
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
 		}
-		if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
+		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
@@ -106,11 +118,18 @@
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
 		}
-                              
-        [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                           stringByDeletingPathExtension ]];
-		[ cell setShowDisclosure: YES ];
-		[ cell setDisclosureStyle: 3 ];
+
+		// Set the text entry                              
+		[ cell setTitle: [ [ fileList objectAtIndex: row ]
+						   stringByDeletingPathExtension ]];
+						   
+		// Set the disclosure for this row
+		if (row != 0) 
+		{
+			[ cell setShowDisclosure: YES ];
+			[ cell setDisclosureStyle: 3 ];
+		}
+
         return [ cell autorelease ];
     } 
 } // table
@@ -128,15 +147,18 @@
 
 	int row = [self rowAtPoint:point];
 	
-	UIDeletableCell *cell = [self visibleCellForRow:row column:0];
+	if (row != 0)
+	{
+		UIDeletableCell *cell = [self visibleCellForRow:row column:0];
 
-	[ cell
-	   _showDeleteOrInsertion: YES
-	   withDisclosure: YES
-	   animated: YES
-	   isDelete: YES
-	   andRemoveConfirmation: YES
-	];
+		[ cell
+		   _showDeleteOrInsertion: YES
+		   withDisclosure: YES
+		   animated: YES
+		   isDelete: YES
+		   andRemoveConfirmation: YES
+		];
+	}
 
 	return [ super swipe:type withEvent:event ];
 	
@@ -148,16 +170,28 @@
     viaEdge:(int)edge
     animateOthers:(BOOL)animate 
 {
-    [ fileList removeObjectAtIndex: row ];
-    [ super _willDeleteRow: row forTableCell: cell viaEdge: edge animateOthers: animate ];
+	if (row != 0)
+	{
+		[ fileList removeObjectAtIndex: row ];
+		[ super _willDeleteRow: row forTableCell: cell viaEdge: edge animateOthers: animate ];
+	}
 } // _willDeleteRow
 
 
 - (void)tableRowSelected:(NSNotification *)notification {
     NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
 
-    // Open the selected file ...
-    [trApp openFile:fileName start:[trApp getDefaultStart:fileName]];
+	// Handle download ...
+	if ([fileName isEqualToString:TEXTREADER_DOWNLOAD_TITLE])
+	{
+		[trApp showView:My_Download_View];
+	}
+	else
+	{
+		// Open the selected file ...
+		[trApp openFile:fileName start:[trApp getDefaultStart:fileName]];
+	}
+	
 } // tableRowSelected
 
 

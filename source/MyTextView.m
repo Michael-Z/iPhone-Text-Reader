@@ -414,10 +414,28 @@ int decodeToString(NSString * src, NSMutableString * dest);
 		{
 			newText = [[NSMutableString alloc] initWithString:@""];
 			
-			if (decodeToString(path, newText))
+			int rc = decodeToString(path, newText);
+			if (rc)
 			{
 				[newText release];
 				newText = nil;
+
+				// Handle invalid format ...				
+				if (rc == 2)
+				{
+					NSString *errorMsg = [NSString stringWithFormat:
+												   @"Invalid PDB format for file \"%@\".", 
+												   name];
+					CGRect rect = [[UIWindow keyWindow] bounds];
+					UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
+					[alertSheet setTitle:@"Invalid Format"];
+					[alertSheet setBodyText:errorMsg];
+					[alertSheet addButtonWithTitle:@"OK"];
+					[alertSheet setDelegate:self];
+					[alertSheet popupAlertAnimated:YES];
+
+					return false;
+				}				
 			}
 		}
 		else

@@ -342,6 +342,7 @@ void		uncompress( buffer* );
 
 // 0 == success
 // 1 == error 
+// 2 == invalid format
 int decodeToString(NSString * src, NSMutableString * dest)
 {
 	buffer			buf = {0};
@@ -352,12 +353,15 @@ int decodeToString(NSString * src, NSMutableString * dest)
 	int				num_records, rec_num;
 	doc_record0		rec0;
 	
-	int             rc = 1;
+	int             rc = 2;
 
 
 	/********** open files, read header, ensure source is a Doc file *****/
 
 	fin = fopen([src cString], "rb");
+	if (!fin)
+	   rc = 1;
+	   
 	while (fin)
 	{
 		if ( fread( &header, DatabaseHdrSize, 1, fin ) != 1 )
@@ -372,7 +376,6 @@ int decodeToString(NSString * src, NSMutableString * dest)
 		/********** read record 0 ********************************************/
 
 		SEEK_REC_ENTRY( fin, 0 );
-		
 		
 		if (GET_DWord( fin, &offset ))		/* get offset of rec 0 */
 			break;
@@ -402,7 +405,7 @@ int decodeToString(NSString * src, NSMutableString * dest)
 			
 			if (GET_DWord( fin, &offset ))
 			{
-				rc = 1;
+				rc = 2;
 				break;
 			}
 
@@ -411,7 +414,7 @@ int decodeToString(NSString * src, NSMutableString * dest)
 				SEEK_REC_ENTRY( fin, rec_num + 1 );
 				if (GET_DWord( fin, &next_offset ))
 				{
-					rc = 1;
+					rc = 2;
 					break;
 				}
 			} else
@@ -424,7 +427,7 @@ int decodeToString(NSString * src, NSMutableString * dest)
 			buf.len = fread( buf.data, 1, rec_size, fin );
 			if ( buf.len != rec_size )
 			{
-				rc = 1;
+				rc = 2;
 				break;
 			}
 

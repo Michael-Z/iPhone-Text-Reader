@@ -40,9 +40,10 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.3.0"
+#define TEXTREADER_VERSION  		@"0.4.0"
 
 #define TEXTREADER_PATH 			@"/var/mobile/Media/textReader/"
+#define TEXTREADER_DOWNLOAD_TITLE   @"Download File via URL"
 
 #define TEXTREADER_DFLT_FONT   		@"CourierNewBold"
 #define TEXTREADER_DFLT_FONTSIZE 	20
@@ -67,6 +68,7 @@ typedef enum _TextFileType {
 @class FileTable;
 @class MyTextView;
 @class MyPreferencesTable;
+@class MyDownloadTable;
 
 
 // *****************************************************************************
@@ -75,7 +77,8 @@ typedef enum _MyViewName {
 	My_Info_View,
 	My_Text_View,
 	My_File_View,
-	My_Prefs_View
+	My_Prefs_View,
+	My_Download_View
 } MyViewName;
 
 @interface textReader : UIOrientingApplication {
@@ -89,6 +92,8 @@ typedef enum _MyViewName {
 	FileTable 				*fileTable;
 
 	MyPreferencesTable      *prefsTable;
+
+	MyDownloadTable         *downloadTable;
 
 	CGPoint         		 mouseDown;
 	int             		 currentOrientation;
