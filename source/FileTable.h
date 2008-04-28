@@ -20,6 +20,7 @@
 }
 - (id)initWithFrame:(struct CGRect)rect;
 - (void)setPath:(NSString *)_path;
+- (NSString *)getPath;
 - (void)reloadData;
 - (int)swipe:(int)type withEvent:(struct __GSEvent *)event;
 - (int)numberOfRowsInTable:(UITable *)_table;

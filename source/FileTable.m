@@ -38,6 +38,10 @@
 } // setPath
 
 
+- (NSString *)getPath {
+	return path;
+} // getPAth
+
 
 - (void) reloadData {
     NSFileManager *fileManager = [ NSFileManager defaultManager ];
@@ -55,6 +59,10 @@
 
 	// Add download option!
 	[fileList addObject:TEXTREADER_DOWNLOAD_TITLE];
+ 
+//	// Add parent directory option
+//	if ([path length] > 1)
+//		[fileList addObject:TEXTREADER_PARENT_DIR];
  
     dirEnum = [ [ NSFileManager defaultManager ] enumeratorAtPath: path ];
     while ((file = [ dirEnum nextObject ])) {
@@ -96,9 +104,18 @@
 		// Set the icon for this row
 		if (row == 0) 
 		{
+		    // Download path ...
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
-				  initWithFormat: @"/Applications/%@.app/globe_48.png", 
+				  initWithFormat: @"/Applications/%@.app/globedownload.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+		}
+		else if ([[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]==NSOrderedSame)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/folderup.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
 		}
@@ -106,7 +123,7 @@
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
-				  initWithFormat: @"/Applications/%@.app/txt_64x64.png", 
+				  initWithFormat: @"/Applications/%@.app/txt.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
 		}
@@ -114,7 +131,7 @@
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
-				  initWithFormat: @"/Applications/%@.app/pdb_64x64.png", 
+				  initWithFormat: @"/Applications/%@.app/pdb.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
 		}
@@ -124,7 +141,7 @@
 						   stringByDeletingPathExtension ]];
 						   
 		// Set the disclosure for this row
-		if (row != 0) 
+		if (row != 0 && [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]!=NSOrderedSame) 
 		{
 			[ cell setShowDisclosure: YES ];
 			[ cell setDisclosureStyle: 3 ];
@@ -189,7 +206,7 @@
 	else
 	{
 		// Open the selected file ...
-		[trApp openFile:fileName start:[trApp getDefaultStart:fileName]];
+		[trApp openFile:fileName path:path start:[trApp getDefaultStart:fileName]];
 	}
 	
 } // tableRowSelected

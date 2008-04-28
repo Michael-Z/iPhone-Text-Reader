@@ -25,7 +25,8 @@
        
   if (fileName)
   {
-	  NSString *path = [NSString stringWithFormat:@"%@%@", TEXTREADER_PATH, fileName];
+	  NSString *path = [NSString stringWithFormat:@"%@%@", [table getPath], fileName];
+	  
 	  BOOL dir = false;
 	  BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&dir];
 
@@ -35,7 +36,7 @@
 		{
 			NSString *errorMsg = [NSString stringWithFormat:
 										   @"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist and the write permissions for user \"mobile\" are set.", 
-										   fileName, TEXTREADER_PATH];
+										   fileName, [table getPath]];
 			CGRect rect = [[UIWindow keyWindow] bounds];
 			UIAlertSheet * alertSheet = [[UIAlertSheet alloc] 
 			                             initWithFrame:CGRectMake(0, rect.size.height-240, rect.size.width, 240)];

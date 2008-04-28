@@ -173,7 +173,7 @@
 		// Figure out where to save the file
 		fullPath = [NSString stringWithFormat:
 							  @"%@%@",
-							  TEXTREADER_PATH, toFileName];
+							  TEXTREADER_DEF_PATH, toFileName];
 						
 		// Switch to showing the saving ... msg
 		[self performSelectorOnMainThread:@selector(threadShowSaving) 
@@ -232,7 +232,7 @@
 				[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
-				[alertSheet setBodyText:@"The Save As file can not contain slashes."];
+				[alertSheet setBodyText:@"The Save As file name can not contain slashes."];
 				[alertSheet addButtonWithTitle:@"OK"];
 				[alertSheet setDelegate:trApp];
 				[alertSheet popupAlertAnimated:YES];
@@ -248,7 +248,7 @@
 				[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
-				[alertSheet setBodyText:@"The Save As file name or the URL must have an extension of .pdb, .text, or .txt"];
+				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .text, or .txt"];
 				[alertSheet addButtonWithTitle:@"OK"];
 				[alertSheet setDelegate:trApp];
 				[alertSheet popupAlertAnimated:YES];
@@ -329,7 +329,7 @@
                     [ cell setTitle:@"URL:" ];
                     [ cell setValue:@"http://" ];
                     
-[ cell setValue:@"http://www.gutenberg.org/files/15772/15772-8.txt" ];
+//[ cell setValue:@"http://www.gutenberg.org/files/15772/15772-8.txt" ];
                     
 					[ cell setShowDisclosure:YES];
 					urlCell = cell;
@@ -376,11 +376,11 @@
 		            break;
                 case (1):
 		            [ cell setTitle:[NSString stringWithFormat:@"%@%@%@%@%@",
-									  @"Enter the complete URL of the text or Palm Doc file you want to download, ",
+									  @"Enter the complete URL of the Text or PalmDoc file you want to download ",
 									  @"and the Name you want it saved as locally.\n\n",
 									  @"If you leave name blank ",
 		             			  	  TEXTREADER_NAME,
-		             				  @" will try to figure out the name based on the URL." ]];
+		             				  @" will try to figure out the name and extension based on the URL." ]];
 		            break;
 		    } // switch row
             break;

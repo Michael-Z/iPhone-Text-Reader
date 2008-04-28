@@ -64,6 +64,10 @@
 	return [textView getFileName];
 }
 
+- (NSString*) getFilePath {
+	return [textView getFilePath];
+}
+
 - (void) removeDefaults:(NSString*)name {
 	if (name)
 	{
@@ -72,8 +76,11 @@
 		
 		// If this is the current open file, remove the OpenFileName entry 
 		// so we won't get an error when we exit and start
-		if ([name isEqualToString:[defaults stringForKey:TEXTREADER_OPEN]])
-			[defaults removeObjectForKey:TEXTREADER_OPEN];			
+		if ([name isEqualToString:[defaults stringForKey:TEXTREADER_OPENFILE]])
+		{
+			[defaults removeObjectForKey:TEXTREADER_OPENPATH];			
+			[defaults removeObjectForKey:TEXTREADER_OPENFILE];			
+		}
 	}
 } // removeDefaults
 
@@ -93,7 +100,12 @@
 	NSString * fileName = [textView getFileName];
 	if (fileName)
 	{
-		[defaults setObject:fileName forKey:TEXTREADER_OPEN];
+		NSString * filePath = [textView getFilePath];
+		if (!filePath)
+			filePath = TEXTREADER_DEF_PATH;
+			
+		[defaults setObject:fileName forKey:TEXTREADER_OPENFILE];
+		[defaults setObject:filePath forKey:TEXTREADER_OPENPATH];
 		[self setDefaultStart:fileName start:[textView getStart]];
 	}
 		
@@ -133,9 +145,10 @@
 		[textView setFont:font];
 
 	// Open last opened file at last position
-	NSString * name = [defaults stringForKey:TEXTREADER_OPEN];
+	NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
+	NSString * name = [defaults stringForKey:TEXTREADER_OPENFILE];
 	if (name)
-		[self openFile:name start:[self getDefaultStart:name]];
+		[self openFile:name path:path start:[self getDefaultStart:name]];
 	else
 		[self showView:My_Info_View];
 	
@@ -252,7 +265,12 @@
 				FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
 				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
 				fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
-				[fileTable setPath:TEXTREADER_PATH];
+
+				if ([textView getFilePath])
+					[fileTable setPath:[textView getFilePath]];
+				else
+					[fileTable setPath:TEXTREADER_DEF_PATH];
+				
 				[fileTable setTextReader:self];
 				[fileTable reloadData];
 				
@@ -598,8 +616,8 @@
 } // redraw
 
 
-- (bool) openFile:(NSString *)name start:(int)startChar {
-	if (name && [textView openFile:name start:startChar])
+- (bool) openFile:(NSString *)name path:(NSString *)path start:(int)startChar {
+	if (name && [textView openFile:name path:path start:startChar])
 	{
 		[self showView:My_Text_View];
 		[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:name]];

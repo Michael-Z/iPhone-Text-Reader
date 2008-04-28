@@ -42,7 +42,8 @@
 #define TEXTREADER_NAME     		@"textReader"
 #define TEXTREADER_VERSION  		@"0.4.0"
 
-#define TEXTREADER_PATH 			@"/var/mobile/Media/textReader/"
+#define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
+#define TEXTREADER_PARENT_DIR 		@".."
 #define TEXTREADER_DOWNLOAD_TITLE   @"Download File via URL"
 
 #define TEXTREADER_DFLT_FONT   		@"CourierNewBold"
@@ -55,7 +56,8 @@
 #define TEXTREADER_FONT 			@"font"
 #define TEXTREADER_FONTSIZE 		@"fontSize"
 
-#define TEXTREADER_OPEN     		@"OpenFileName"
+#define TEXTREADER_OPENFILE 		@"OpenFileName"
+#define TEXTREADER_OPENPATH    		@"OpenFilePath"
 
 
 typedef enum _TextFileType {
@@ -106,7 +108,7 @@ typedef enum _MyViewName {
 - (id)   init;
 - (void) applicationWillSuspend;
 - (void) loadDefaults;
-- (bool) openFile:(NSString *)name start:(int)startChar;
+- (bool) openFile:(NSString *)name path:(NSString *)path start:(int)startChar;
 - (int)  getDefaultStart:(NSString*)name;
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
 - (void) removeDefaults:(NSString*)name;
@@ -123,6 +125,7 @@ typedef enum _MyViewName {
 
 - (CGPoint) getOrientedEventLocation:(struct __GSEvent *)event;
 - (NSString*) getFileName;
+- (NSString*) getFilePath;
 
 - (TextFileType) getFileType:(NSString*)fileName;
 

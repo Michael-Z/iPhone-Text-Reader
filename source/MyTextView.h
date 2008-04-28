@@ -54,6 +54,7 @@
 	int               color;
 	bool              ignoreNewLine;
 
+	NSString         *filePath;
 	NSString         *fileName;
 
 	bool              pageUp;
@@ -72,12 +73,13 @@
 - (void) pageUp;
 - (void) pageDown;
 
-- (bool)              openFile:(NSString *)name start:(int)startChar;
+- (bool)              openFile:(NSString *)name path:(NSString *)path start:(int)startChar;
 - (NSMutableString *) getText;
 - (void)              setStart:(int)newStart;
 - (int)               getStart;
 - (int)               getEnd;
 - (NSString*)         getFileName;
+- (NSString*)         getFilePath;
 
 - (NSString *)getFont;
 - (bool)setFont:(NSString*)newFont;

@@ -44,7 +44,6 @@
 	
     screenLock = [[NSLock alloc] init];
 
-// JIMB BUG BUG - read from preferences	
 	color    = 0;
 	font     = TEXTREADER_DFLT_FONT;
 	fontSize = TEXTREADER_DFLT_FONTSIZE;
@@ -53,17 +52,16 @@
 	trApp = nil;
 	pageUp = false;
 	fileName = nil;
+	filePath = [TEXTREADER_DEF_PATH copy];
 	
-	// Make sure text directory exists
+	// Make sure default directory exists
 	BOOL dir = true;
-	if (![[NSFileManager defaultManager] fileExistsAtPath:TEXTREADER_PATH isDirectory:&dir])
-		[[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_PATH attributes:nil];
+	if (![[NSFileManager defaultManager] fileExistsAtPath:TEXTREADER_DEF_PATH isDirectory:&dir])
+		[[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
 	
     return [super initWithFrame:rect];
 } // initWithFrame
 
-
-// JIMB BUG BUG - Add get/set methods for font, size, encoding, etc.
 
 - (void) setTextReader:(textReader*)tr {
 	trApp = tr;
@@ -89,6 +87,7 @@
 - (int) getStart { return start; }
 - (int) getEnd   { return end; }
 - (NSString*) getFileName { return fileName; }
+- (NSString*) getFilePath { return filePath; }
 
 // Last page movement was a page up?
 - (void) pageUp {
@@ -158,6 +157,92 @@
 	}
 	return nextc;
 } // currentChar
+
+
+// Missing Prototype ...
+struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize);
+
+
+
+/*
+- (void)drawRect:(struct CGRect)rect
+{
+	int fSize = 26.;
+//	struct __GSFont * gsFont = GSFontCreateWithName("arialuni", fSize, 20.);
+	
+	[screenLock lock];
+	
+ 	CGSize viewSize = [trApp getOrientedViewSize];
+
+   	CGContextRef context = UICurrentContext();
+
+  	CGContextSelectFont(context, 
+	  				    "arialuni", 
+	 				    fSize,
+	 				    kCGEncodingMacRoman);
+	
+//	CGContextSetFont(context, (CGFontRef)gsFont);
+
+	CGContextSetFontSize(context, fSize);
+	
+
+    CGAffineTransform myTextTransform = CGAffineTransformMake(1, 0, 0, -1, 0, viewSize.height/30);
+   	CGContextSetTextMatrix(context, myTextTransform);
+
+   	int lineHeight = fSize * 1.2; // Blech!!! Figure this properly!!!
+   	int lines      = viewSize.height / lineHeight;
+   	int width      = viewSize.width;
+   	int line;
+   	  	
+    struct CGRect lineRect = CGRectMake(0, 0, width, lineHeight);
+
+ 	[self fillBkgGroundRect:context rect:lineRect];
+ 	
+	int character = 0; 	
+	
+  	for (line = 0; line < lines; line++) 
+	{
+		lineRect = CGRectMake(0, line * lineHeight, width, lineHeight);
+
+		[self fillBkgGroundRect:context 
+			  rect:CGRectMake(lineRect.origin.x, lineRect.origin.y + fontSize, 
+							  lineRect.size.width, lineRect.size.height)];
+
+		CGContextSetTextPosition(context, 0, (line + 1) * lineHeight);
+
+		int j;
+		for (j = 0; j < 0x10; j++)
+		{
+		   	CGGlyph glyph;
+
+			// Draw this character ...
+			if (current < 0)
+				glyph = 0;
+			else
+				glyph = current;
+				
+			CGContextShowGlyphs(context, &glyph, 1);			
+			
+//			struct CGPoint endPoint = CGContextGetTextPosition(context);
+//			if (endPoint.x > width)
+//			{
+//				glyph--;
+//				break;
+//			}
+
+			current++;
+			
+		} 
+		
+	} // for line
+	
+   	[screenLock unlock];
+  
+   	return [super drawRect:rect];  
+   	
+} // drawRect
+*/
+
 
 
 - (void)drawRect:(struct CGRect)rect
@@ -297,7 +382,7 @@
 // JIMB BUG BUG - allow breaking a line of text at a '-' as well
 			// Remember blanks - we will back up to 
 			// here when we run out of space (tabs should work correctly ... I hope)
-			if (c == ' ' || c == '\t' /* || c == '-' */)
+			if (c == ' ' || c == '\t')
 			{
 				lastBlankIndex = current; // this is actually 1 past ...
 				lastBlankPoint = CGContextGetTextPosition(context);
@@ -399,22 +484,27 @@ int decodeToString(NSString * src, NSMutableString * dest);
 
 
 // Open specified file and display
-- (bool) openFile:(NSString *)name start:(int)startChar {
+- (bool) openFile:(NSString *)name path:(NSString*)path start:(int)startChar {
 	NSMutableString * newText = nil;
     NSError         * error   = nil;
     
     // Load the text ...
-    if (name)
+    if (!path)
+    	path = TEXTREADER_DEF_PATH;
+    	
+    if (!name)
+    	name = @"";
+    else
     {
     	// Build the full path
-		NSString *path = [NSString stringWithFormat:@"%@%@", TEXTREADER_PATH, name];
+		NSString *fullpath = [NSString stringWithFormat:@"%@%@", path, name];
 
 		// Read in the requested file ...
-		if ([trApp getFileType:path] == kTextFileTypePDB)
+		if ([trApp getFileType:fullpath] == kTextFileTypePDB)
 		{
 			newText = [[NSMutableString alloc] initWithString:@""];
 			
-			int rc = decodeToString(path, newText);
+			int rc = decodeToString(fullpath, newText);
 			if (rc)
 			{
 				[newText release];
@@ -425,7 +515,7 @@ int decodeToString(NSString * src, NSMutableString * dest);
 				{
 					NSString *errorMsg = [NSString stringWithFormat:
 												   @"Invalid PDB format for file \"%@\".", 
-												   name];
+												   fullpath];
 					CGRect rect = [[UIWindow keyWindow] bounds];
 					UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
 					[alertSheet setTitle:@"Invalid Format"];
@@ -441,7 +531,7 @@ int decodeToString(NSString * src, NSMutableString * dest);
 		else
 			// Read in the text file - let NSMutableString do the work
 			newText = [[NSMutableString 
-						stringWithContentsOfFile:path
+						stringWithContentsOfFile:fullpath
 						encoding:kCGEncodingMacRoman
 						error:&error] retain];
 
@@ -460,6 +550,10 @@ int decodeToString(NSString * src, NSMutableString * dest);
 				[fileName release];
 			fileName = [[name copy] retain];
 
+			if (filePath)
+				[filePath release];
+			filePath = [[path copy] retain];
+				
 			start = [trApp getDefaultStart:name];
 			end   = 0;
 			[self setNeedsDisplay];
@@ -470,7 +564,7 @@ int decodeToString(NSString * src, NSMutableString * dest);
 
 	NSString *errorMsg = [NSString stringWithFormat:
 	                               @"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist and the read permissions for user \"mobile\" are set.", 
-	                               name, TEXTREADER_PATH];
+	                               name, path];
 	CGRect rect = [[UIWindow keyWindow] bounds];
 	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
 	[alertSheet setTitle:@"Error opening file"];
