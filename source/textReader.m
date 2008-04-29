@@ -92,6 +92,8 @@
 	
 	[defaults setInteger:[textView getIgnoreNewLine] forKey:TEXTREADER_IGNORELF];
 
+	[defaults setInteger:[textView getPadMargins] forKey:TEXTREADER_PADMARGINS];
+
 	[defaults setObject:[textView getFont] forKey:TEXTREADER_FONT];
 
 	[defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
@@ -130,6 +132,8 @@
 	[textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
 
 	[textView setIgnoreNewLine:[defaults integerForKey:TEXTREADER_IGNORELF]];
+
+	[textView setPadMargins:[defaults integerForKey:TEXTREADER_PADMARGINS]];
 
 	// Restore font prefs
 	int fontSize = [defaults integerForKey:TEXTREADER_FONTSIZE];

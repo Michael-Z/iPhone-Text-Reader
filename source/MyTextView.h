@@ -53,6 +53,7 @@
 	float             fontSize;
 	int               color;
 	bool              ignoreNewLine;
+	bool              padMargins;
 
 	NSString         *filePath;
 	NSString         *fileName;
@@ -69,6 +70,8 @@
 - (void) setColor:(int)newColor;
 - (void) setIgnoreNewLine:(bool)ignore;
 - (bool) getIgnoreNewLine;
+- (void) setPadMargins:(bool)pad;
+- (bool) getPadMargins;
 - (int)  getColor;
 - (void) pageUp;
 - (void) pageDown;

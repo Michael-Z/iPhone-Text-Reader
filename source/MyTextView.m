@@ -81,8 +81,14 @@
 	[self setNeedsDisplay];
 }
 
+- (void) setPadMargins:(bool)pad {
+	padMargins = pad;
+	[self setNeedsDisplay];
+}
+
 - (int) getColor { return color; }
 - (bool) getIgnoreNewLine { return ignoreNewLine; }
+- (bool) getPadMargins { return padMargins; }
 - (NSMutableString *) getText  { return text; }
 - (int) getStart { return start; }
 - (int) getEnd   { return end; }
@@ -272,6 +278,7 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
    int lines      = viewSize.height / lineHeight;
    int width      = viewSize.width;
    int line, loops, current;
+   int pad = padMargins ? 10 : 0;
   
    // Handle pageup by looping twice
    loops = pageUp ? 2 : 1;
@@ -323,7 +330,7 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 				  rect:CGRectMake(lineRect.origin.x, lineRect.origin.y + fontSize, 
 								  lineRect.size.width, lineRect.size.height)];
 
-		CGContextSetTextPosition(context, 0, (line + 1) * lineHeight);
+		CGContextSetTextPosition(context, pad, (line + 1) * lineHeight);
 
 		while  ( (loops && (current > 0)) || 
 		         (!loops && (current < [text length])))
@@ -398,7 +405,7 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 				CGContextShowText(context, &c, 1);
 			
 			struct CGPoint endPoint = CGContextGetTextPosition(context);
-			if (endPoint.x > width)
+			if (endPoint.x > (width-pad))
 			{
 				// Can we back up to a blank?
 				if (lastBlankIndex > 0)
@@ -479,7 +486,9 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 } // mouseUp
 
 
-int decodeToString(NSString * src, NSMutableString * dest);
+
+// Prototype for the PDB decode function
+int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
 
 
 
@@ -503,8 +512,9 @@ int decodeToString(NSString * src, NSMutableString * dest);
 		if ([trApp getFileType:fullpath] == kTextFileTypePDB)
 		{
 			newText = [[NSMutableString alloc] initWithString:@""];
+			NSString * type = nil;
 			
-			int rc = decodeToString(fullpath, newText);
+			int rc = decodeToString(fullpath, newText, &type);
 			if (rc)
 			{
 				[newText release];
@@ -514,11 +524,11 @@ int decodeToString(NSString * src, NSMutableString * dest);
 				if (rc == 2)
 				{
 					NSString *errorMsg = [NSString stringWithFormat:
-												   @"Invalid PDB format for file \"%@\".", 
-												   fullpath];
+												   @"The format of \"%@\" is \"%@\".\n%@ is only able to open Text files and PalmDoc PDB files.\nSorry ...", 
+												   fullpath, type, TEXTREADER_NAME];
 					CGRect rect = [[UIWindow keyWindow] bounds];
 					UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-					[alertSheet setTitle:@"Invalid Format"];
+					[alertSheet setTitle:@"Unable to Open PDB File!"];
 					[alertSheet setBodyText:errorMsg];
 					[alertSheet addButtonWithTitle:@"OK"];
 					[alertSheet setDelegate:self];

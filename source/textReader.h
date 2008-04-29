@@ -52,6 +52,7 @@
 
 #define TEXTREADER_COLOR    		@"color"
 #define TEXTREADER_IGNORELF 		@"ignoreLF"
+#define TEXTREADER_PADMARGINS 		@"padMargins"
 
 #define TEXTREADER_FONT 			@"font"
 #define TEXTREADER_FONTSIZE 		@"fontSize"

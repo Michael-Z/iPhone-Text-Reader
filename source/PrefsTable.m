@@ -43,13 +43,20 @@
 {
     switch (group) {
         case(0):
+        	// Font
+        	// Font Size
             return 2; 
 
         case(1):
-            return 2;
+        	// Invert
+        	// Ignore Single LF
+        	// Pad Margins
+            return 3;
             
         case(2):
-            return 1;
+        	// Web Site
+        	// Email address
+            return 2;
     }
     return 0;
 }
@@ -163,7 +170,7 @@
 
 
 
-
+// Create the cells for the prefs table
 - (UIPreferencesTableCell *)preferencesTable:(UIPreferencesTable *)aTable
     cellForRow:(int)row
     inGroup:(int)group
@@ -214,10 +221,25 @@
                     [ cell setEnabled: YES ];
                     [ cell addSubview: ignoreNewLine ];
                     break;
+                case (2):
+                    [ cell setTitle:@"Pad Margins" ];
+                    padMargins = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
+                    [ cell setEnabled: YES ];
+                    [ cell addSubview: padMargins ];
+                    break;
             }
             break;
         case (2):
-            [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
+            switch (row) {
+                case (0):
+		            [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
+		            break;
+                case (1):
+		            [ cell setTitle: @"email: iphonetextreader@gmail.com" ];
+		            break;
+		    }
             break;
     }
 
@@ -240,6 +262,7 @@
 - (void) resize {
 	struct CGRect FSrect = [trApp getOrientedViewRect];
 
+	// Resize picker on rotation
 	if (pickerView)
 	{
 		struct CGRect rect = [pickerView frame];
@@ -291,6 +314,7 @@
 			// Apply preferences ...
 			[textView setColor:[invertScreen value]];
 			[textView setIgnoreNewLine:[ignoreNewLine value]];
+			[textView setPadMargins:[padMargins value]];
 			
 			if ([[fontCell value] length] > 4)
 				[textView setFont:[fontCell value]];

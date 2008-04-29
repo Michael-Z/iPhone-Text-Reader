@@ -24,8 +24,144 @@
 #import "MyTextView.h"
 
 
-/* local */
-#include "palm.h"
+// ----------------------------------------------------------
+// Begin palm.h defines
+// ----------------------------------------------------------
+/* standard */
+#include <time.h>
+
+/*****************************************************************************
+ *
+ *	Define integral type Byte, Word, and DWord to match those on the
+ *	Pilot being 8, 16, and 32 bits, respectively.
+ *
+ *****************************************************************************/
+
+typedef unsigned char Byte;
+
+//#if	SIZEOF_UNSIGNED_SHORT == 2
+//typedef unsigned short Word;
+typedef uint16_t Word;
+//#else
+//#error machine does not seem to support a 16-bit integral type
+//#endif
+//
+//#if	SIZEOF_UNSIGNED_INT == 4
+//typedef unsigned int DWord;
+typedef uint32_t DWord;
+//#elif	SIZE_OF_UNSIGNED_LONG == 4
+//typedef unsigned long DWord;
+//#else
+//#error machine does not seem to support a 32-bit integral type
+//#endif
+
+/********** Other stuff ******************************************************/
+
+#define	dmDBNameLength	32		/* 31 chars + 1 null terminator */
+#define RECORD_SIZE_MAX	4096		/* Pilots have a max 4K record size */
+
+#ifdef	HAVE_TIME_H
+#define	palm_date()	(DWord)(time(0) + 2082844800ul)
+#else
+#define	palm_date()	0
+#endif
+
+/*****************************************************************************
+ *
+ * SYNOPSIS
+ */
+	struct RecordEntryType
+/*
+ * DESCRIPTION
+ *
+ *	Every record has one of these headers.
+ *
+ * SEE ALSO
+ *
+ *	Christopher Bey and Kathleen Dupre.  "Palm File Format Specification,"
+ *	Document Number 3008-003, Palm, Inc., May 16, 2000.
+ *
+ *****************************************************************************/
+{
+	DWord	localChunkID;		/* offset to where record starts */
+	struct {
+		unsigned delete   : 1;
+		unsigned dirty    : 1;
+		unsigned busy     : 1;
+		unsigned secret   : 1;
+		unsigned category : 4;
+	} attributes;
+	Byte	uniqueID[3];
+};
+typedef struct RecordEntryType RecordEntryType;
+
+/*
+** Some compilers pad structures out to DWord boundaries so using sizeof()
+** doesn't give the right result.
+*/
+#define	RecordEntrySize		8
+
+/*****************************************************************************
+ *
+ * SYNOPSIS
+ */
+	struct RecordListType		/* 6 bytes total */
+/*
+ * DESCRIPTION
+ *
+ *	This is a PDB database header as currently defined by Palm, Inc.
+ *
+ * SEE ALSO
+ *
+ *	Ibid.
+ *
+ *****************************************************************************/
+{
+	DWord	nextRecordListID;
+	Word	numRecords;
+};
+typedef struct RecordListType RecordListType;
+
+#define	RecordListSize		6
+
+/*****************************************************************************
+ *
+ * SYNOPSIS
+ */
+	struct DatabaseHdrType		/* 78 bytes total */
+/*
+ * DESCRIPTION
+ *
+ *	This is a PDB database header as currently defined by Palm, Inc.
+ *
+ *****************************************************************************/
+{
+	char		name[ dmDBNameLength ];
+	Word		attributes;
+	Word		version;
+	DWord		creationDate;
+	DWord		modificationDate;
+	DWord		lastBackupDate;
+	DWord		modificationNumber;
+	DWord		appInfoID;
+	DWord		sortInfoID;
+	char		type[4];
+	char		creator[4];
+	DWord		uniqueIDSeed;
+	RecordListType	recordList;
+};
+typedef struct DatabaseHdrType DatabaseHdrType;
+
+#define DatabaseHdrSize		78
+// ----------------------------------------------------------
+// End
+// ----------------------------------------------------------
+
+
+
+
+
+
 
 /* types */
 #ifdef	bool
@@ -116,9 +252,7 @@ typedef struct {
 	unsigned len;
 } buffer;
 
-void		compress( buffer* );
-Byte*		mem_find( Byte *t, int t_len, Byte *m, int m_len );
-void		remove_binary( buffer* );
+
 void		uncompress( buffer* );
 
 
@@ -126,7 +260,7 @@ void		uncompress( buffer* );
 // 0 == success
 // 1 == error 
 // 2 == invalid format
-int decodeToString(NSString * src, NSMutableString * dest)
+int decodeToString(NSString * src, NSMutableString * dest, NSString ** type)
 {
 	buffer			buf = {0};
 	int		    	compression;
@@ -136,8 +270,9 @@ int decodeToString(NSString * src, NSMutableString * dest)
 	int				num_records, rec_num;
 	doc_record0		rec0;
 	
-	int             rc = 2;
+	int             rc = 2; // Assume invalid format ...
 
+	*type = @"Unable to open file!";
 
 	/********** open files, read header, ensure source is a Doc file *****/
 
@@ -150,8 +285,75 @@ int decodeToString(NSString * src, NSMutableString * dest)
 		if ( fread( &header, DatabaseHdrSize, 1, fin ) != 1 )
 			break;
 
-		if ( strncmp( header.type,    DOC_TYPE,    sizeof header.type ) ||
-			 strncmp( header.creator, DOC_CREATOR, sizeof header.creator ) )
+		// Return the type and creator ...
+		if (!strncmp( header.type, DOC_TYPE, 4 ) )
+			*type = [[NSString alloc] initWithBytesNoCopy:header.type length:8 encoding:kCGEncodingMacRoman freeWhenDone:NO];
+
+		else if (!strncmp( header.type, "PNRdPPrs", 8 ) )
+			*type = @"eReader";
+
+		else if (!strncmp( header.type, "ToGoToGo", 8 ) )
+			*type = @"iSilo";
+
+		else if (!strncmp( header.type, "SDocSilX", 8 ) )
+			*type = @"iSilo 3";
+
+		else if (!strncmp( header.type, "DataPlkr", 8 ) )
+			*type = @"Plucker";
+
+		else if (!strncmp( header.type, "ToRaTRPW", 8 ) )
+			*type = @"TomeRaider";
+
+		else if (!strncmp( header.type, "BDOCWrdS", 8 ) )
+			*type = @"WordSmith";
+
+		else if (!strncmp( header.type, "BOOKMOBI", 8 ) )
+			*type = @"MobiPocket";
+
+		else if (!strncmp( header.type, "zTXTGPlm", 8 ) )
+			*type = @"Weasel zTXT";
+
+		else if (!strncmp( header.type, "DB99DBOS", 8 ) )
+			*type = @"DB (Database)";
+
+		else if (!strncmp( header.type, "JbDbJBas", 8 ) )
+			*type = @"JFile";
+
+		else if (!strncmp( header.type, "JfDbJFil", 8 ) )
+			*type = @"JFile Pro";
+
+		else if (!strncmp( header.type, "DATALSdb", 8 ) )
+			*type = @"List (Database)";
+
+		else if (!strncmp( header.type, "Mdb1Mdb1", 8 ) )
+			*type = @"Mobile DB";
+
+		else if (!strncmp( header.type, "DataSprd", 8 ) )
+			*type = @"Quick Sheet";
+
+		else if (!strncmp( header.type, "InfoTlIf", 8 ) )
+			*type = @"TealInfo";
+
+		else if (!strncmp( header.type, "dataTDBP", 8 ) )
+			*type = @"ThinkDB";
+
+		else if (!strncmp( header.type, "InfoINDB", 8 ) )
+			*type = @"InfoView";
+
+		else if (!strncmp( header.type, "SM01SMem", 8 ) )
+			*type = @"SuperMemo";
+
+		else if (!strncmp( header.type, "InfoINDB", 8 ) )
+			*type = @"InfoView";
+
+		else
+			// Unknown - return type and creator
+			*type = [[NSString alloc] initWithBytesNoCopy:header.type length:8 encoding:kCGEncodingMacRoman freeWhenDone:NO];
+		
+		// Note: Check for type=="TEXt" we will allow any creator
+		//       "REAd" is the old Palm Reader, while "TlDc" is Teal doc
+		if ( strncmp( header.type,    DOC_TYPE,    sizeof header.type ) 
+			 /* || strncmp( header.creator, DOC_CREATOR, sizeof header.creator ) */ )
 			break;
 
 		num_records = ntohs( header.recordList.numRecords ) - 1; /* w/o rec 0 */
@@ -279,20 +481,4 @@ int decodeToString(NSString * src, NSMutableString * dest)
 	b->data = new_data;
 	b->len = j;
 }
-
-/*****************************************************************************
- *
- *	Miscellaneous function(s)
- *
- *****************************************************************************/
-
-/* replacement for strstr() that deals with 0's in the data */
-Byte* mem_find( register Byte *t, int t_len, register Byte *m, int m_len ) {
-	register int i;
-	for ( i = t_len - m_len + 1; i > 0; --i, ++t )
-		if ( *t == *m && !memcmp( t, m, m_len ) )
-			return t;
-	return 0;
-}
-
 
