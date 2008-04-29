@@ -40,7 +40,7 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.4.0"
+#define TEXTREADER_VERSION  		@"0.4.1"
 
 #define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
 #define TEXTREADER_PARENT_DIR 		@".."

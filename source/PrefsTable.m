@@ -287,7 +287,7 @@
 	switch (button) {
 		case 0: // About
 			{
-				[trApp lockUIOrientation];
+				// [trApp lockUIOrientation];
 				NSString *Msg = [NSString stringWithFormat:
 				                          @"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
 				                          TEXTREADER_VERSION];

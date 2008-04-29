@@ -108,7 +108,7 @@
 } // threadShowSaving
 
 - (void) threadShowSaved {
-	[trApp lockUIOrientation];
+	//[trApp lockUIOrientation];
 	struct CGRect  rect     = [trApp getOrientedViewRect];
 	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 	[alertSheet setTitle:@"Finished"];
@@ -121,7 +121,7 @@
 }
 
 - (void) threadShowSaveErr {
-	[trApp lockUIOrientation];
+	//[trApp lockUIOrientation];
 	struct CGRect  rect     = [trApp getOrientedViewRect];
 	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 	[alertSheet setTitle:@"Error Saving File"];
@@ -134,7 +134,7 @@
 }
 
 - (void) threadShowURLErr {
-	[trApp lockUIOrientation];
+	//[trApp lockUIOrientation];
 	struct CGRect  rect     = [trApp getOrientedViewRect];
 	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 	[alertSheet setTitle:@"Error Loading From URL"];
@@ -229,7 +229,7 @@
 			// Name can not have embedded slashes
 			if (toFileName && [toFileName rangeOfString:@"/"].location != NSNotFound)
 			{
-				[trApp lockUIOrientation];
+				//[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
 				[alertSheet setBodyText:@"The Save As file name can not contain slashes."];
@@ -245,7 +245,7 @@
 			
 			if (!urlType && !saveAsType)
 			{
-				[trApp lockUIOrientation];
+				//[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
 				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .text, or .txt"];
@@ -273,7 +273,7 @@
 			theURL =[[NSURL alloc] initWithString:urlAddress];
 			if (!theURL)
 			{
-				[trApp lockUIOrientation];
+				//[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid URL"];
 				[alertSheet setBodyText:[NSString stringWithFormat:
@@ -286,7 +286,7 @@
 			}
 			
 			// Show the loading message box			
-			[trApp lockUIOrientation];
+			//[trApp lockUIOrientation];
 			wait = [[UIAlertSheet alloc] initWithFrame:rect];
 			[wait setTitle:@"Downloading ..."];
 			[wait setBodyText:[NSString stringWithFormat:

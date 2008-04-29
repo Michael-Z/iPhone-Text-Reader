@@ -448,16 +448,22 @@
 
 // Handle changes in orientation
 - (void)deviceOrientationChanged:(GSEvent*)event {
+
 	[super deviceOrientationChanged: event];
-	int newO = [UIHardware deviceOrientation: YES];
-	if (newO > 6 || newO < 0) 
-	   return;
+
+//	int newO = [UIHardware deviceOrientation: YES];
+//	if (newO > 6 || newO < 0) 
+//	   return;
+	   
 } // deviceOrientationChanged
 
 
 // Here's the recommended method for doing custom stuff when the screen's rotation has changed... 
 - (void) setUIOrientation: (int) o_code {
 	[super setUIOrientation: o_code];
+	
+	if ([self orientationLocked])
+	   return;
 	
 	if (![super isInitialized] || ([super getOrientation] == currentOrientation))
 		return;
@@ -667,6 +673,7 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
+  [self unlockUIOrientation];
   [sheet dismissAnimated:YES];
   [sheet release];
 } // alertSheet
