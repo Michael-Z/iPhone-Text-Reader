@@ -9,7 +9,7 @@ LDFLAGS	:= -lobjc -framework CoreFoundation -framework Foundation -framework UIK
 		   
 all:	${NAME}
 
-${NAME}:	UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o txt2pdbdoc.o PrefsTable.o ${NAME}.o
+${NAME}:	UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o txt2pdbdoc.o PrefsTable.o DownloadTable.o ${NAME}.o
 	$(LD) $(LDFLAGS) -o $@ $^
 	scp ${NAME} root@192.168.1.69:/Applications/${NAME}.app/.
 	
