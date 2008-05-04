@@ -6,12 +6,13 @@
 
 - (void)removeControlWillHideRemoveConfirmation:(id)fp8
 {
-    [ self _showDeleteOrInsertion:NO
-          withDisclosure:YES
-          animated:YES
-          isDelete:YES
-          andRemoveConfirmation:YES
-    ];
+	if ([[self title] length] > 0)
+		[ self _showDeleteOrInsertion:NO
+			  withDisclosure:YES
+			  animated:YES
+			  isDelete:YES
+			  andRemoveConfirmation:YES
+		];
 }
 
 - (void)_willBeDeleted
@@ -23,9 +24,9 @@
   if (table && [table getFileList])
   	fileName = [[table getFileList] objectAtIndex:row];   
        
-  if (fileName)
+  if (fileName && [fileName length])
   {
-	  NSString *path = [NSString stringWithFormat:@"%@%@", [table getPath], fileName];
+	  NSString *path = [[table getPath] stringByAppendingPathComponent:fileName];
 	  
 	  BOOL dir = false;
 	  BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&dir];
@@ -35,7 +36,7 @@
 		if(![[NSFileManager defaultManager] removeFileAtPath:path handler:nil]) 
 		{
 			NSString *errorMsg = [NSString stringWithFormat:
-										   @"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist and the write permissions for user \"mobile\" are set.", 
+										   @"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set.", 
 										   fileName, [table getPath]];
 			CGRect rect = [[UIWindow keyWindow] bounds];
 			UIAlertSheet * alertSheet = [[UIAlertSheet alloc] 
@@ -43,13 +44,37 @@
 			[alertSheet setTitle:@"Error deleting file"];
 			[alertSheet setBodyText:errorMsg];
 			[alertSheet addButtonWithTitle:@"OK"];
-			[alertSheet setDelegate:self];
+			[alertSheet setDelegate:table];
 			[alertSheet popupAlertAnimated:true];
 		}
 		else
-			[[table getTextReader] removeDefaults:fileName];
-	  }
-   }   
+		{
+		  [[table getTextReader] removeDefaults:fileName];
+		  
+		  // Kludge ... For some reason, removing the last entry from the fileList causes
+		  // an exception .. evrything else is OK
+		  //  [[table getFileList] removeObjectAtIndex: row];
+		  
+		  // Work around until I figure out what I'm doing wrong
+		  if (row < [[table getFileList] count]-1 &&
+		      [[[table getFileList] objectAtIndex:row+1] length] > 0)
+		    [[table getFileList] removeObjectAtIndex: row];
+		  else
+		  {
+			[ self setImage:nil ];
+			[ self setTitle:@"" ];		  	
+			[ self setDisclosureStyle:0 ];
+			[ self setShowDisclosure:NO ];
+			[ self setEnabled:NO ];
+			[[table getFileList] replaceObjectAtIndex:row withObject:@""];
+		  }
+		  
+		} // if !deleted/else
+		
+	  } // if exists
+	  
+   } // if fileName
+   
 } // _willBeDeleted
 
 
@@ -57,15 +82,6 @@
 - (void)setTable:(FileTable *)_table {
     table = _table;
 } // setTable
-
-
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
 
 
 @end

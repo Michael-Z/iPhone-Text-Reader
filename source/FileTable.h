@@ -17,6 +17,7 @@
     UITableColumn *colFilename;
 
     textReader *trApp;
+    UINavigationBar * navBar;
 }
 - (id)initWithFrame:(struct CGRect)rect;
 - (void)setPath:(NSString *)_path;
@@ -29,9 +30,10 @@
 - (void)dealloc;
 
 - (void) resize;
-- (void) setTextReader:(textReader*)tr;
 - (textReader*) getTextReader;
 - (NSMutableArray *) getFileList;
 
+- (void) setTextReader:(textReader*)tr;
+- (void) setNavBar:(UINavigationBar*)bar;
 @end
 

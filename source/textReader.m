@@ -98,6 +98,8 @@
 
 	[defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
 
+	[defaults setInteger:[textView getEncoding] forKey:TEXTREADER_ENCODING];
+
 	// Save currently open book so we can reopen it later
 	NSString * fileName = [textView getFileName];
 	if (fileName)
@@ -137,16 +139,16 @@
 
 	// Restore font prefs
 	int fontSize = [defaults integerForKey:TEXTREADER_FONTSIZE];
-	if (fontSize < 1 || fontSize > 40)
-		[textView setFontSize:TEXTREADER_DFLT_FONTSIZE];
-	else
-		[textView setFontSize:fontSize];
+	if (fontSize < 8 || fontSize > 40)
+		fontSize = TEXTREADER_DFLT_FONTSIZE;
 
 	NSString * font = [defaults stringForKey:TEXTREADER_FONT];
-	if (!font || [font length] < 4)
-		[textView setFont:TEXTREADER_DFLT_FONT];
-	else
-		[textView setFont:font];
+	if (!font || [font length] < 1)
+		font = TEXTREADER_DFLT_FONT;
+
+	[textView setFont:font size:fontSize];
+		
+	[textView setEncoding:[defaults integerForKey:TEXTREADER_ENCODING]];
 
 	// Open last opened file at last position
 	NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
@@ -270,10 +272,9 @@
 				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
 				fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
 
-				if ([textView getFilePath])
-					[fileTable setPath:[textView getFilePath]];
-				else
-					[fileTable setPath:TEXTREADER_DEF_PATH];
+				[fileTable setNavBar:fileBar];
+				
+				[fileTable setPath:[textView getFilePath]];
 				
 				[fileTable setTextReader:self];
 				[fileTable reloadData];
@@ -308,8 +309,8 @@
 				{
 					navBarRect.origin.y = FSrect.size.height - navBarRect.size.height;
 					[slider setFrame: navBarRect];
-					[slider setMaxValue:[[textView getText] length]];
-					[slider setValue:[textView getStart]];	
+					[slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
+					[slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];	
 					[slider setAlpha:1];
 				}
 				else
@@ -414,7 +415,7 @@
 	[textView addSubview:slider];	
 	
 	[super setInitialized: true];	
-
+	
 	[self loadDefaults];	
 	
 } // applicationDidFinishLaunching
@@ -422,7 +423,12 @@
 
 - (void) handleSlider: (id)whatever
 {
-	[textView setStart:[slider value]];
+	//[textView setStart:[slider value]];
+
+	int pos = MIN([[textView getText] length], [slider value]*TEXTREADER_SLIDERSCALE);
+	
+	[textView setStart:pos];
+	
 } // handleSlider
 
 
@@ -649,7 +655,8 @@
 		if (![ext compare:@"txt" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypeTXT;
 			
-		else if (![ext compare:@"pdb" options:kCFCompareCaseInsensitive ])
+		else if (![ext compare:@"pdb" options:kCFCompareCaseInsensitive ] ||
+		         ![ext compare:@"prc" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypePDB;
 		
 		//[ext release];

@@ -39,21 +39,9 @@
 
 typedef unsigned char Byte;
 
-//#if	SIZEOF_UNSIGNED_SHORT == 2
-//typedef unsigned short Word;
 typedef uint16_t Word;
-//#else
-//#error machine does not seem to support a 16-bit integral type
-//#endif
-//
-//#if	SIZEOF_UNSIGNED_INT == 4
-//typedef unsigned int DWord;
 typedef uint32_t DWord;
-//#elif	SIZE_OF_UNSIGNED_LONG == 4
-//typedef unsigned long DWord;
-//#else
-//#error machine does not seem to support a 32-bit integral type
-//#endif
+
 
 /********** Other stuff ******************************************************/
 
@@ -260,7 +248,7 @@ void		uncompress( buffer* );
 // 0 == success
 // 1 == error 
 // 2 == invalid format
-int decodeToString(NSString * src, NSMutableString * dest, NSString ** type)
+int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 {
 	buffer			buf = {0};
 	int		    	compression;
@@ -374,6 +362,10 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type)
 		if ( compression != COMPRESSED && compression != UNCOMPRESSED )
 			break;
 
+
+		*dest = [[NSMutableData alloc] initWithCapacity: rec0.rec_size * rec0.num_records];
+
+
 		/********* read Doc file record-by-record ****************************/
 
 		fseek( fin, 0, SEEK_END );
@@ -419,7 +411,8 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type)
 			if ( compression == COMPRESSED )
 				uncompress( &buf );
 
-			[dest appendString:[[NSString alloc] initWithBytesNoCopy:buf.data length:buf.len encoding:kCGEncodingMacRoman freeWhenDone:NO]];
+			//[dest appendString:[[NSString alloc] initWithBytesNoCopy:buf.data length:buf.len encoding:encoding freeWhenDone:NO]];
+			[*dest appendBytes:buf.data length:buf.len];
 		}
 
 		FREE_BUFFER( &buf );

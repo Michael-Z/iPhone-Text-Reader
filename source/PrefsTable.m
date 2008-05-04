@@ -45,7 +45,8 @@
         case(0):
         	// Font
         	// Font Size
-            return 2; 
+        	// Encoding
+            return 3; 
 
         case(1):
         	// Invert
@@ -71,7 +72,7 @@
      groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
      switch (group) {
          case (0):
-             [ groupcell[group] setTitle: @"Font Settings" ];
+             [ groupcell[group] setTitle: @"Text Settings" ];
              break;
          case (1):
              [ groupcell[group] setTitle: @"Display Settings" ];
@@ -111,12 +112,14 @@
 	int           i    = [self selectedRow];
 	struct CGRect rect = [trApp getOrientedViewRect];
 	
+	if (pickerView)
+		[pickerView release];
+	pickerView = nil;
+	
 	switch (i)
 	{
 		case 1: // font
 			{	
-				if (pickerView)
-					[pickerView release];
 				pickerView = [[MyPickerView alloc] initWithFrame:rect];
 				[pickerView setDelegate: self];
 				[pickerView setType:kPicker_Type_Font];
@@ -128,11 +131,20 @@
 
 		case 2: // font Size
 			{	
-				if (pickerView)
-					[pickerView release];
 				pickerView = [[MyPickerView alloc] initWithFrame:rect];
 				[pickerView setDelegate: self];
 				[pickerView setType:kPicker_Type_FontSize];
+				[pickerView setPrefs:self];
+
+				[self addSubview:pickerView];		
+			}				
+			break;
+
+		case 3: // Encoding
+			{	
+				pickerView = [[MyPickerView alloc] initWithFrame:rect];
+				[pickerView setDelegate: self];
+				[pickerView setType:kPicker_Type_Encoding];
 				[pickerView setPrefs:self];
 
 				[self addSubview:pickerView];		
@@ -161,7 +173,9 @@
 
 - (UIPickerTableCell*) pickerView:(UIPickerView*)picker tableCellForRow:(int)row inColumn:(int)column{
 	UIPickerTableCell *cell = [[UIPickerTableCell alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 32.0f)];
-	[cell setTitle:[[pickerView getDataArray] objectAtIndex:row]];
+	
+    [cell setTitle:[[pickerView getDataArray] objectAtIndex:row]];
+	
 	[cell setSelectionStyle:0];
 	[cell setShowSelection:YES];
 	[[cell iconImageView] setFrame:CGRectMake(0,0,0,0)];
@@ -191,6 +205,7 @@
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:@"Font" ];
                     [ cell setValue:[textView getFont] ];
+					// [ cell setEnabled:NO];
 					[ cell setShowDisclosure:YES];
 					fontCell = cell;
                     break;
@@ -201,6 +216,14 @@
                     [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
 					[ cell setShowDisclosure:YES];
 					fontSizeCell = cell;
+                    break;
+                case (2):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:@"Encoding" ];
+                    [ cell setValue:[NSString localizedNameOfStringEncoding:[textView getEncoding]] ];
+					[ cell setShowDisclosure:YES];
+					encodingCell = cell;
                     break;
            }
            break;
@@ -282,6 +305,20 @@
 } // resize
 
 
+- (NSStringEncoding)encodingFromString:(NSString *)string {
+	const NSStringEncoding * enc = [NSString availableStringEncodings];
+		
+	while (enc && *enc)
+	{
+		if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
+		   break;
+		enc++;
+	}
+	
+	return (enc && *enc) ? *enc : kCGEncodingMacRoman;
+} // encodingFromString
+
+
 - (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button 
 {
 	switch (button) {
@@ -316,13 +353,13 @@
 			[textView setIgnoreNewLine:[ignoreNewLine value]];
 			[textView setPadMargins:[padMargins value]];
 			
-			if ([[fontCell value] length] > 4)
-				[textView setFont:[fontCell value]];
+			NSString * font  = [fontCell value];
+			int        size  = [[fontSizeCell value] intValue];
 			
-			int fontSize = [[fontSizeCell value] intValue];
-			if (fontSize >= 8 && fontSize <= 34)
-				[textView setFontSize:fontSize];
+			[textView setFont:font size:size];
 			
+			[textView setEncoding:[self encodingFromString:[encodingCell value]]];
+
 			[trApp showView:My_Info_View];
 			break;
 	} // switch
@@ -342,6 +379,15 @@
 
 - (void) setFont:(NSString*)font {
 	[ fontCell setValue:font ];
+} // setFont
+
+
+- (void) setEncoding:(NSString*)enc {
+	[ encodingCell setValue:enc ];
+	
+// 	// Force font to arial ?!?!?!
+// 	[ fontCell setValue:@"arialuni" ];
+	
 } // setFont
 
 
@@ -373,6 +419,10 @@
 		case kPicker_Type_None:
 			break;
 
+		case kPicker_Type_Encoding:
+			[ prefsTable setEncoding:[dataArray  objectAtIndex:row] ];
+			break;
+			
 		case kPicker_Type_Font:
 			[ prefsTable setFont:[dataArray  objectAtIndex:row] ];
 			break;
@@ -415,13 +465,13 @@
 					@"HelveticaNeueBold.ttf",
 					@"PhonepadTwo.ttf",
 					@"LockClock.ttf",
-					@"arialuni.ttf",
+					// @"arialuni.ttf",
 					@"Zapfino.ttf", nil];
 
 				for (font = [enumerator nextObject]; font; font = [enumerator nextObject])
 				{
-					if ([[font pathExtension] isEqualToString:@"ttf"] &&
-					    ![badFonts containsObject:font])
+					if ( [[font pathExtension] isEqualToString:@"ttf"] 
+					     && ![badFonts containsObject:font] )
 					{
 						[dataArray addObject:[font stringByDeletingPathExtension]];
 					}
@@ -433,9 +483,24 @@
 			for(i=12; i<=32; i+=2)
 				[dataArray addObject:[NSString stringWithFormat:@"%i", i]];
 			break;
+
+		case kPicker_Type_Encoding:
+			{
+				// Add a list of available encodings to the data array
+				const NSStringEncoding *enc = [NSString availableStringEncodings];
+
+				while (enc && *enc)
+				   [dataArray addObject:[NSString localizedNameOfStringEncoding:*(enc++)]];
+			}
+			break;			
 	}
 	
 } // setType
+
+
+- (PickerType) getType {
+	return type;
+} // getType
 
 
 -(void) setPrefs:(MyPreferencesTable*)prefs {

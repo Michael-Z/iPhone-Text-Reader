@@ -40,7 +40,7 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.4.1"
+#define TEXTREADER_VERSION  		@"0.5.0"
 
 #define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
 #define TEXTREADER_PARENT_DIR 		@".."
@@ -48,6 +48,7 @@
 
 #define TEXTREADER_DFLT_FONT   		@"CourierNewBold"
 #define TEXTREADER_DFLT_FONTSIZE 	20
+#define TEXTREADER_DFLT_ENCODING 	kCGEncodingMacRoman
 
 
 #define TEXTREADER_COLOR    		@"color"
@@ -56,9 +57,12 @@
 
 #define TEXTREADER_FONT 			@"font"
 #define TEXTREADER_FONTSIZE 		@"fontSize"
+#define TEXTREADER_ENCODING 		@"encoding"
 
 #define TEXTREADER_OPENFILE 		@"OpenFileName"
 #define TEXTREADER_OPENPATH    		@"OpenFilePath"
+
+#define TEXTREADER_SLIDERSCALE 		256
 
 
 typedef enum _TextFileType {

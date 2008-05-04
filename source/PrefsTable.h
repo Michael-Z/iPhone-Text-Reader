@@ -26,7 +26,8 @@
 typedef enum _PickerType {
 	kPicker_Type_None     = 0,
 	kPicker_Type_Font     = 1,
-	kPicker_Type_FontSize = 2
+	kPicker_Type_FontSize = 2,
+	kPicker_Type_Encoding = 3
 } PickerType;
 
 // **********************************************************************
@@ -44,6 +45,7 @@ typedef enum _PickerType {
 -(BOOL)table:(UIPickerTable*)table canSelectRow:(int)row;
 
 -(void) setType:(PickerType)theType;
+-(PickerType) getType;
 -(void) setPrefs:(MyPreferencesTable*)prefs;
 -(NSMutableArray*) getDataArray;
 
@@ -69,6 +71,7 @@ typedef enum _PickerType {
 
 	UIPreferencesTableCell *fontCell;
 	UIPreferencesTableCell *fontSizeCell;
+	UIPreferencesTableCell *encodingCell;
 
 } // MyPreferencesTable
 
@@ -87,6 +90,7 @@ typedef enum _PickerType {
 - (void) setTextView:(MyTextView*)tv;
 - (void) resize;
 
+- (void) setEncoding:(NSString*)enc;
 - (void) setFont:(NSString*)font;
 - (void) setFontSize:(NSString*)fontSize;
 

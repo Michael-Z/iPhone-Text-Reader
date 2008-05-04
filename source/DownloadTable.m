@@ -171,9 +171,7 @@
 	else
 	{	
 		// Figure out where to save the file
-		fullPath = [NSString stringWithFormat:
-							  @"%@%@",
-							  TEXTREADER_DEF_PATH, toFileName];
+		fullPath = [TEXTREADER_DEF_PATH stringByAppendingPathComponent:toFileName];							  
 						
 		// Switch to showing the saving ... msg
 		[self performSelectorOnMainThread:@selector(threadShowSaving) 

@@ -28,6 +28,9 @@
 #import "textReader.h"
 #import "MyTextView.h"
 
+#import <UIKit/UIKit.h>
+
+
 // *****************************************************************************
 @implementation MyTextView
 
@@ -45,8 +48,11 @@
     screenLock = [[NSLock alloc] init];
 
 	color    = 0;
+	gsFont   = nil;
 	font     = TEXTREADER_DFLT_FONT;
 	fontSize = TEXTREADER_DFLT_FONTSIZE;
+	
+	encoding = TEXTREADER_DFLT_ENCODING;
 	
 	start = end = 0;
 	trApp = nil;
@@ -54,9 +60,9 @@
 	fileName = nil;
 	filePath = [TEXTREADER_DEF_PATH copy];
 	
-	// Make sure default directory exists
-	BOOL dir = true;
-	if (![[NSFileManager defaultManager] fileExistsAtPath:TEXTREADER_DEF_PATH isDirectory:&dir])
+//	// Make sure default directory exists
+//	BOOL dir = true;
+//	if (![[NSFileManager defaultManager] fileExistsAtPath:TEXTREADER_DEF_PATH isDirectory:&dir])
 		[[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
 	
     return [super initWithFrame:rect];
@@ -149,165 +155,83 @@
 } // fillBkgGroundRect
 
 
-- (char) currentChar:(int)current loops:(int)loops{
-	char nextc = 0x00;			
-	if (loops)
+typedef enum _Direction {
+	kDirectionDone     = 0,
+	kDirectionForward  = 1,
+	kDirectionBackward = 2
+} Direction;
+
+- (unichar) currentChar:(int)current direction:(Direction)dir {
+	
+	unichar c = 0x00;	
+	
+	if (dir==kDirectionBackward)
 	{
 		if (current >= 0)
-			nextc = [text characterAtIndex:current];
+			c = [text characterAtIndex:current];
 	}
 	else
 	{
 		if (current+1 < [text length])
-			nextc = [text characterAtIndex:current];
+			c = [text characterAtIndex:current];
 	}
-	return nextc;
+	return c;
+	
 } // currentChar
 
 
-// Missing Prototype ...
-struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize);
-
-
-
-/*
-- (void)drawRect:(struct CGRect)rect
-{
-	int fSize = 26.;
-//	struct __GSFont * gsFont = GSFontCreateWithName("arialuni", fSize, 20.);
-	
-	[screenLock lock];
-	
- 	CGSize viewSize = [trApp getOrientedViewSize];
-
-   	CGContextRef context = UICurrentContext();
-
-  	CGContextSelectFont(context, 
-	  				    "arialuni", 
-	 				    fSize,
-	 				    kCGEncodingMacRoman);
-	
-//	CGContextSetFont(context, (CGFontRef)gsFont);
-
-	CGContextSetFontSize(context, fSize);
-	
-
-    CGAffineTransform myTextTransform = CGAffineTransformMake(1, 0, 0, -1, 0, viewSize.height/30);
-   	CGContextSetTextMatrix(context, myTextTransform);
-
-   	int lineHeight = fSize * 1.2; // Blech!!! Figure this properly!!!
-   	int lines      = viewSize.height / lineHeight;
-   	int width      = viewSize.width;
-   	int line;
-   	  	
-    struct CGRect lineRect = CGRectMake(0, 0, width, lineHeight);
-
- 	[self fillBkgGroundRect:context rect:lineRect];
- 	
-	int character = 0; 	
-	
-  	for (line = 0; line < lines; line++) 
-	{
-		lineRect = CGRectMake(0, line * lineHeight, width, lineHeight);
-
-		[self fillBkgGroundRect:context 
-			  rect:CGRectMake(lineRect.origin.x, lineRect.origin.y + fontSize, 
-							  lineRect.size.width, lineRect.size.height)];
-
-		CGContextSetTextPosition(context, 0, (line + 1) * lineHeight);
-
-		int j;
-		for (j = 0; j < 0x10; j++)
-		{
-		   	CGGlyph glyph;
-
-			// Draw this character ...
-			if (current < 0)
-				glyph = 0;
-			else
-				glyph = current;
-				
-			CGContextShowGlyphs(context, &glyph, 1);			
-			
-//			struct CGPoint endPoint = CGContextGetTextPosition(context);
-//			if (endPoint.x > width)
-//			{
-//				glyph--;
-//				break;
-//			}
-
-			current++;
-			
-		} 
-		
-	} // for line
-	
-   	[screenLock unlock];
-  
-   	return [super drawRect:rect];  
-   	
-} // drawRect
-*/
-
+// Missing Prototypes ...
+struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float ptsize);
+// bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
+// extern CGFontRef CGContextGetFont(CGContextRef);
+// extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
 
 
 - (void)drawRect:(struct CGRect)rect
 {
+	// These are used below to blank bkgrnd and draw text
+	CGSize          used;
+	NSString      * x;
+    struct CGRect   lineRect;
+	
 	// If no text, nothing to do ...
-	if (!text || !trApp)
+	if (!text || !trApp || !gsFont)
 	   return [super drawRect:rect];
 
 	[screenLock lock];
 	
+	CGPoint currentPt = CGPointMake(0,0);
 	CGSize viewSize = [trApp getOrientedViewSize];
 
   	CGContextRef context = UICurrentContext();
 
-  	CGContextSelectFont(context, 
-	  				    [font cStringUsingEncoding:kCGEncodingMacRoman], 
-	 				    fontSize,
-	 				    kCGEncodingMacRoman);
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
 
-   CGAffineTransform myTextTransform;
-
-   // Flip text, for some reason its written upside down by default
-   myTextTransform = CGAffineTransformMake(1, 0, 0, -1, 0, viewSize.height/30);
-   CGContextSetTextMatrix(context, myTextTransform);
-
-   int lineHeight = fontSize * 1.2; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
    int width      = viewSize.width;
-   int line, loops, current;
-   int pad = padMargins ? 10 : 0;
-  
+   int hpad       = padMargins ? 10 : 0;
+   int vpad       = (viewSize.height - lineHeight*lines) / 2;
+   int line, current;
+   Direction dir;
+
    // Handle pageup by looping twice
-   loops = pageUp ? 2 : 1;
+   dir = pageUp ? kDirectionBackward : kDirectionForward;
+
+   // Blank the top "pad" portion of the screen
+   lineRect = CGRectMake(0, 0, width, vpad);
+   [self fillBkgGroundRect:context rect:lineRect];
 
    // First loop is invisible going backwards figuring a new start for pageUp
    // Second loop writes text
-   while (loops--)	
+   while (dir)	
    {
   	   struct CGPoint lastBlankPoint;
 	   int            lastBlankIndex;
-	   int afterCrLf  = false;
+	   int            afterCrLf = false;
 	   
-	   current = loops ? MAX(0,start-1) : start;
-
-   	   // First loop is just for calculating, so don't draw the text
-	   CGContextSetTextDrawingMode(context, loops ? kCGTextInvisible : kCGTextFill);
-	   
-	  // Blank the first line so we can get creative on avoiding cutting off
-	  // descenders ... 
-	  struct CGRect lineRect = CGRectMake(0, 0, width, lineHeight);
-	  
-	  if (!loops)
-	  	 [self fillBkgGroundRect:context rect:lineRect];
-
-// JIMB BUG BUG - change the code to allow drawing a single line at a time
-// (in either direction - we just need to set a member var and use it to control
-// the line along with the 2pass loops code below to calculate the new start position
-// This will allow us to change this to a UIScroller and allow us to get the fancy scrolling
-// in addition to the current stuff
+	   current = dir==kDirectionBackward ? MAX(0,start-1) : start;
 
 // JIMB BUG BUG - optimize this!  Only draw lines that are in the visible rect!
 // (Too much trouble for now, plus it seems fast enough as is ...)
@@ -322,35 +246,32 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 // We really want this to cover the writing for this line (with descenders), but 
 // not take out the descenders from the line above.
 		// Update lineRect - it can get munged when we blank the end of the line
-		lineRect = CGRectMake(0, line * lineHeight, width, lineHeight);
+		lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
 
-		// Fudge this a bit to preserve descenders written above this line
-  	    if (!loops)
-			[self fillBkgGroundRect:context 
-				  rect:CGRectMake(lineRect.origin.x, lineRect.origin.y + fontSize, 
-								  lineRect.size.width, lineRect.size.height)];
+  	    if (dir==kDirectionForward)
+			[self fillBkgGroundRect:context rect:lineRect];
 
-		CGContextSetTextPosition(context, pad, (line + 1) * lineHeight);
+		currentPt = CGPointMake(hpad, vpad + line * lineHeight);
 
-		while  ( (loops && (current > 0)) || 
-		         (!loops && (current < [text length])))
+		while  ( (dir==kDirectionBackward && (current > 0)) || 
+		         (dir==kDirectionForward && (current < [text length])))
 		{
-			struct CGPoint beginPoint = CGContextGetTextPosition(context);
-			char c = [self currentChar:current loops:loops];
+			struct CGPoint beginPoint = currentPt;
+			unichar c = [self currentChar:current direction:dir];
 
 			// Move backwards or forwards as needed
-			current = loops ? MAX(0,current-1) : current+1;
+			current = dir==kDirectionBackward ? MAX(0,current-1) : current+1;
 
 			// Find the next character
-			char nextc = [self currentChar:current loops:loops];
+			unichar nextc = [self currentChar:current direction:dir];
 			
 			// Special case for Windows CRLF x0d0a- only use one
-			if (loops)
+			if (dir==kDirectionBackward)
 			{
 				if (c == 0x0a && nextc == 0x0d)
 				{
 					current--;
-					nextc = [self currentChar:current loops:loops];
+					nextc = [self currentChar:current direction:dir];
 				}
 			}
 			else
@@ -358,10 +279,9 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 				if (c == 0x0d && nextc == 0x0a)
 				{
 					current++;
-					nextc = [self currentChar:current loops:loops];
+					nextc = [self currentChar:current direction:dir];
 				}
 			}
-
 
 			// Handle ignore single LF option
 			if (ignoreNewLine && (c == '\n' || c == 0x0d || c == 0x0a))
@@ -392,26 +312,37 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 			if (c == ' ' || c == '\t')
 			{
 				lastBlankIndex = current; // this is actually 1 past ...
-				lastBlankPoint = CGContextGetTextPosition(context);
+				lastBlankPoint = currentPt;
 			}
 
 			// At this point, we are going to try to write something ...
 			emptyLine = false;
 			afterCrLf = false;
 
-			if (c == '\t')		
-				CGContextShowText(context, "    ", 4);	
-			else if (c)
-				CGContextShowText(context, &c, 1);
-			
-			struct CGPoint endPoint = CGContextGetTextPosition(context);
-			if (endPoint.x > (width-pad))
+			// Get the substring we want to draw ...
+			// special case a tab as 4 blanks (should we do "real" tab stops?!?!?)
+			if (c == '\t')
+				x = @"   ";
+			else
+				x = [NSString stringWithCharacters:&c length:1];
+
+			// Draw the text, or just get bounding box if we are looping ...
+			if (dir==kDirectionBackward)
+				used = [x sizeWithFont:gsFont];
+			else
+				used = [x drawAtPoint:currentPt withFont:gsFont];
+
+			// Update the current position at the end of the text we drew
+			currentPt.x += used.width;
+		
+			struct CGPoint endPoint = currentPt;
+			if (endPoint.x > (width-hpad))
 			{
 				// Can we back up to a blank?
 				if (lastBlankIndex > 0)
 				{
 					// plus one skips this space
-					current    = loops ? MAX(0,lastBlankIndex-1) : lastBlankIndex+1; 
+					current    = dir==kDirectionBackward ? MAX(0,lastBlankIndex-1) : lastBlankIndex+1; 
 					beginPoint = lastBlankPoint;
 				}
 				else
@@ -423,21 +354,17 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 // probably be enough.  Two plus partial ought to always be sufficient ...
 				}
 
-				// Extend lineRect down to make sure we clean up any descenders
-				lineRect.size.height += fontSize;
-
-// JIMB BUG BUG - use font metrics to figure this out properly
-// - then we can clean up the lineRect definition and use the same 
-// y-origin and height throughout this routine
-				// KLUDGE: For now, just add a percentage of fontSize to 
-				// origin-y and hope for the best ...
-				lineRect.origin.y += fontSize * 0.2;
-
-				// Erase the last partial character(s) (back to last blank if possible)
-				lineRect.origin.x = beginPoint.x;
-				if (!loops)
+				// No need to erase if going backwards
+				if (dir==kDirectionForward)
+				{
+					// Erase the last partial character(s) (back to last blank if possible)
+					lineRect.origin.x = beginPoint.x;
 					[self fillBkgGroundRect:context rect:lineRect];
-				current = loops ? MAX(0,current+1) : current-1;
+				}
+				
+				// Save the new current position 
+				// (i.e. before the one that put us past the edge)
+				current = dir==kDirectionBackward ? MAX(0,current+1) : current-1;
 				break;
 			}
 
@@ -446,18 +373,24 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 	  } // for each line
 	
 	  // reset the start of the previous page we just calculated
-	  if (loops)
+	  if (dir==kDirectionBackward)
 	  {  	
 	    // Make sure we are starting after the last blank space
-	    // for this line (32 is arbitrary)
 	    if (lastBlankIndex > 0)
 	    	current = lastBlankIndex+1;
 	  	
 	    // save this as our new start position
 		start = MIN(MAX(0,current),[text length]);
       }
+      
+      // We are done with this direction ... any more?
+      dir--;
 		
-   } // while loops
+   } // while direction
+
+   // Blank any remaining space at the bottom of the screen
+   lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
+   [self fillBkgGroundRect:context rect:lineRect];
 
    // Remember the last text we display
    end = current;
@@ -470,7 +403,6 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
    return [super drawRect:rect];
   
 } // drawRect
-
 
 
 
@@ -488,7 +420,7 @@ struct __GSFont * GSFontCreateWithName( char * fontname, int style, float ptsize
 
 
 // Prototype for the PDB decode function
-int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
+int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 
 
 
@@ -506,19 +438,20 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
     else
     {
     	// Build the full path
-		NSString *fullpath = [NSString stringWithFormat:@"%@%@", path, name];
+	    NSString *fullpath = [path stringByAppendingPathComponent:name];
 
 		// Read in the requested file ...
 		if ([trApp getFileType:fullpath] == kTextFileTypePDB)
 		{
-			newText = [[NSMutableString alloc] initWithString:@""];
-			NSString * type = nil;
+			NSMutableData   * data = nil;
+			NSString        * type = nil;
 			
-			int rc = decodeToString(fullpath, newText, &type);
+			int rc = decodeToString(fullpath, &data, &type);
 			if (rc)
 			{
-				[newText release];
-				newText = nil;
+				if (data)
+					[data release];
+				data = nil;
 
 				// Handle invalid format ...				
 				if (rc == 2)
@@ -533,18 +466,33 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
 					[alertSheet addButtonWithTitle:@"OK"];
 					[alertSheet setDelegate:self];
 					[alertSheet popupAlertAnimated:YES];
-
+					
 					return false;
-				}				
+				}
 			}
+			else
+				newText = [[NSMutableString alloc] initWithData:data encoding:encoding];
+				
+			if (data)
+				[data release];
 		}
 		else
+		{
 			// Read in the text file - let NSMutableString do the work
 			newText = [[NSMutableString 
 						stringWithContentsOfFile:fullpath
-						encoding:kCGEncodingMacRoman
-						error:&error] retain];
+						encoding:encoding
+						error:&error] retain];			
+		}
+		
+		// An empty string probably meant it didn't get loaded properly ...
+		if (newText && ![newText length])
+		{
+			[newText release];
+			newText = nil;
+		}
 
+		// Set up the new document
 		if (newText)
 		{
 			// Get the new text ...
@@ -573,8 +521,8 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
 	}
 
 	NSString *errorMsg = [NSString stringWithFormat:
-	                               @"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist and the read permissions for user \"mobile\" are set.", 
-	                               name, path];
+	                               @"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding.", 
+	                               name, path, [NSString localizedNameOfStringEncoding:encoding]];
 	CGRect rect = [[UIWindow keyWindow] bounds];
 	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
 	[alertSheet setTitle:@"Error opening file"];
@@ -601,12 +549,67 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
 } // getFont
 
 
-- (bool)setFont:(NSString*)newFont {
-	// JIMB BUG BUG - implement this!!!
-	font = [newFont copy];
-	[self setNeedsDisplay];
+- (NSStringEncoding)getEncoding {
+	return encoding;
+} // getEncoding
 
+
+- (bool)setEncoding:(NSStringEncoding)enc {
+	
+	if (!enc)
+		enc = kCGEncodingMacRoman;
+		
+	encoding = enc;
+	
+// JIMB BUG BUG reopen the book!!!!???!!!
+
+	[self setNeedsDisplay];
+	
 	return true;
+} // setEncoding
+
+
+// typedef enum {
+//     kGSFontTraitNone = 0,
+//     kGSFontTraitItalic = 1,
+//     kGSFontTraitBold = 2,
+//     kGSFontTraitBoldItalic = (kGSFontTraitBold | kGSFontTraitItalic)
+// } GSFontTrait;
+
+
+- (bool)setFont:(NSString*)newFont size:(int)size {
+
+	struct __GSFont * newgsFont;
+	
+	if (!newFont || [newFont length] < 1)
+		newFont = @"arialuni";
+	if (size < 8)
+		size = 8;
+	if (size > 32)
+		size = 32;
+	
+ 	newgsFont = GSFontCreateWithName([newFont cStringUsingEncoding:kCGEncodingMacRoman], 0, size);
+	if (newgsFont)
+	{
+		font = [newFont copy];
+		fontSize = size;
+		gsFont = newgsFont;
+		
+		[self setNeedsDisplay];
+		
+		return true;
+	}
+	
+	CGRect rect = [[UIWindow keyWindow] bounds];
+	UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
+	[alertSheet setTitle:@"Error"];
+	[alertSheet setBodyText:[NSString stringWithFormat:@"Unable to create font %@", font]];
+	[alertSheet addButtonWithTitle:@"OK"];
+	[alertSheet setDelegate:self];
+	[alertSheet popupAlertAnimated:YES];
+
+	return false;
+	
 } // setFont
 
 
@@ -614,14 +617,6 @@ int decodeToString(NSString * src, NSMutableString * dest, NSString ** type);
 	return fontSize;
 } // getFontSize
 
-
-- (bool)setFontSize:(int)newSize {
-	// JIMB BUG BUG - implement this!!!
-	fontSize = newSize;
-	[self setNeedsDisplay];
-
-	return true;
-} // setFontSize
 
 
 @end // @implementation MyTextView

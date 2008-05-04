@@ -28,54 +28,105 @@
         
         fileList = [ [ NSMutableArray alloc] init ];
     }
+    
+    path = nil;
 
     return self;
 } // initWithFrame
 
+- (void) setNavBar:(UINavigationBar*)bar {
+	navBar = bar;
+}
+
 
 - (void) setPath:(NSString *)_path {
-    path = [ _path copy ];
+
+	if (!_path || [_path length] < 1)
+		_path = TEXTREADER_DEF_PATH;
+
+
+	NSString * newPath = [_path copy];
+	if (path)
+		[path release];
+		
+    path = newPath;
 } // setPath
 
 
 - (NSString *)getPath {
 	return path;
-} // getPAth
+} // getPath
 
 
 - (void) reloadData {
     NSFileManager *fileManager = [ NSFileManager defaultManager ];
-    NSDirectoryEnumerator *dirEnum; 
-    NSString *file;
+    NSArray * contents;
     
     NSString * openFile = [trApp getFileName];
+    NSString * openPath = [trApp getFilePath];
     int highlight = -1;
+    int i;
+    
+    // Normalize the path ...
+    [self setPath:[path stringByStandardizingPath]];
+    [self setPath:[path stringByResolvingSymlinksInPath]];
 
-    if ([ fileManager fileExistsAtPath: path ] == NO) {
-        return;
+	// Make sure the path exists
+    if (!path || [fileManager fileExistsAtPath:path] == NO) {
+        [self setPath:TEXTREADER_DEF_PATH];
+  	    [[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];    
     } 
 
+	// If the paths are not the same, highlight the Download rather than looking for 
+	// a file match in thw wrong directory
+	if ([path compare:openPath]!=NSOrderedSame)
+	{
+		highlight = 0;
+	}
+
+
+	// Clean out the old entries
     [ fileList removeAllObjects ];
 
-	// Add download option!
+	// Update the path in the nav Bar (shorten path if possible)
+	[navBar pushNavigationItem:[[UINavigationItem alloc] initWithTitle:[path stringByAbbreviatingWithTildeInPath]]];
+
+	// Add download option to list
 	[fileList addObject:TEXTREADER_DOWNLOAD_TITLE];
  
-//	// Add parent directory option
-//	if ([path length] > 1)
-//		[fileList addObject:TEXTREADER_PARENT_DIR];
- 
-    dirEnum = [ [ NSFileManager defaultManager ] enumeratorAtPath: path ];
-    while ((file = [ dirEnum nextObject ])) {
-    
-        if ([trApp getFileType:file]) {
-        
-            [fileList addObject:file];
+	// Add parent directory option (unless we are at '/')
+	if ([path length] > 1)
+		[fileList addObject:TEXTREADER_PARENT_DIR];
+		
+	// Add directories
+	contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
+	for (i = 0; i < [contents count]; i++)
+	{
+		NSString * dir = [contents  objectAtIndex:i];
+		BOOL isDir = true;
+
+		if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:dir] isDirectory:&isDir] && isDir) {
+			[fileList addObject:dir];            
+		}
+	}
+
+	// Add files
+	contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
+	for (i = 0; i < [contents count]; i++)
+	{
+		NSString * file = [contents  objectAtIndex:i];
+		BOOL isDir = false;
+
+		if ([trApp getFileType:file] &&
+		    [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:file] isDirectory:&isDir] && 
+		    !isDir) {
+			[fileList addObject:file];
             
             // Is this the currently open book?
             if (openFile && (highlight < 0) && [openFile isEqualToString:file])
             	highlight = [fileList count];
-        }
-    }    
+		}
+	}
 
     [ super reloadData ];
     
@@ -85,6 +136,12 @@
 		[self scrollRowToVisible:highlight-1];
 		[self highlightRow:highlight-1];
 	}
+	else
+	{
+		[self scrollRowToVisible:0];
+		[self highlightRow:0];
+	}
+	
 } // reloadData
 
 
@@ -96,8 +153,10 @@
 - (UITableCell *)table:(UITable *)table 
   cellForRow:(int)row 
   column:(UITableColumn *)col
-{
+{  
     if (col == colFilename) {
+		BOOL isDir = true;
+    	
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
 
@@ -110,15 +169,34 @@
 				  initWithFormat: @"/Applications/%@.app/globedownload.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
+			[ cell setTitle: [ fileList objectAtIndex: row ] ];
 		}
-		else if ([[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]==NSOrderedSame)
+		
+		else if ([[fileList objectAtIndex:row] length] < 1) // ignore blank entries
+		{
+			// do nothing
+		}
+		
+		else if ([[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]==NSOrderedSame) // handle parent/up ...
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
 				  initWithContentsOfFile: [ [ NSString alloc ] 
 				  initWithFormat: @"/Applications/%@.app/folderup.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
+			[ cell setTitle: [ fileList objectAtIndex: row ] ];
 		}
+		
+		else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && isDir)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/folder.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+			[ cell setTitle: [fileList objectAtIndex:row] ];
+		}				
+		
 		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
@@ -126,7 +204,12 @@
 				  initWithFormat: @"/Applications/%@.app/txt.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
+			[ cell setTitle: [ [ fileList objectAtIndex: row ]
+							   stringByDeletingPathExtension ]];
+			[ cell setShowDisclosure: YES ];
+			[ cell setDisclosureStyle: 3 ];
 		}
+		
 		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
@@ -134,21 +217,15 @@
 				  initWithFormat: @"/Applications/%@.app/pdb.png", 
 								  TEXTREADER_NAME ] ];
 			[ cell setImage: image ];
-		}
-
-		// Set the text entry                              
-		[ cell setTitle: [ [ fileList objectAtIndex: row ]
-						   stringByDeletingPathExtension ]];
-						   
-		// Set the disclosure for this row
-		if (row != 0 && [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]!=NSOrderedSame) 
-		{
+			[ cell setTitle: [ [ fileList objectAtIndex: row ]
+							   stringByDeletingPathExtension ]];
 			[ cell setShowDisclosure: YES ];
 			[ cell setDisclosureStyle: 3 ];
 		}
 
         return [ cell autorelease ];
     } 
+    
 } // table
 
 
@@ -164,7 +241,12 @@
 
 	int row = [self rowAtPoint:point];
 	
-	if (row != 0)
+	BOOL isDir = true;
+	
+	if (row != 0 && // Download
+	    [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
+	    [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
+	    !isDir)// directory
 	{
 		UIDeletableCell *cell = [self visibleCellForRow:row column:0];
 
@@ -187,23 +269,43 @@
     viaEdge:(int)edge
     animateOthers:(BOOL)animate 
 {
-	if (row != 0)
+	BOOL isDir = true;
+	
+	if (row != 0 && // Download
+	    [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
+	    [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
+	    !isDir)// directory
 	{
-		[ fileList removeObjectAtIndex: row ];
-		[ super _willDeleteRow: row forTableCell: cell viaEdge: edge animateOthers: animate ];
+		//[ fileList removeObjectAtIndex: row ]; // now done in delete cell
+		[ super _willDeleteRow:row forTableCell:cell viaEdge:edge animateOthers:animate ];
+ 	    if (row >= [fileList count])
+			[self reloadData];
 	}
+	
 } // _willDeleteRow
 
 
 - (void)tableRowSelected:(NSNotification *)notification {
     NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
+	BOOL isDir = true;
 
 	// Handle download ...
 	if ([fileName isEqualToString:TEXTREADER_DOWNLOAD_TITLE])
 	{
 		[trApp showView:My_Download_View];
 	}
-	else
+	else if ([fileName length] < 1)
+	{
+		// Do nothing ... ignore blank entries ...
+	}
+	else if (([fileName compare:TEXTREADER_PARENT_DIR] == NSOrderedSame) || // folderup
+	         ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
+	          isDir)) // directory
+	{
+		[self setPath:[path stringByAppendingPathComponent:fileName]];
+		[self reloadData];
+	}
+	else // Must be a text or pdb file ...
 	{
 		// Open the selected file ...
 		[trApp openFile:fileName path:path start:[trApp getDefaultStart:fileName]];
@@ -244,6 +346,14 @@
 	
 } // resize
 
+
+// This view's alert sheets are just informational ...
+// Dismiss them without doing anything special
+- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
+{
+  [sheet dismissAnimated:YES];
+  [sheet release];
+} // alertSheet
 
 @end
 

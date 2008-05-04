@@ -49,7 +49,9 @@
 	int               start;
 	int               end;
 
+	NSStringEncoding  encoding;
 	NSString         *font;
+	struct __GSFont  *gsFont;
 	float             fontSize;
 	int               color;
 	bool              ignoreNewLine;
@@ -85,9 +87,12 @@
 - (NSString*)         getFilePath;
 
 - (NSString *)getFont;
-- (bool)setFont:(NSString*)newFont;
+- (bool)setFont:(NSString*)newFont size:(int)size;
+
+- (NSStringEncoding)getEncoding;
+- (bool)setEncoding:(NSStringEncoding)enc;
+
 - (int)getFontSize;
-- (bool)setFontSize:(int)newSize;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
