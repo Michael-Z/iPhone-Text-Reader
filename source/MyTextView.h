@@ -37,11 +37,16 @@
 #import <UIKit/UISliderControl.h>
 
 
+// Prototype for the PDB decode function
+int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
+
+
 @class textReader;
 
 // *****************************************************************************
 @interface MyTextView : UIView {
 
+	UIAlertSheet     *wait;
 	textReader   	 *trApp;
 	NSLock	         *screenLock;
 
@@ -78,7 +83,7 @@
 - (void) pageUp;
 - (void) pageDown;
 
-- (bool)              openFile:(NSString *)name path:(NSString *)path start:(int)startChar;
+- (bool)              openFile:(NSString *)name path:(NSString *)path;
 - (NSMutableString *) getText;
 - (void)              setStart:(int)newStart;
 - (int)               getStart;

@@ -246,7 +246,7 @@
 				//[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
-				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .text, or .txt"];
+				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .prc, .htm, .html, .text, or .txt"];
 				[alertSheet addButtonWithTitle:@"OK"];
 				[alertSheet setDelegate:trApp];
 				[alertSheet popupAlertAnimated:YES];
@@ -262,8 +262,7 @@
 		    // Add URL extension to save as file name if needed
 		    else if (!saveAsType)
 		    {
-		    	toFileName = [[toFileName stringByAppendingPathExtension: 
-		    	                             (urlType == kTextFileTypeTXT) ? @".txt" : @".pdb"] copy];
+		    	toFileName = [[toFileName stringByAppendingPathExtension:[urlAddress pathExtension]] copy]; 
 		    	saveAsType = urlType;
 		    }
 

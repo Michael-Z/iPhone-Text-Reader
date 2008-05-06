@@ -40,7 +40,8 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.5.0"
+#define TEXTREADER_VERSION  		@"0.6.0Beta1"
+#define TEXTREADER_CACHE_EXT        @"text"
 
 #define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
 #define TEXTREADER_PARENT_DIR 		@".."
@@ -64,11 +65,15 @@
 
 #define TEXTREADER_SLIDERSCALE 		256
 
+//#define TEXTREADER_GB2312			-2312
+//#define TEXTREADER_GB2312_NAME		@"Simplified Chinese (GB2312)"
+
 
 typedef enum _TextFileType {
 	kTextFileTypeUnknown = 0,
-	kTextFileTypeTXT = 1,
-	kTextFileTypePDB = 2
+	kTextFileTypeTXT  = 1,
+	kTextFileTypePDB  = 2,
+	kTextFileTypeHTML = 3
 } TextFileType;
 
 
@@ -113,7 +118,7 @@ typedef enum _MyViewName {
 - (id)   init;
 - (void) applicationWillSuspend;
 - (void) loadDefaults;
-- (bool) openFile:(NSString *)name path:(NSString *)path start:(int)startChar;
+- (bool) openFile:(NSString *)name path:(NSString *)path;
 - (int)  getDefaultStart:(NSString*)name;
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
 - (void) removeDefaults:(NSString*)name;

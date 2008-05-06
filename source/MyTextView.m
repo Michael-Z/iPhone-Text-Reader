@@ -30,6 +30,10 @@
 
 #import <UIKit/UIKit.h>
 
+typedef unsigned int NSUInteger;
+
+
+
 
 // *****************************************************************************
 @implementation MyTextView
@@ -47,6 +51,7 @@
 	
     screenLock = [[NSLock alloc] init];
 
+	wait     = nil;
 	color    = 0;
 	gsFont   = nil;
 	font     = TEXTREADER_DFLT_FONT;
@@ -172,7 +177,7 @@ typedef enum _Direction {
 	}
 	else
 	{
-		if (current+1 < [text length])
+		if (current < [text length])
 			c = [text characterAtIndex:current];
 	}
 	return c;
@@ -419,16 +424,458 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 
 
-// Prototype for the PDB decode function
-int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
+// Set the new text for this view
+- (void) setText:(NSMutableString  *)newText; {
 
+	[screenLock lock];
+	
+	if (text)
+		[text release];
+	text = newText;
+	
+	[screenLock unlock];
+
+	[self setNeedsDisplay];	
+
+} // newText
+			
+			
+// ---------------------------------------------
+// Thread specific code ...
+// ---------------------------------------------
+
+
+// findChar
+// Returns offset of char or 0 if not found
+NSUInteger getTag(NSString * str, NSUInteger start, NSUInteger end, char * upTag, char * lowTag)
+{
+	NSUInteger i, j;
+
+	// 0 means search to the end	
+	if (!end)
+		end = [str length];
+
+	// search to the end ...
+	while (true)
+	{
+		// Special case mixed case search
+		if (lowTag)
+		{
+			for (i = start; i < end; i++)
+			{
+				unichar c = [str characterAtIndex:i];
+				if (c==*upTag || c==*lowTag)
+					break;
+			}
+		}
+		else
+		{
+			for (i = start; i < end; i++)
+			{
+				if ([str characterAtIndex:i]==*upTag)
+					break;
+			}
+		}
+
+		// End of string ... not found ...
+		if (i >= end)
+			break;
+
+		// Found first char - the rest must follow
+		// Special case mixed case search
+		if (lowTag)
+		{
+			for (j = 1; upTag[j]; j++)
+			{
+				unichar c = [str characterAtIndex:i+j];
+				if (c!=upTag[j] && c!=lowTag[j])
+					break;
+			}
+		}
+		else
+		{
+			for (j = 1; upTag[j]; j++)
+			{
+				if ([str characterAtIndex:i+j]!=upTag[j])
+					break;
+			}
+		}
+		
+		// If we hit the end of the pattern, we found it!
+		if (!upTag[j])
+			return i;
+		
+		// Otherwise, we keep looking ...
+		start = i+1;
+	}
+	
+	// Return found position
+	return 0;
+	
+} // findTag
+
+
+// JIMB BUG BUG - rewrite this so it is sorted table driven!
+// There are way more than I planned to support ...
+
+
+// Adds the specified block of text from src to dest
+// Removes CR/LF
+// Converts &nbsp; &copy; &ndash; &mdash; &amp; &eacute; 
+// Adds other text "as-is"
+void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
+
+	NSRange added = {[dest length], 1};
+	
+	[dest appendString:[src substringWithRange:rtext]];
+	
+	while (added.location < [dest length])
+	{
+		unichar c = [dest characterAtIndex:added.location];
+		if (c==0x0a || c==0x0d)
+			[dest deleteCharactersInRange:added];
+		else if (c=='&')
+		{
+			// Expand Character Entities
+			// look for the ending ';'
+			added.length = getTag(dest, added.location+1, added.location+16, ";", NULL);
+			if (added.length)
+			{
+				UniChar entity = 0x0000;
+				
+				added.length -= added.location-1;
+
+				switch (added.length) 
+				{
+					case 4:
+						// gt		003E
+						if (getTag(dest, added.location, added.location+added.length, "GT;", "gt;"))
+							entity = 0x003E;
+						// lt		003C
+						else if (getTag(dest, added.location, added.location+added.length, "LT;", "lt;"))
+							entity = 0x003C;
+					break;
+
+					case 5:
+						// amp		0026
+						if (getTag(dest, added.location, added.location+added.length, "AMP;", "amp;"))
+							entity = 0x0026;
+						// reg    	00AE
+						else if (getTag(dest, added.location, added.location+added.length, "REG;", "reg;"))
+							entity = 0x00AE;
+						// uml		00A8
+						else if (getTag(dest, added.location, added.location+added.length, "UML;", "uml;"))
+							entity = 0x00A8;
+						// yen		00A5
+						else if (getTag(dest, added.location, added.location+added.length, "YEN;", "yen;"))
+							entity = 0x00A5;
+					break;
+
+					case 6:
+						// copy	  	00A9 
+						if (getTag(dest, added.location, added.location+added.length, "COPY;", "copy;"))
+							entity = 0x00A9;
+						// cent		00A2	
+						else if (getTag(dest, added.location, added.location+added.length, "CENT;", "cent;"))
+							entity = 0x00A2;
+						// emsp		2003
+						else if (getTag(dest, added.location, added.location+added.length, "EMSP;", "emsp;"))
+							entity = 0x2003;
+						// ensp		2002
+						else if (getTag(dest, added.location, added.location+added.length, "ENSP;", "ensp;"))
+							entity = 0x2002;
+						// euro		20ac
+						else if (getTag(dest, added.location, added.location+added.length, "EURO;", "euro;"))
+							entity = 0x20AC;
+						// nbsp   	00A0
+						else if (getTag(dest, added.location, added.location+added.length, "NBSP;", "nbsp;"))
+							entity = 0x00A0;
+						// quot		0022	
+						else if (getTag(dest, added.location, added.location+added.length, "QUOT;", "quot;"))
+							entity = 0x0022;
+					break;
+
+					case 7:
+						// acute	00B4
+						if (getTag(dest, added.location, added.location+added.length, "ACUTE;", "acute;"))
+							entity = 0x00B4;
+						// bdquo	201E
+						else if (getTag(dest, added.location, added.location+added.length, "BDQUO;", "bdquo;"))
+							entity = 0x201E;
+						// iexcl    00A1
+						else if (getTag(dest, added.location, added.location+added.length, "IEXCL;", "iexcl;"))
+							entity = 0x00A1;
+						// ldquo	201C
+						else if (getTag(dest, added.location, added.location+added.length, "LDQUO;", "ldquo;"))
+							entity = 0x201C;
+						// lsquo	2018
+						else if (getTag(dest, added.location, added.location+added.length, "LSQUO;", "lsquo;"))
+							entity = 0x2018;
+						// mdash	2014
+						else if (getTag(dest, added.location, added.location+added.length, "MDASH;", "mdash;"))
+							entity = 0x2014;
+						// ndash	2013
+						else if (getTag(dest, added.location, added.location+added.length, "NDASH;", "ndash;"))
+							entity = 0x2013;
+						// pound	00A3
+						else if (getTag(dest, added.location, added.location+added.length, "POUND;", "pound;"))
+							entity = 0x00A3;
+						// rdquo	201D
+						else if (getTag(dest, added.location, added.location+added.length, "RDQUO;", "rdquo;"))
+							entity = 0x201D;
+						// rsquo	2019
+						else if (getTag(dest, added.location, added.location+added.length, "RSQUO;", "rsquo;"))
+							entity = 0x2019;
+						// sbquo	201A
+						else if (getTag(dest, added.location, added.location+added.length, "SBQUO;", "sbquo;"))
+							entity = 0x201A;
+						// tilde	00C3
+						else if (getTag(dest, added.location, added.location+added.length, "TILDE;", "tilde;"))
+							entity = 0x00C3;
+							
+						// Blech forgot about these ... Why do people do this ?!?!?!?
+						// #8212
+						else if (getTag(dest, added.location, added.location+added.length, "#8212;", NULL))
+							entity = 0x2014;
+						// #8216
+						else if (getTag(dest, added.location, added.location+added.length, "#8216;", NULL))
+							entity = 0x2018;
+						// #8217
+						else if (getTag(dest, added.location, added.location+added.length, "#8217;", NULL))
+							entity = 0x2019;
+						// #8220
+						else if (getTag(dest, added.location, added.location+added.length, "#8220;", NULL))
+							entity = 0x201C;
+						// #8221
+						else if (getTag(dest, added.location, added.location+added.length, "#8221;", NULL))
+							entity = 0x201D;
+					break;
+
+					case 8:
+						// curren	00A4
+						if (getTag(dest, added.location, added.location+added.length, "CURREN;", "curren;"))
+							entity = 0x00A4;
+						// eacute	00C9
+						else if (getTag(dest, added.location, added.location+added.length, "EACUTE;", "eacute;"))
+							entity = 0x00C9;
+						// iquest	00BF
+						else if (getTag(dest, added.location, added.location+added.length, "IQUEST;", "iquest;"))
+							entity = 0x00BF;
+						// middot	00B7
+						else if (getTag(dest, added.location, added.location+added.length, "MIDDOT;", "middot;"))
+							entity = 0x00B7;
+					break;
+				}
+				
+				// Pick something better than this ?!?!?
+				if (!entity)
+					entity = 0x00BF;
+					
+				[dest replaceCharactersInRange:added withString:[NSString stringWithFormat:@"%C", entity]];
+				//[dest replaceCharactersInRange:added withString:[NSString stringWithFormat:@"[len=%d]", added.length]];
+			}
+			// Reset position and skip this character
+			added.length = 1;
+			added.location++;
+		}
+		else
+			// must be OK ...
+			added.location++;
+	}
+	
+} // addHTMLText
+
+
+bool isBlank(unichar c) {
+
+	if (c==' '||c=='\t'||c==0x0a||c==0x0d||c=='>')
+		return true;
+	else
+		return false;
+		
+} // isBlank
+
+// Honor <br and <p and <h#... everything else, well ...
+void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest) 
+{
+   	unichar c[4] = {0};
+   	
+   	// Skip leading blanks
+   	while (rtag.length && isBlank([src characterAtIndex:rtag.location]))
+   	{
+   		rtag.location++;
+   		rtag.length--;
+   	}
+	
+	// Get the first few characters in the tag
+	if (rtag.length > 0)
+		c[0] = [src characterAtIndex:rtag.location];
+	if (rtag.length > 1)
+		c[1] = [src characterAtIndex:rtag.location+1];
+	if (rtag.length > 2)
+		c[2] = [src characterAtIndex:rtag.location+2];
+	if (rtag.length > 3)
+		c[3] = [src characterAtIndex:rtag.location+3];
+	
+	// Brute force since there are only a few we care about
+	
+	// Ignore trailing white space
+	if (isBlank(c[3]))
+		c[3] = 0x00;
+	if (isBlank(c[2]))
+		c[2] = 0x00;
+	if (isBlank(c[1]))
+		c[1] = 0x00;
+	
+	// <P - Begin Paragraph
+	if (!c[1] && (c[0]=='p'||c[0]=='P'))
+		[dest appendString:@"\n\t"];
+		
+//	// </P - End Paragraph
+//	if (!c[2] && (c[1]=='/')&& (c[1]=='p'||c[1]=='P'))
+//		[dest appendString:@"\n"];
+		
+	// <BR - Line Break
+	else if (!c[2] && (c[0]=='b'||c[0]=='B') && (c[1]=='r'||c[1]=='R'))
+		[dest appendString:@"\n"];	
+	
+	// <H# - Begin Heading
+	else if (!c[2] && (c[0]=='h'||c[0]=='H') && (c[1] > '0' && c[1] <= '9'))
+		[dest appendString:@"\n\n"];
+
+	// </H# - End Heading
+	else if (!c[3] && c[0] == '/' && (c[1]=='h'||c[1]=='H') && (c[2] > '0' && c[2] <= '9'))
+		[dest appendString:@"\n\n"];
+	
+} // addHTMLTag
+
+
+// Quickie thread helper funcs
+- (void) threadShowSaving:(NSString*)s {
+	[wait setTitle:@"Saving ..."];
+	[wait setBodyText:[NSString stringWithFormat:@"Saving %@", s]];
+} // threadShowSaving
+
+
+- (void) threadReleaseWait {
+	if (wait)
+	{
+		[trApp unlockUIOrientation];
+		[wait dismissAnimated:YES];
+		[wait release];
+		wait = nil;
+	}
+} // threadReleaseWait
+
+
+// Strips out HTML tags and produces ugly text for reading enjoyment ...
+- (void)stripHTML:(NSMutableString  *)newText; {
+
+	NSMutableString  *src   = newText;
+	NSRange 	  	  rtext = {0};
+	NSRange 		  rtag  = {0};
+	
+	
+	
+	//			//struct CGRect rect = [trApp getOrientedViewRect];
+	//
+	//			// This could take a while ... warn user
+	//			//[trApp lockUIOrientation];
+	//			wait = [[UIAlertSheet alloc] initWithFrame:rect];
+	//			[wait setTitle:@"Building Text File"];
+	//			[wait setBodyText:@"Converting HTML to Text ...\nPlease wait\n"];
+	//			[wait setDelegate:self];
+	//			//[wait addButtonWithTitle:@"OK"];
+	//			[wait popupAlertAnimated:YES];
+
+	
+	
+    // Look for the start of the body tag - we ignore everything before it
+ 	rtag.location = getTag(src, 0, 0, "<BODY", "<body");
+ 	if (rtag.location)
+ 	{
+		// Looks like we are going to do some stripping ... wild guess at final size		
+		newText = [[NSMutableString alloc] initWithCapacity:[src length]/2];
+
+		// Ignore everything up to <BODY
+		rtext.location = rtag.location;
+
+		while (true)
+		{ 	
+			// Dump text here !!!
+			// rtext.location is the start of the last text
+			// rtag.location is the start of the current tag
+			rtext.length = rtag.location-rtext.location;
+
+			// Add the text portion to newText		
+			addHTMLText(src, rtext, newText);
+
+			// Find end of current tag
+			rtag.location++;
+			rtag.length = getTag(src, rtag.location, 0, ">", NULL);
+			if (!rtag.length)
+				break;
+			rtag.length -= rtag.location;
+
+			// rtag now has the start/end of the tag
+
+			// Exit if this is the end of the BODY> (start 1 char early to avoid 0 index)
+			if (rtag.length > 4 && getTag(src, rtag.location-1, rtag.length+1, "/BODY", "/body"))
+				break;
+
+			// Process the tag - we "honor" <br and <p
+			addHTMLTag(src, rtag, newText);
+
+			// Save the start of the next block of text
+			rtext.location = rtag.location+rtag.length+1;
+
+			// Find start of the next tag
+			rtag.location = getTag(src, rtag.location+rtag.length+1, 0, "<", NULL);
+			if (!rtag.location)
+				break;
+		}
+
+		[src release];
+	}
+
+	// Get rid of the wait msg
+	[self threadReleaseWait];
+	//[self performSelectorOnMainThread:@selector(threadShowSaving) 
+	//						withObject:nil waitUntilDone:YES];
+							
+	//[self performSelectorOnMainThread:@selector(threadReleaseWait) 
+	//						withObject:nil waitUntilDone:YES];
+
+	// Replace the open text with this new text and refresh the screen
+	[self setText:newText];
+	//[self performSelectorOnMainThread:@selector(setText) 
+	//						withObject:newText waitUntilDone:YES];
+	
+	// Save the HTML as a text file!
+	NSString *fullpath = [[filePath stringByAppendingPathComponent:fileName] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
+	
+	if ([newText writeToFile:fullpath atomically:YES encoding:encoding error:NULL])
+	{
+		// If we cached it, change the file name so we will reload it automatically
+		NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
+		[fileName release];
+		fileName = tmp;
+	}
+		
+	
+} // stripHTML
+
+
+// ---------------------------------------------
+// Thread specific code ...
+// ---------------------------------------------
 
 
 // Open specified file and display
-- (bool) openFile:(NSString *)name path:(NSString*)path start:(int)startChar {
+- (bool) openFile:(NSString *)name path:(NSString*)path {
 	NSMutableString * newText = nil;
     NSError         * error   = nil;
-    
+
     // Load the text ...
     if (!path)
     	path = TEXTREADER_DEF_PATH;
@@ -439,14 +886,15 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
     {
     	// Build the full path
 	    NSString *fullpath = [path stringByAppendingPathComponent:name];
+	    TextFileType ftype = [trApp getFileType:fullpath];
 
 		// Read in the requested file ...
-		if ([trApp getFileType:fullpath] == kTextFileTypePDB)
+		if (ftype == kTextFileTypePDB)
 		{
 			NSMutableData   * data = nil;
 			NSString        * type = nil;
 			
-			int rc = decodeToString(fullpath, &data, &type);
+			int rc = decodePDB(fullpath, &data, &type);
 			if (rc)
 			{
 				if (data)
@@ -475,6 +923,10 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 				
 			if (data)
 				[data release];
+				
+			// Check the PDB for HTML - look for <HEAD in the first 512 bytes
+			if (newText && getTag(newText, 0, 512, "<HEAD", "<head"))
+			   ftype = kTextFileTypeHTML;
 		}
 		else
 		{
@@ -491,19 +943,14 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 			[newText release];
 			newText = nil;
 		}
-
-		// Set up the new document
+		
+		// If we have text, save the new file name
 		if (newText)
-		{
-			// Get the new text ...
-			if (text)
-			{
+		{		
+			if (text && fileName)
 				// Save the current position for the book being closed
 				[trApp setDefaultStart:fileName start:start];
-				[text release];
-			}
-			text = newText;
-			
+		
 			if (fileName)
 				[fileName release];
 			fileName = [[name copy] retain];
@@ -513,8 +960,38 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 			filePath = [[path copy] retain];
 				
 			start = [trApp getDefaultStart:name];
-			end   = 0;
-			[self setNeedsDisplay];
+			end   = 0;		
+
+			// Strip the HTML into UGLY text if needed
+			if (ftype == kTextFileTypeHTML)
+			{
+
+//				// This could take a while ... warn user
+//				//[trApp lockUIOrientation];
+//				struct CGRect rect = [trApp getOrientedViewRect];
+//				wait = [[UIAlertSheet alloc] initWithFrame:rect];
+//				[wait setTitle:@"Building Text File"];
+//				[wait setBodyText:@"Converting HTML to Text ...\nPlease wait\n"];
+//				[wait setDelegate:self];
+//				//[wait addButtonWithTitle:@"OK"];
+//				[wait popupAlertAnimated:YES];
+//
+				//[self setText:@"This is a test"];
+				[self stripHTML:newText];			
+				
+				//[NSTimer scheduledTimerWithTimeInterval:0.0f target:self selector:@selector(stripHTML:) userInfo:newText repeats:NO];
+				
+				// Start the load thread
+				//[NSThread detachNewThreadSelector:@selector(stripHTML:)
+				//						 toTarget:self
+				//					   withObject:newText];
+
+				// All done - file will be reopened when stripHTML finishes
+				return true;
+			}
+
+			// Save the new text for view
+			[self setText:newText];
 
 			return true;
 		}
@@ -532,6 +1009,7 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 	[alertSheet popupAlertAnimated:YES];
 
 	return false;
+	
 } // openFile
 
 
@@ -616,7 +1094,6 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type);
 - (int)getFontSize {
 	return fontSize;
 } // getFontSize
-
 
 
 @end // @implementation MyTextView

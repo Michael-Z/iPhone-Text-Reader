@@ -154,7 +154,7 @@
 	NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
 	NSString * name = [defaults stringForKey:TEXTREADER_OPENFILE];
 	if (name)
-		[self openFile:name path:path start:[self getDefaultStart:name]];
+		[self openFile:name path:path];
 	else
 		[self showView:My_Info_View];
 	
@@ -632,8 +632,8 @@
 } // redraw
 
 
-- (bool) openFile:(NSString *)name path:(NSString *)path start:(int)startChar {
-	if (name && [textView openFile:name path:path start:startChar])
+- (bool) openFile:(NSString *)name path:(NSString *)path {
+	if (name && [textView openFile:name path:path])
 	{
 		[self showView:My_Text_View];
 		[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:name]];
@@ -659,17 +659,19 @@
 		         ![ext compare:@"prc" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypePDB;
 		
-		//[ext release];
+		else if (![ext compare:@"htm" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypeHTML;
 	}
 	else if ([fileName length] > 5 && 
 	         [fileName characterAtIndex:[fileName length]-5] == '.')
 	{
-		NSString * ext = [fileName substringFromIndex:[fileName length]-3];
+		NSString * ext = [fileName substringFromIndex:[fileName length]-4];
 		
 		if (![ext compare:@"text" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypeTXT;
 
-		//[ext release];
+		else if (![ext compare:@"html" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypeHTML;
 	}
 
 	return type;

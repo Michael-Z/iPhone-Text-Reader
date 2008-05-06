@@ -116,15 +116,23 @@
 	{
 		NSString * file = [contents  objectAtIndex:i];
 		BOOL isDir = false;
+		TextFileType ftype = [trApp getFileType:file];
 
-		if ([trApp getFileType:file] &&
+		if (ftype &&
 		    [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:file] isDirectory:&isDir] && 
 		    !isDir) {
-			[fileList addObject:file];
+		    
+			// Show all text files
+			// Only show PDB and HTML files that do not have a cached text version
+		    if (ftype == kTextFileTypeTXT || 
+		        ![[NSFileManager defaultManager] fileExistsAtPath:[[path stringByAppendingPathComponent:file] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])		    
+		    {
+				[fileList addObject:file];
             
-            // Is this the currently open book?
-            if (openFile && (highlight < 0) && [openFile isEqualToString:file])
-            	highlight = [fileList count];
+				// Is this the currently open book?
+				if (openFile && (highlight < 0) && [openFile isEqualToString:file])
+					highlight = [fileList count];
+			}
 		}
 	}
 
@@ -196,6 +204,19 @@
 			[ cell setImage: image ];
 			[ cell setTitle: [fileList objectAtIndex:row] ];
 		}				
+		
+		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/html.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+			[ cell setTitle: [ [ fileList objectAtIndex: row ]
+							   stringByDeletingPathExtension ]];
+			[ cell setShowDisclosure: YES ];
+			[ cell setDisclosureStyle: 3 ];
+		}
 		
 		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
 		{
@@ -308,7 +329,7 @@
 	else // Must be a text or pdb file ...
 	{
 		// Open the selected file ...
-		[trApp openFile:fileName path:path start:[trApp getDefaultStart:fileName]];
+		[trApp openFile:fileName path:path];
 	}
 	
 } // tableRowSelected

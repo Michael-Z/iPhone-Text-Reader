@@ -244,11 +244,10 @@ typedef struct {
 void		uncompress( buffer* );
 
 
-
 // 0 == success
 // 1 == error 
 // 2 == invalid format
-int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
+int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 {
 	buffer			buf = {0};
 	int		    	compression;
@@ -340,8 +339,9 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 		
 		// Note: Check for type=="TEXt" we will allow any creator
 		//       "REAd" is the old Palm Reader, while "TlDc" is Teal doc
+		// 		 "BOOKMOBI" is MobiPocket HTML ...
 		if ( strncmp( header.type,    DOC_TYPE,    sizeof header.type ) 
-			 /* || strncmp( header.creator, DOC_CREATOR, sizeof header.creator ) */ )
+			 && strncmp( header.type, "BOOKMOBI", sizeof header.type ) )
 			break;
 
 		num_records = ntohs( header.recordList.numRecords ) - 1; /* w/o rec 0 */
@@ -367,14 +367,15 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 
 
 		/********* read Doc file record-by-record ****************************/
-
+	
 		fseek( fin, 0, SEEK_END );
 		file_size = ftell( fin );
 
 		rc = 0;
 		
 		NEW_BUFFER( &buf );
-		for ( rec_num = 1; !rc && rec_num <= num_records; ++rec_num ) {
+		for ( rec_num = 1; !rc && rec_num <= num_records; ++rec_num ) 
+		{
 			DWord next_offset;
 
 			/* read the record offset */
@@ -399,8 +400,13 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 				
 			rec_size = next_offset - offset;
 
+			// Ignore records larger than BUFFER_SIZE - they are pictures, etc. we will ignore
+            if (rec_size > BUFFER_SIZE)
+               break;
+
 			/* read the record */
 			fseek( fin, offset, SEEK_SET );
+
 			buf.len = fread( buf.data, 1, rec_size, fin );
 			if ( buf.len != rec_size )
 			{
@@ -409,10 +415,10 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 			}
 
 			if ( compression == COMPRESSED )
-				uncompress( &buf );
-
+				uncompress( &buf );			
+	
 			//[dest appendString:[[NSString alloc] initWithBytesNoCopy:buf.data length:buf.len encoding:encoding freeWhenDone:NO]];
-			[*dest appendBytes:buf.data length:buf.len];
+			[*dest appendBytes:buf.data length:buf.len];					
 		}
 
 		FREE_BUFFER( &buf );
@@ -423,10 +429,10 @@ int decodeToString(NSString * src, NSMutableData ** dest, NSString ** type)
 	
 	if (fin)
 		fclose( fin );
-
+		
 	return rc;
 	
-} // decodeToString
+} // decodePDBToString
 
 
 
