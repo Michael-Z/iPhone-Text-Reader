@@ -56,9 +56,16 @@
 	slider              = nil;
 	currentView         = My_No_View;
 	mouseDown           = CGPointMake(-1,-1);
+	reverseTap          = false;
 
 	[super init];
 } // init
+
+- (void) setReverseTap:(bool)rtap {
+	reverseTap = rtap;
+}
+
+- (bool) getReverseTap { return reverseTap; }
 
 - (NSString*) getFileName {
 	return [textView getFileName];
@@ -89,6 +96,8 @@
 - (void) applicationWillSuspend {
 
 	[defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
+	
+	[defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
 	
 	[defaults setInteger:[textView getIgnoreNewLine] forKey:TEXTREADER_IGNORELF];
 
@@ -132,6 +141,8 @@
 
 	// Restore general prefs
 	[textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
+
+	[self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
 	[textView setIgnoreNewLine:[defaults integerForKey:TEXTREADER_IGNORELF]];
 
@@ -566,15 +577,23 @@
 			// Both upper  = page back
 			if (mouseDown.y < upper && mouseUp.y < upper)
 			{
-				// Move up one page 
-				[textView pageUp];
+				if (reverseTap)
+					// Move down one page 
+					[textView pageDown];
+				else
+					// Move up one page 
+					[textView pageUp];
 			}
 
 			// Both lower  = page forward
 			else if (mouseDown.y > lower && mouseUp.y > lower)
 			{
-				// Move down one page 
-				[textView pageDown];
+				if (reverseTap)
+					// Move down one page 
+					[textView pageUp];
+				else
+					// Move up one page 
+					[textView pageDown];
 			}
 
 			// Both middle = show/hide navBar
@@ -661,6 +680,9 @@
 		
 		else if (![ext compare:@"htm" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypeHTML;
+
+		else if (![ext compare:@"fb2" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypeFB2;
 	}
 	else if ([fileName length] > 5 && 
 	         [fileName characterAtIndex:[fileName length]-5] == '.')

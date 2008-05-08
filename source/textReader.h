@@ -55,6 +55,7 @@
 #define TEXTREADER_COLOR    		@"color"
 #define TEXTREADER_IGNORELF 		@"ignoreLF"
 #define TEXTREADER_PADMARGINS 		@"padMargins"
+#define TEXTREADER_REVERSETAP 		@"reverseTap"
 
 #define TEXTREADER_FONT 			@"font"
 #define TEXTREADER_FONTSIZE 		@"fontSize"
@@ -73,7 +74,8 @@ typedef enum _TextFileType {
 	kTextFileTypeUnknown = 0,
 	kTextFileTypeTXT  = 1,
 	kTextFileTypePDB  = 2,
-	kTextFileTypeHTML = 3
+	kTextFileTypeHTML = 3,
+	kTextFileTypeFB2  = 4
 } TextFileType;
 
 
@@ -109,6 +111,7 @@ typedef enum _MyViewName {
 
 	CGPoint         		 mouseDown;
 	int             		 currentOrientation;
+	bool              		 reverseTap;
 	MyViewName				 currentView;
 
 	NSUserDefaults			*defaults;
@@ -123,6 +126,8 @@ typedef enum _MyViewName {
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
 - (void) removeDefaults:(NSString*)name;
 
+- (void) setReverseTap:(bool)rtap;
+- (bool) getReverseTap;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;

@@ -123,7 +123,7 @@
 		    !isDir) {
 		    
 			// Show all text files
-			// Only show PDB and HTML files that do not have a cached text version
+			// Only show FB2, PDB and HTML files that do not have a cached text version
 		    if (ftype == kTextFileTypeTXT || 
 		        ![[NSFileManager defaultManager] fileExistsAtPath:[[path stringByAppendingPathComponent:file] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])		    
 		    {
@@ -205,19 +205,6 @@
 			[ cell setTitle: [fileList objectAtIndex:row] ];
 		}				
 		
-		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
-		{
-			UIImageView *image = [ [ UIImage alloc ] 
-				  initWithContentsOfFile: [ [ NSString alloc ] 
-				  initWithFormat: @"/Applications/%@.app/html.png", 
-								  TEXTREADER_NAME ] ];
-			[ cell setImage: image ];
-			[ cell setTitle: [ [ fileList objectAtIndex: row ]
-							   stringByDeletingPathExtension ]];
-			[ cell setShowDisclosure: YES ];
-			[ cell setDisclosureStyle: 3 ];
-		}
-		
 		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
 		{
 			UIImageView *image = [ [ UIImage alloc ] 
@@ -244,6 +231,33 @@
 			[ cell setDisclosureStyle: 3 ];
 		}
 
+		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
+		{
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/html.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+			[ cell setTitle: [ [ fileList objectAtIndex: row ]
+							   stringByDeletingPathExtension ]];
+			[ cell setShowDisclosure: YES ];
+			[ cell setDisclosureStyle: 3 ];
+		}
+		
+		else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeFB2)
+		{
+			// JIMB BUG BUG - need fb2 icon!!!
+			UIImageView *image = [ [ UIImage alloc ] 
+				  initWithContentsOfFile: [ [ NSString alloc ] 
+				  initWithFormat: @"/Applications/%@.app/html.png", 
+								  TEXTREADER_NAME ] ];
+			[ cell setImage: image ];
+			[ cell setTitle: [ [ fileList objectAtIndex: row ]
+							   stringByDeletingPathExtension ]];
+			[ cell setShowDisclosure: YES ];
+			[ cell setDisclosureStyle: 3 ];
+		}
+		
         return [ cell autorelease ];
     } 
     

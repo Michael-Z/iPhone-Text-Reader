@@ -55,6 +55,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 	int               end;
 
 	NSStringEncoding  encoding;
+	NSStringEncoding  gb2312enc;
 	NSString         *font;
 	struct __GSFont  *gsFont;
 	float             fontSize;
@@ -75,11 +76,11 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setColor:(int)newColor;
+- (int)  getColor;
 - (void) setIgnoreNewLine:(bool)ignore;
 - (bool) getIgnoreNewLine;
 - (void) setPadMargins:(bool)pad;
 - (bool) getPadMargins;
-- (int)  getColor;
 - (void) pageUp;
 - (void) pageDown;
 

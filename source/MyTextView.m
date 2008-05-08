@@ -30,6 +30,11 @@
 
 #import <UIKit/UIKit.h>
 
+// NOTE: This adds about 16K to the program!
+// JIMB BUG BUG - look into a better way to "band" the conversion data
+// Can we use the "add 160" algorithm?
+#import "gb2312.h"
+
 typedef unsigned int NSUInteger;
 
 
@@ -53,11 +58,25 @@ typedef unsigned int NSUInteger;
 
 	wait     = nil;
 	color    = 0;
+	ignoreNewLine = false;
+	padMargins = false;
+	
 	gsFont   = nil;
 	font     = TEXTREADER_DFLT_FONT;
 	fontSize = TEXTREADER_DFLT_FONTSIZE;
 	
 	encoding = TEXTREADER_DFLT_ENCODING;
+
+	// Kind of a kludge, but we need to get the gb2312 encoding somehow ...
+	const NSStringEncoding * enc = [NSString availableStringEncodings];
+	while (enc && *enc)
+	{
+		NSString * gb2312name = @"Simplified Chinese (EUC)";
+		if ([gb2312name compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
+		   break;
+		enc++;
+	}
+	gb2312enc = (enc && *enc) ? *enc : 0;
 	
 	start = end = 0;
 	trApp = nil;
@@ -213,7 +232,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.28; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
    int width      = viewSize.width;
    int hpad       = padMargins ? 10 : 0;
@@ -439,7 +458,58 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 } // newText
 			
-			
+	
+// Convert an NSData with "invalid" GB2312 data into a UTF16 string
+static NSMutableString * convertGB2312Data(NSData * data) {
+	int 			      i;
+	unichar 		      c;
+	const unsigned char * p = [data bytes];
+	
+	NSMutableString * newText = [[NSMutableString alloc] initWithCapacity:[data length]/2];
+	
+	for (i = 0; i < [data length]; i++, p++)
+	{
+		if (*p < 0xA1)
+			c = *p;
+		else if (i+1==[data length])
+			c = 0x00; // Encoding error! - last byte (or more) got chopped off!
+		else if (*p > 0xF7)
+		{
+			// Encoding error!
+			// What to do?!?!? Skip next character ...
+			// JIMB BUG BUG - should we treat as an ASCII char instead ?!?!?
+			c = 0x00;
+			p++; i++;
+		}
+		else
+		{
+			c = gb2312map[(p[0]-0xA1)*0x60 + p[1]-0xA1];
+			p++; i++;
+		}
+		[newText appendFormat:@"%C", (unichar)c];
+	}
+	
+	return newText;
+	
+} // convertGB2312
+
+// Load the specified file into NSData and convert to string
+static NSMutableString * loadGB2312(NSString * fullpath) {
+
+	NSMutableString * str = nil;
+	
+	NSData * data = [NSData dataWithContentsOfMappedFile:fullpath];
+	if (!data)
+		return nil;
+	
+	str = convertGB2312Data(data);
+	
+	return str;
+} // loadGB2312
+	
+	
+	
+	
 // ---------------------------------------------
 // Thread specific code ...
 // ---------------------------------------------
@@ -537,6 +607,7 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
 		else if (c=='&')
 		{
 			// Expand Character Entities
+// JIMB BUG BUG - will this cause problems for fb2 ?!?!?!?!?			
 			// look for the ending ';'
 			added.length = getTag(dest, added.location+1, added.location+16, ";", NULL);
 			if (added.length)
@@ -919,7 +990,13 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 				}
 			}
 			else
+			{
 				newText = [[NSMutableString alloc] initWithData:data encoding:encoding];
+				
+				// Double clutch for GB2312
+				if (!newText && encoding == gb2312enc)
+					newText = convertGB2312Data(data);	
+			}
 				
 			if (data)
 				[data release];
@@ -934,7 +1011,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 			newText = [[NSMutableString 
 						stringWithContentsOfFile:fullpath
 						encoding:encoding
-						error:&error] retain];			
+						error:&error] retain];
+						
+			// Double clutch for GB2312
+			if (!newText && encoding == gb2312enc)
+				newText = loadGB2312(fullpath);
 		}
 		
 		// An empty string probably meant it didn't get loaded properly ...
@@ -963,7 +1044,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 			end   = 0;		
 
 			// Strip the HTML into UGLY text if needed
-			if (ftype == kTextFileTypeHTML)
+			if (ftype == kTextFileTypeHTML || ftype == kTextFileTypeFB2)
 			{
 
 //				// This could take a while ... warn user

@@ -246,7 +246,7 @@
 				//[trApp lockUIOrientation];
 				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
 				[alertSheet setTitle:@"Error Invalid Save As File Name"];
-				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .prc, .htm, .html, .text, or .txt"];
+				[alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt"];
 				[alertSheet addButtonWithTitle:@"OK"];
 				[alertSheet setDelegate:trApp];
 				[alertSheet popupAlertAnimated:YES];

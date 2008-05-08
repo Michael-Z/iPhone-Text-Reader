@@ -52,7 +52,8 @@
         	// Invert
         	// Ignore Single LF
         	// Pad Margins
-            return 3;
+        	// Reverse Tap
+            return 4;
             
         case(2):
         	// Web Site
@@ -252,6 +253,14 @@
                     [ cell setEnabled: YES ];
                     [ cell addSubview: padMargins ];
                     break;
+                case (3):
+                    [ cell setTitle:@"Reverse Tap" ];
+                    reverseTap = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
+                    [ cell setEnabled: YES ];
+                    [ cell addSubview: reverseTap ];
+                    break;
             }
             break;
         case (2):
@@ -352,6 +361,7 @@
 			[textView setColor:[invertScreen value]];
 			[textView setIgnoreNewLine:[ignoreNewLine value]];
 			[textView setPadMargins:[padMargins value]];
+			[trApp setReverseTap:[reverseTap value]];
 			
 			NSString * font  = [fontCell value];
 			int        size  = [[fontSizeCell value] intValue];
