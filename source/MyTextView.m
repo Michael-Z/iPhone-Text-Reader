@@ -232,7 +232,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.28; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
    int width      = viewSize.width;
    int hpad       = padMargins ? 10 : 0;
@@ -354,7 +354,11 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 			if (dir==kDirectionBackward)
 				used = [x sizeWithFont:gsFont];
 			else
-				used = [x drawAtPoint:currentPt withFont:gsFont];
+			{
+				CGPoint tmpPt = currentPt;
+				tmpPt.y++;
+				used = [x drawAtPoint:tmpPt withFont:gsFont];
+			}
 
 			// Update the current position at the end of the text we drew
 			currentPt.x += used.width;
@@ -462,31 +466,44 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 // Convert an NSData with "invalid" GB2312 data into a UTF16 string
 static NSMutableString * convertGB2312Data(NSData * data) {
 	int 			      i;
-	unichar 		      c;
+	unichar 		      c[8096];
+	int                   cL = 0;
 	const unsigned char * p = [data bytes];
 	
+	// Add characters to the mutable string in 8K chunks to speed up the transcoding
 	NSMutableString * newText = [[NSMutableString alloc] initWithCapacity:[data length]/2];
 	
 	for (i = 0; i < [data length]; i++, p++)
 	{
 		if (*p < 0xA1)
-			c = *p;
+			c[cL++] = *p;
 		else if (i+1==[data length])
-			c = 0x00; // Encoding error! - last byte (or more) got chopped off!
+			c[cL++] = 0x00; // Encoding error! - last byte (or more) got chopped off!
 		else if (*p > 0xF7)
 		{
 			// Encoding error!
 			// What to do?!?!? Skip next character ...
 			// JIMB BUG BUG - should we treat as an ASCII char instead ?!?!?
-			c = 0x00;
+			c[cL++] = 0x00;
 			p++; i++;
 		}
 		else
 		{
-			c = gb2312map[(p[0]-0xA1)*0x60 + p[1]-0xA1];
+			c[cL++] = gb2312map[(p[0]-0xA1)*0x60 + p[1]-0xA1];
 			p++; i++;
 		}
-		[newText appendFormat:@"%C", (unichar)c];
+		if (cL == sizeof(c)/sizeof(*c))
+		{
+			[newText appendFormat:@"%*S", cL, c];
+			cL = 0;
+		}
+	}
+	
+	// Add any remaining characters
+	if (cL)
+	{
+		[newText appendFormat:@"%*S", cL, c];
+		cL = 0;
 	}
 	
 	return newText;
@@ -831,7 +848,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 - (void) threadReleaseWait {
 	if (wait)
 	{
-		[trApp unlockUIOrientation];
+		//[trApp unlockUIOrientation];
 		[wait dismissAnimated:YES];
 		[wait release];
 		wait = nil;

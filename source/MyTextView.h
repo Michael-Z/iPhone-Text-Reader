@@ -81,6 +81,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (bool) getIgnoreNewLine;
 - (void) setPadMargins:(bool)pad;
 - (bool) getPadMargins;
+
 - (void) pageUp;
 - (void) pageDown;
 

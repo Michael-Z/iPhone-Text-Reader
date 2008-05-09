@@ -100,7 +100,7 @@
 - (void) threadReleaseWait {
 	if (wait)
 	{
-		[trApp unlockUIOrientation];
+		//[trApp unlockUIOrientation];
 		[wait dismissAnimated:YES];
 		[wait release];
 		wait = nil;
@@ -426,7 +426,7 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
-  [trApp unlockUIOrientation];
+  //[trApp unlockUIOrientation];
   [sheet dismissAnimated:YES];
   [sheet release];
 } // alertSheet

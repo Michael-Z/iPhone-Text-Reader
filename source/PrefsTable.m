@@ -52,10 +52,14 @@
         	// Invert
         	// Ignore Single LF
         	// Pad Margins
-        	// Reverse Tap
-            return 4;
+            return 3;
             
         case(2):
+        	// Reverse Tap
+        	// Allow Swipe
+            return 2;
+        
+        case(3):
         	// Web Site
         	// Email address
             return 2;
@@ -78,6 +82,9 @@
          case (1):
              [ groupcell[group] setTitle: @"Display Settings" ];
              break;
+         case (2):
+             [ groupcell[group] setTitle: @"Scroll Settings" ];
+             break;
      }
      return groupcell[group];
 }
@@ -90,7 +97,7 @@
 {
     /* Return height for group titles */
     if (row == -1) {
-        if (group < 2)
+        if (group < 3)
             return 40; // JIMB BUG BUG
     }
 
@@ -101,7 +108,7 @@
 - (BOOL)preferencesTable:(UIPreferencesTable *)aTable
     isLabelGroup:(int)group
 {
-    if (group == 2)
+    if (group == 3)
         return YES;
         
     return NO;
@@ -253,17 +260,29 @@
                     [ cell setEnabled: YES ];
                     [ cell addSubview: padMargins ];
                     break;
-                case (3):
-                    [ cell setTitle:@"Reverse Tap" ];
+            }
+            break;
+        case (2):
+            switch (row) {
+                case (0):
+                    [ cell setTitle:@"Reverse Tap/Scroll" ];
                     reverseTap = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
                     [ cell setEnabled: YES ];
                     [ cell addSubview: reverseTap ];
                     break;
+                case (1):
+                    [ cell setTitle:@"Swipe/Gestures" ];
+                    swipe = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ swipe setValue: [trApp getSwipe] ? 1 : 0 ];
+                    [ cell setEnabled: YES ];
+                    [ cell addSubview: swipe ];
+                    break;
             }
             break;
-        case (2):
+        case (3):
             switch (row) {
                 case (0):
 		            [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
@@ -361,6 +380,7 @@
 			[textView setColor:[invertScreen value]];
 			[textView setIgnoreNewLine:[ignoreNewLine value]];
 			[textView setPadMargins:[padMargins value]];
+			[trApp setSwipe:[swipe value]];
 			[trApp setReverseTap:[reverseTap value]];
 			
 			NSString * font  = [fontCell value];
@@ -381,7 +401,7 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
-  [trApp unlockUIOrientation];
+  //[trApp unlockUIOrientation];
   [sheet dismissAnimated:YES];
   [sheet release];
 } // alertSheet

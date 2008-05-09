@@ -33,6 +33,7 @@
 	bool orientationLocked;
 	float reorientationDuration;
 	int orientation;
+	unsigned int oCode;
 	bool hideStatus;
 	bool initialized;
 }
@@ -47,6 +48,7 @@
 - (void) setUIOrientation: (unsigned int)o_code;
 - (void) setAngleForOrientation: (unsigned int)o_code toDegrees: (int)degrees;
 - (int)  getOrientation;
+- (unsigned int) getOrientCode;
 - (void) hideStatus: (bool)b;
 
 - (void) deviceOrientationChanged: (GSEvent*)event;

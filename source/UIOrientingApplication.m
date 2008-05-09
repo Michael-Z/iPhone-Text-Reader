@@ -25,6 +25,7 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
 	reorientationDuration = 0.35f;
 	orientationDegrees = -1;
 	orientation = 0;
+	oCode = 1;
 	hideStatus = false;
 	[self setUIOrientation: 1];
 	return rVal;
@@ -84,6 +85,7 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
 	if (degrees == orientationDegrees) return;
 	
 	orientation = degrees;
+	oCode = o_code;
 	
 	/* Find the rect a fullscreen app would use under the new rotation... */
 	bool landscape = (degrees == 90 || degrees == -90);
@@ -143,6 +145,10 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
 	/* To disable transitions to a particular state, set degrees to -1. */
 	if (o_code > 6) return;
 	orientations[o_code] = degrees;
+}
+
+- (unsigned int)getOrientCode {
+	return oCode;
 }
 
 - (CGRect) windowBounds {

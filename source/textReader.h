@@ -35,12 +35,13 @@
 #import <UIKit/UIViewTapInfo.h>
 #import <UIKit/UIView-Geometry.h>
 #import <UIKit/UISliderControl.h>
+#import <UIKit/UINavBarButton.h>
 
 
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.6.0Beta1"
+#define TEXTREADER_VERSION  		@"0.6.0Beta3"
 #define TEXTREADER_CACHE_EXT        @"text"
 
 #define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
@@ -56,6 +57,10 @@
 #define TEXTREADER_IGNORELF 		@"ignoreLF"
 #define TEXTREADER_PADMARGINS 		@"padMargins"
 #define TEXTREADER_REVERSETAP 		@"reverseTap"
+#define TEXTREADER_SWIPE     		@"swipeOK"
+
+#define TEXTREADER_OLOCKED     		@"oLocked"
+#define TEXTREADER_OCODE     		@"oCode"
 
 #define TEXTREADER_FONT 			@"font"
 #define TEXTREADER_FONTSIZE 		@"fontSize"
@@ -101,6 +106,9 @@ typedef enum _MyViewName {
 	MyTextView              *textView;
 
 	UINavigationBar 		*navBar;
+	UINavBarButton          *settingsBtn;
+	UINavBarButton          *lockBtn;
+
 	UISliderControl         *slider;
 
 	FileTable 				*fileTable;
@@ -112,7 +120,10 @@ typedef enum _MyViewName {
 	CGPoint         		 mouseDown;
 	int             		 currentOrientation;
 	bool              		 reverseTap;
+	bool              		 swipe;
 	MyViewName				 currentView;
+
+	bool					 orientationInitialized;
 
 	NSUserDefaults			*defaults;
 }
@@ -128,6 +139,9 @@ typedef enum _MyViewName {
 
 - (void) setReverseTap:(bool)rtap;
 - (bool) getReverseTap;
+
+- (void) setSwipe:(bool)sw;
+- (bool) getSwipe;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;

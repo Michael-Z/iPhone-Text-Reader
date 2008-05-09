@@ -54,9 +54,13 @@
 	downloadTable       = nil;
 	navBar    			= nil;
 	slider              = nil;
+	settingsBtn         = nil;
+	lockBtn             = nil;
 	currentView         = My_No_View;
 	mouseDown           = CGPointMake(-1,-1);
 	reverseTap          = false;
+	swipe               = false;
+	orientationInitialized = false;
 
 	[super init];
 } // init
@@ -65,7 +69,12 @@
 	reverseTap = rtap;
 }
 
+- (void) setSwipe:(bool)sw {
+	swipe = sw;
+}
+
 - (bool) getReverseTap { return reverseTap; }
+- (bool) getSwipe { return swipe; }
 
 - (NSString*) getFileName {
 	return [textView getFileName];
@@ -97,7 +106,12 @@
 
 	[defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
 	
+	[defaults setInteger:[self getOrientCode] forKey:TEXTREADER_OCODE];
+	[defaults setInteger:[self orientationLocked] forKey:TEXTREADER_OLOCKED];
+	
 	[defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
+	
+	[defaults setInteger:swipe forKey:TEXTREADER_SWIPE];
 	
 	[defaults setInteger:[textView getIgnoreNewLine] forKey:TEXTREADER_IGNORELF];
 
@@ -137,12 +151,62 @@
 } // setDefaultStart
 
 
+- (void)fixButtons {
+
+	struct CGSize viewSize   = [self getOrientedViewSize];
+	struct CGRect btnRect;
+
+	// Position settings button	
+	btnRect.size.width = btnRect.size.height = [UINavigationBar defaultSize].height *0.8;
+	btnRect.origin.x = viewSize.width - btnRect.size.width - 5;
+	btnRect.origin.y = ([UINavigationBar defaultSize].height - btnRect.size.height) / 2;
+	[settingsBtn setFrame:btnRect];
+	
+	// Handle lock image
+	UIImageView *imgLock = [ [ UIImage alloc ] 
+			  initWithContentsOfFile: [ [ NSString alloc ] 
+			  initWithFormat: @"/Applications/%@.app/locked.png", 
+							  TEXTREADER_NAME ] ];
+	UIImageView *imgUnlock = [ [ UIImage alloc ] 
+			  initWithContentsOfFile: [ [ NSString alloc ] 
+			  initWithFormat: @"/Applications/%@.app/unlocked.png", 
+							  TEXTREADER_NAME ] ];
+
+	if ([self orientationLocked])
+	{
+		[lockBtn setImage:imgLock forState:0];
+		[lockBtn setImage:imgUnlock forState:1];
+	}
+	else
+	{
+		[lockBtn setImage:imgUnlock forState:0];
+		[lockBtn setImage:imgLock forState:1];
+	}
+						  	
+	// Position lock button
+	btnRect.origin.x -= btnRect.size.width;
+	[lockBtn setFrame:btnRect];
+	
+} // fixButtons
+
+
 - (void) loadDefaults {
 
 	// Restore general prefs
 	[textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
 
+	// [self setUIOrientation:1];
+	// [self unlockUIOrientation];
+	// bool locked = [defaults integerForKey:TEXTREADER_OLOCKED];
+	// if (locked)
+	// {
+	// 	[self lockUIToOrientation:[defaults integerForKey:TEXTREADER_OCODE]];
+	// 	[self fixButtons];
+	// }
+
 	[self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
+
+	[self setSwipe:[defaults integerForKey:TEXTREADER_SWIPE]];
 
 	[textView setIgnoreNewLine:[defaults integerForKey:TEXTREADER_IGNORELF]];
 
@@ -371,6 +435,27 @@
 } // showView
 
 
+- (void)showSettings:(UINavBarButton *)btn
+{
+	if (![btn isPressed])
+		[self showView:My_Prefs_View];
+}
+
+
+- (void)toggleLock:(UINavBarButton *)btn
+{
+	if (![btn isPressed])
+	{
+		if ([self orientationLocked])
+			[self unlockUIOrientation];
+		else
+			[self lockUIOrientation];
+		[self fixButtons];
+		[self showView:My_Text_View];
+	}
+}
+
+
 - (void) applicationDidFinishLaunching: (id) unused {
 
 	[self setUIOrientation: [UIHardware deviceOrientation:YES]];
@@ -406,13 +491,41 @@
 	navBar	= [[[UINavigationBar alloc] initWithFrame: navBarRect] retain];
 	[navBar setBarStyle: 0];
 	[navBar setDelegate: self];
-	[navBar showButtonsWithLeft: @"Open" right: @"Settings" leftBack: YES];
+	[navBar showButtonsWithLeft: @"Open" right:nil leftBack: YES];
 	[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME]];
 	[navBar setAutoresizingMask: kTopBarResizeMask];	
     [navBar setAlpha:0];
 	[textView addSubview:navBar];	
 	
-	
+	// Add settings button
+	settingsBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
+	[settingsBtn setAutosizesToFit:NO];
+	UIImageView *image = [ [ UIImage alloc ] 
+		  initWithContentsOfFile: [ [ NSString alloc ] 
+		  initWithFormat: @"/Applications/%@.app/settings_up.png", 
+						  TEXTREADER_NAME ] ];
+	[settingsBtn setImage:image forState:0];
+	image = [ [ UIImage alloc ] 
+		  initWithContentsOfFile: [ [ NSString alloc ] 
+		  initWithFormat: @"/Applications/%@.app/settings_dn.png", 
+						  TEXTREADER_NAME ] ];
+	[settingsBtn setImage:image forState:1];
+
+	[settingsBtn setDrawContentsCentered:YES];
+	[settingsBtn addTarget:self action:@selector(showSettings:) forEvents: (255)];
+	[navBar addSubview:settingsBtn];
+
+	// Add lock button
+	lockBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
+	[lockBtn setAutosizesToFit:NO];
+	[lockBtn setDrawContentsCentered:YES];
+	[lockBtn addTarget:self action:@selector(toggleLock:) forEvents: (255)];
+	[navBar addSubview:lockBtn];
+
+	[self fixButtons];
+
+// JIMB BUG BUG - figure out how to get this to redraw properly when rotated !!!!!
+	// Create the slider ...	
 	navBarRect.origin.y = FSrect.size.height - navBarRect.size.height;
 	slider = [[UISliderControl alloc] initWithFrame:navBarRect];
     float backParts[4] = {0, 0, 0, .5};
@@ -512,6 +625,16 @@
 	rect.size.width = FSrect.size.width;
 	[navBar setFrame:rect];
 	
+	if (!orientationInitialized)
+	{
+		orientationInitialized = TRUE;
+		if ([defaults integerForKey:TEXTREADER_OLOCKED])
+			[self lockUIToOrientation:[defaults integerForKey:TEXTREADER_OCODE]];
+	}
+	
+	// Resize the buttons on the navbar
+	[self fixButtons];
+	
 	// Force a screen update
 	[self redraw];
 	
@@ -557,6 +680,60 @@
 	// Ignore ups w/o downs ...
 	if (mouseDown.x < 0 || mouseDown.y < 0)
 		return;
+	
+ 	//Added by Allen Li ================================
+	//swipe detection
+	BOOL lChangeChapter = NO;
+	BOOL forword = YES;
+	if ((mouseUp.x - mouseDown.x) < 50 && (mouseUp.x - mouseDown.x) > -50)
+	{
+		if ((mouseUp.y - mouseDown.y) > 50 )
+		{
+      			forword = NO;
+			lChangeChapter = YES;
+		}
+		else if ((mouseUp.y - mouseDown.y) < -50)
+		{
+			forword = YES;
+			lChangeChapter = YES;
+		}
+	}
+	else if ((mouseUp.y - mouseDown.y) < 50 && (mouseUp.y - mouseDown.y) > -50)
+	{
+		if ((mouseUp.x - mouseDown.x) > 50 )
+		{
+      			forword = NO;
+			lChangeChapter = YES;
+		}
+		else if ((mouseUp.x - mouseDown.x) < -50)
+		{
+			forword = YES;
+			lChangeChapter = YES;
+		}
+	
+	}
+
+	if (lChangeChapter == YES)
+	{
+		if (currentView == My_Text_View)
+		{
+			if (forword == YES)
+			{
+				[textView pageDown];
+			}
+			else
+			{
+				[textView pageUp];
+
+			}
+		
+		}
+
+		mouseDown = CGPointMake(-1, -1);
+		return;
+	
+	}
+	//Until here - Allen Li ========================================
 	
 	// If no text loaded, show the bar and keep it up
 	if (!textView || ![textView getText])
@@ -704,7 +881,7 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
-  [self unlockUIOrientation];
+  //[self unlockUIOrientation];
   [sheet dismissAnimated:YES];
   [sheet release];
 } // alertSheet
