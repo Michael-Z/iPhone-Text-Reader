@@ -125,6 +125,8 @@ typedef unsigned int NSUInteger;
 - (NSString*) getFileName { return fileName; }
 - (NSString*) getFilePath { return filePath; }
 
+// Deleted by Allen Li
+/*
 // Last page movement was a page up?
 - (void) pageUp {
 	pageUp = true;
@@ -132,8 +134,20 @@ typedef unsigned int NSUInteger;
 	// Force a screen update ...
 	[self setNeedsDisplay];
 } // pageUp
+*/
 
+//Modified by Allen Li
+- (void) pageUp {
+	CGSize viewSize = [trApp getOrientedViewSize];
 
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lines      = viewSize.height / lineHeight;
+   
+   [self moveUp:lines];
+}
 // Last page movement was a page down?
 - (void) pageDown {
 	pageUp = false;
@@ -210,7 +224,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 // extern CGFontRef CGContextGetFont(CGContextRef);
 // extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
 
-
+/* Deleted by Allen Li
 - (void)drawRect:(struct CGRect)rect
 {
 	// These are used below to blank bkgrnd and draw text
@@ -431,8 +445,408 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
    return [super drawRect:rect];
   
 } // drawRect
+*/
+
+//Modified by Allen Li
+- (void)drawRect:(struct CGRect)rect
+{
+	// These are used below to blank bkgrnd and draw text
+	CGSize          used;
+	NSString      * x;
+    struct CGRect   lineRect;
+	
+	// If no text, nothing to do ...
+	if (!text || !trApp || !gsFont)
+	   return [super drawRect:rect];
+
+	[screenLock lock];
+	
+	CGPoint currentPt = CGPointMake(0,0);
+	CGSize viewSize = [trApp getOrientedViewSize];
+
+  	CGContextRef context = UICurrentContext();
+
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
+   int lines      = viewSize.height / lineHeight;
+   int width      = viewSize.width;
+   int hpad       = padMargins ? 10 : 0;
+   int vpad       = (viewSize.height - lineHeight*lines) / 2;
+   int line, current;
+   Direction dir;
+
+   // Handle pageup by looping twice
+   dir =  kDirectionForward;
+
+   // Blank the top "pad" portion of the screen
+   lineRect = CGRectMake(0, 0, width, vpad);
+   [self fillBkgGroundRect:context rect:lineRect];
+
+	   struct CGPoint lastBlankPoint;
+   int            lastBlankIndex;
+   int            afterCrLf = false;
+   
+   current = start;
+
+// JIMB BUG BUG - optimize this!  Only draw lines that are in the visible rect!
+// (Too much trouble for now, plus it seems fast enough as is ...)
+  for (line = 0; line < lines; line++) 
+  {
+	bool           emptyLine = true;
+
+	// Remember the start position of each line
+	lineStart[line] = current;
+	
+	// Keep track of the last blank in this line 
+	lastBlankIndex = -1;
+
+// JIMB BUG BUG - clean up the rect calculations  	
+// We really want this to cover the writing for this line (with descenders), but 
+// not take out the descenders from the line above.
+	// Update lineRect - it can get munged when we blank the end of the line
+	lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
+
+	[self fillBkgGroundRect:context rect:lineRect];
+
+	currentPt = CGPointMake(hpad, vpad + line * lineHeight);
+
+	while  (current < [text length])
+	{
+		struct CGPoint beginPoint = currentPt;
+		unichar c = [self currentChar:current direction:dir];
+
+		// Move backwards or forwards as needed
+		current = current+1;
+
+		// Find the next character
+		unichar nextc = [self currentChar:current direction:dir];
+		
+		// Special case for Windows CRLF x0d0a- only use one
+		if (c == 0x0d && nextc == 0x0a)
+		{
+			current++;
+			nextc = [self currentChar:current direction:dir];
+		}
+
+		// Handle ignore single LF option
+		if (ignoreNewLine && (c == '\n' || c == 0x0d || c == 0x0a))
+		{
+			if (nextc != '\n' && nextc != 0x0d && nextc != 0x0a)
+			{
+			   afterCrLf = true;
+			   if (nextc == ' ' || nextc == '\t')
+			   	  continue;
+			   c = ' ';
+			}
+		}
+		   
+		// Special case for white space chars
+		if (c == '\n' || c == 0x0d || c == 0x0a)
+		{
+		   afterCrLf = true;
+		   break;
+		}
+
+		// Eat leading blanks on a new line, unless they follow a CR/LF
+		if (c == ' ' && emptyLine && !afterCrLf)
+		   continue;
+
+// JIMB BUG BUG - allow breaking a line of text at a '-' as well
+		// Remember blanks - we will back up to 
+		// here when we run out of space (tabs should work correctly ... I hope)
+		if (c == ' ' || c == '\t')
+		{
+			lastBlankIndex = current; // this is actually 1 past ...
+			lastBlankPoint = currentPt;
+		}
+
+		// At this point, we are going to try to write something ...
+		emptyLine = false;
+		afterCrLf = false;
+
+		// Get the substring we want to draw ...
+		// special case a tab as 4 blanks (should we do "real" tab stops?!?!?)
+		if (c == '\t')
+			x = @"   ";
+		else
+			x = [NSString stringWithCharacters:&c length:1];
+
+		// Draw the text
+		used = [x drawAtPoint:currentPt withFont:gsFont];
+
+		// Update the current position at the end of the text we drew
+		CGPoint tmpPt = currentPt;
+		tmpPt.y++;
+		currentPt.x += used.width;
+	
+		struct CGPoint endPoint = currentPt;
+		if (endPoint.x > (width-hpad))
+		{
+			// Can we back up to a blank?
+			if (lastBlankIndex > 0)
+			{
+				// plus one skips this space
+				current    =  lastBlankIndex+1; 
+				beginPoint = lastBlankPoint;
+			}
+			else
+			{
+// JIMB BUG BUG - add a trailing '-' when we are forced to break a word?!?!
+// This is tricy to calculate - we probably ought to calc the size needed above
+// and save it so we know how far to back up - it might be several characters,
+// but I suspect 1 character plus whatever partial char put us past the edge will
+// probably be enough.  Two plus partial ought to always be sufficient ...
+			}
+
+			// No need to erase if going backwards
+			if (dir==kDirectionForward)
+			{
+				// Erase the last partial character(s) (back to last blank if possible)
+				lineRect.origin.x = beginPoint.x;
+				[self fillBkgGroundRect:context rect:lineRect];
+			}
+			
+			// Save the new current position 
+			// (i.e. before the one that put us past the edge)
+			current =  current-1;
+			break;
+		}
+
+	} // while space on this line
+
+  } // for each line
+	     
+   // Blank any remaining space at the bottom of the screen
+   lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
+   [self fillBkgGroundRect:context rect:lineRect];
+
+   // Remember the last text we display
+   end = current;
+
+  // Remember the next virtual line
+  lineStart[lines] = current+1;
+
+   // Reset pageup flag - one way or the other it is done now ...
+   pageUp = false;
+
+   [screenLock unlock];
+  
+   return [super drawRect:rect];
+  
+} // drawRect
+
+//Added by Allen Li -- Handle moving up
+-(void) moveUp:(int)moveLines
+{
+	// These are used below to blank bkgrnd and draw text
+	CGSize          used;
+	NSString      * x;
+    struct CGRect   lineRect;
+	
+	CGPoint currentPt = CGPointMake(0,0);
+	CGSize viewSize = [trApp getOrientedViewSize];
+
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lines      = viewSize.height / lineHeight;
+   int width      = viewSize.width;
+   int hpad       = padMargins ? 10 : 0;
+   int vpad       = (viewSize.height - lineHeight*lines) / 2;
+   int line, current;
+   Direction dir;
+
+	if( (moveLines <= 0) || (moveLines >lines))
+		return;
+	
+   // Handle pageup by looping twice
+   dir = kDirectionBackward;
+
+   // Blank the top "pad" portion of the screen
+   lineRect = CGRectMake(0, 0, width, vpad);
+
+  	   struct CGPoint lastBlankPoint;
+	   int            lastBlankIndex;
+	   int            afterCrLf = false;
+	   
+	   current = lineStart[0]-1;
 
 
+	//Cut the line from: (lines - moveLines) to lines-1, so the end is lineStart[lines-moveLines]-1;
+	//Keep the lines from 0 to (moveLines-1), just move it down to the bottom: (lines-moveLines) to (lines-1);
+	  for (line = moveLines-1; line >=0; line--) 
+	  {
+		bool           emptyLine = true;
+		int		   timesOfCRLF = 0;
+		
+		// Keep track of the last blank in this line 
+		lastBlankIndex = -1;
+
+// JIMB BUG BUG - clean up the rect calculations  	
+// We really want this to cover the writing for this line (with descenders), but 
+// not take out the descenders from the line above.
+		// Update lineRect - it can get munged when we blank the end of the line
+		lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
+		currentPt = CGPointMake(hpad, vpad + line * lineHeight);
+
+		while  ( current >= 0)
+		{
+			unichar c = [self currentChar:current direction:dir];
+
+			// Move backwards
+			current = MAX(0,current-1);
+
+			// Find the next character
+			unichar nextc = [self currentChar:current direction:dir];
+			
+			// Special case for Windows CRLF x0d0a- only use one
+			if (c == 0x0a && nextc == 0x0d)
+			{
+				current--;
+				nextc = [self currentChar:current direction:dir];
+			}
+
+/*
+			// Handle ignore single LF option
+			if (ignoreNewLine && (c == '\n' || c == 0x0d || c == 0x0a))
+			{
+				if (nextc != '\n' && nextc != 0x0d && nextc != 0x0a)
+				{
+				   afterCrLf = true;
+				   if (nextc == ' ' || nextc == '\t')
+				   	  continue;
+				   c = ' ';
+				}
+			}
+*/
+
+			// Special case for white space chars
+			if (c == '\n' || c == 0x0d || c == 0x0a)
+			{
+				timesOfCRLF++;
+				if(timesOfCRLF ==1)
+				{
+					afterCrLf = true;
+					continue;
+				}
+				else if(timesOfCRLF == 2)
+				{
+					if ( c =='\n' )
+					{
+						current++;
+					}
+					else
+					{
+						current=current+2;
+					}
+					break;
+				}
+			}
+
+			// Eat leading blanks on a new line, unless they follow a CR/LF
+			if (c == ' ' && emptyLine && (timesOfCRLF == 0))
+			{
+				//Something wrong here
+			  	continue;
+			}
+
+// JIMB BUG BUG - allow breaking a line of text at a '-' as well
+			// Remember blanks - we will back up to 
+			// here when we run out of space (tabs should work correctly ... I hope)
+			if (c == ' ' || c == '\t')
+			{
+				lastBlankIndex = current; // this is actually 1 past ...
+				lastBlankPoint = currentPt;
+			}
+
+			// At this point, we are going to try to write something ...
+			emptyLine = false;
+
+			// Get the substring we want to draw ...
+			// special case a tab as 4 blanks (should we do "real" tab stops?!?!?)
+			if (c == '\t')
+				x = @"   ";
+			else
+				x = [NSString stringWithCharacters:&c length:1];
+
+			// Draw the text, or just get bounding box if we are looping ...
+			used = [x sizeWithFont:gsFont];
+
+			// Update the current position at the end of the text we drew
+			currentPt.x += used.width;
+		
+			if (currentPt.x > (width-hpad))
+			{
+				// Can we back up to a blank?
+				if (lastBlankIndex > 0)
+				{
+					// plus one skips this space
+					current    = MAX(0,lastBlankIndex-1) ; 
+				}
+				else
+				{
+// JIMB BUG BUG - add a trailing '-' when we are forced to break a word?!?!
+// This is tricy to calculate - we probably ought to calc the size needed above
+// and save it so we know how far to back up - it might be several characters,
+// but I suspect 1 character plus whatever partial char put us past the edge will
+// probably be enough.  Two plus partial ought to always be sufficient ...
+				}
+
+				
+				// Save the new current position 
+				// (i.e. before the one that put us past the edge)
+				current = MAX(0,current+1);
+				break;
+				
+			}
+
+		} // while space on this line
+
+	  } // for each line
+	
+	  	
+	// Set this as our new start position
+	[self setStart:MAX(0,current+1)];
+}
+
+//Added by Allen Li
+-(void) moveDown:(int)moveLines
+{
+	CGSize viewSize = [trApp getOrientedViewSize];
+
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lines      = viewSize.height / lineHeight;
+
+   if ((moveLines <= 0) || (moveLines > lines))
+   	return;
+
+   [self setStart:lineStart[moveLines]];
+}
+
+//Added by Allen Li
+-(void) dragText:(int)offset
+{
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+
+	if(offset > 0)
+	{
+		[self moveUp:(offset/lineHeight)];
+	}
+	else
+	{
+		offset = -offset;
+		[self moveDown:(offset/lineHeight)];
+	}
+}
 
 - (void)mouseDown:(struct __GSEvent*)event {
 	[ [self tapDelegate] mouseDown: event ];
@@ -1123,6 +1537,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 - (NSString *)getFont {
 	return font;
 } // getFont
+
+//Added by Allen Li
+- (int) getFontHeight{
+	return fontSize * 1.25+1;
+}
 
 
 - (NSStringEncoding)getEncoding {

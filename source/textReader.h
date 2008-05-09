@@ -41,7 +41,7 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.6.0Beta3"
+#define TEXTREADER_VERSION  		@"0.6.0Beta4"
 #define TEXTREADER_CACHE_EXT        @"text"
 
 #define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
@@ -118,6 +118,10 @@ typedef enum _MyViewName {
 	MyDownloadTable         *downloadTable;
 
 	CGPoint         		 mouseDown;
+	//Added by Allen Li
+	CGPoint			offset;
+	bool				isInDragMode;
+	//Until here - Allen Li
 	int             		 currentOrientation;
 	bool              		 reverseTap;
 	bool              		 swipe;
@@ -145,6 +149,8 @@ typedef enum _MyViewName {
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
+- (void)mouseDragged: (struct __GSEvent *)event;
+
 
 - (void) showView:(MyViewName)viewName;
 

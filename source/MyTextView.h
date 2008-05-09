@@ -53,6 +53,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 	NSMutableString  *text;
 	int               start;
 	int               end;
+	int		    lineStart[480]; //Added by Allen Li
 
 	NSStringEncoding  encoding;
 	NSStringEncoding  gb2312enc;
@@ -84,6 +85,9 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 - (void) pageUp;
 - (void) pageDown;
+-(void) moveDown:(int)moveLines; //Added by Allen Li
+-(void) moveUp:(int)moveLines; //Added by Allen Li
+-(void) dragText:(int)offset; //Added by Allen Li
 
 - (bool)              openFile:(NSString *)name path:(NSString *)path;
 - (NSMutableString *) getText;
@@ -94,6 +98,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (NSString*)         getFilePath;
 
 - (NSString *)getFont;
+- (int) getFontHeight; //Added by Allen Li
 - (bool)setFont:(NSString*)newFont size:(int)size;
 
 - (NSStringEncoding)getEncoding;

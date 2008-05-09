@@ -158,7 +158,7 @@
 
 	// Position settings button	
 	btnRect.size.width = btnRect.size.height = [UINavigationBar defaultSize].height *0.8;
-	btnRect.origin.x = viewSize.width - btnRect.size.width - 5;
+	btnRect.origin.x = viewSize.width - btnRect.size.width - 4;
 	btnRect.origin.y = ([UINavigationBar defaultSize].height - btnRect.size.height) / 2;
 	[settingsBtn setFrame:btnRect];
 	
@@ -184,7 +184,7 @@
 	}
 						  	
 	// Position lock button
-	btnRect.origin.x -= btnRect.size.width;
+	btnRect.origin.x -= btnRect.size.width - 3;
 	[lockBtn setFrame:btnRect];
 	
 } // fixButtons
@@ -234,6 +234,42 @@
 		[self showView:My_Info_View];
 	
 } // loadDefaults
+
+
+- (void) recreateSlider {
+	if (slider)
+	{
+		// Nuke the old one ...
+  	    [slider removeFromSuperview];
+	    [slider release];
+	    slider = nil;
+	}
+	if ([textView getText] && currentView == My_Info_View)
+	{
+		struct CGRect FSrect = [self getOrientedViewRect];
+		struct CGRect rect   = CGRectMake(0, 
+		                                  FSrect.size.height-[UINavigationBar defaultSize].height, 
+		                                  FSrect.size.width, 
+		                                  [UINavigationBar defaultSize].height);	
+		// Create the slider ...	
+		slider = [[UISliderControl alloc] initWithFrame:rect];
+		float backParts[4] = {0, 0, 0, .5};
+		CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+		[slider setBackgroundColor: CGColorCreate(colorSpace, backParts)];
+		[slider setShowValue:NO];
+		[slider setMinValue:0];
+
+		[slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag, 2=up
+		[slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
+		[slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];	
+	
+		[textView addSubview:slider];	
+
+		// [slider setAlpha:1];
+		// [slider setAlpha:0];
+	}
+	
+} // recreateSlider
 
 
 - (void) showView:(MyViewName)viewName
@@ -379,21 +415,12 @@
 				[navBar setFrame: navBarRect];
 				[navBar setAlpha:1];
 				
-				// Handle the slider if we have text loaded
-				if ([textView getText])
-				{
-					navBarRect.origin.y = FSrect.size.height - navBarRect.size.height;
-					[slider setFrame: navBarRect];
-					[slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
-					[slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];	
-					[slider setAlpha:1];
-				}
-				else
-					[slider setAlpha:0];
-
 				// Switch views
 				[transView transition:1 toView:textView];
 				currentView = My_Info_View;
+				
+				// Update the slider
+				[self recreateSlider];
 				
 				fileTable = nil;
 				prefsTable = nil;
@@ -413,14 +440,16 @@
 				[textView setBounds:[transView bounds]];
 				[navBar setFrame: navBarRect];
 				[navBar setAlpha:0];
-				[slider setAlpha:0];
-				
+						
 				// Switch views
 				if (currentView == My_File_View)
 					[transView transition:1 toView:textView];
 				else
 					[transView transition:2 toView:textView];
 				currentView = My_Text_View;
+				
+				// Update the slider
+				[self recreateSlider];
 				
 				fileTable = nil;
 				prefsTable = nil;
@@ -523,20 +552,6 @@
 	[navBar addSubview:lockBtn];
 
 	[self fixButtons];
-
-// JIMB BUG BUG - figure out how to get this to redraw properly when rotated !!!!!
-	// Create the slider ...	
-	navBarRect.origin.y = FSrect.size.height - navBarRect.size.height;
-	slider = [[UISliderControl alloc] initWithFrame:navBarRect];
-    float backParts[4] = {0, 0, 0, .5};
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    [slider setBackgroundColor: CGColorCreate(colorSpace, backParts)];
-    [slider setAlpha:0];
-	[slider setShowValue:NO];
-	[slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag, 2=up
-	[slider setMinValue:0];
-	[navBar setAutoresizingMask: kTopBarResizeMask];	
-	[textView addSubview:slider];	
 	
 	[super setInitialized: true];	
 	
@@ -600,27 +615,12 @@
 	
 	currentOrientation = [super getOrientation];
 
-	// Resize the slider since it doesn't get it for free ...
- 	CGRect FSrect = [self getOrientedViewRect];
- 	CGRect rect = [slider frame];
- 	rect.size.width = FSrect.size.width;
- 	rect.origin.y = FSrect.size.height - rect.size.height;
- 	[slider setFrame: rect];
-//  	[slider setBounds: rect];
-//   	[slider sliderBoundsChanged];
-// 	[slider setMinValue: 10];
-// 	[slider setMinValue: 0];
-// 	if ([textView getText])
-// 	{
-// // JIMB BUG BUG figure out how to get this to update when we rotate!!!
-// // Is it easier to just recreate it every time ?!?!?!?
-// 		[slider setMaxValue:[[textView getText] length]];
-// 		[slider setValue:[textView getStart]];	
-// 	}
-// 	[slider drawSliderInRect:rect];
-
+	// Slider will not redraw properly when rotated - so nuke it and recreate it ...
+	[self recreateSlider];
+	
 	// Resize the navbar as well
-	rect = [navBar frame];
+	struct CGRect FSrect = [self getOrientedViewRect];
+	struct CGRect rect   = [navBar frame];
 	rect.origin.y = [UIHardware statusBarHeight];
 	rect.size.width = FSrect.size.width;
 	[navBar setFrame:rect];
@@ -665,6 +665,10 @@
 // Handle mouse down - remember the position
 - (void)mouseDown:(struct __GSEvent*)event {
 	mouseDown = [self getOrientedEventLocation:event];
+	//Added by Allen Li
+	offset = mouseDown;
+	isInDragMode = NO;
+	//Until Here Allen Li
 } // mouseDown
  
  
@@ -681,60 +685,15 @@
 	if (mouseDown.x < 0 || mouseDown.y < 0)
 		return;
 	
- 	//Added by Allen Li ================================
-	//swipe detection
-	BOOL lChangeChapter = NO;
-	BOOL forword = YES;
-	if ((mouseUp.x - mouseDown.x) < 50 && (mouseUp.x - mouseDown.x) > -50)
+	//Added by Allen Li
+	if (isInDragMode)
 	{
-		if ((mouseUp.y - mouseDown.y) > 50 )
-		{
-      			forword = NO;
-			lChangeChapter = YES;
-		}
-		else if ((mouseUp.y - mouseDown.y) < -50)
-		{
-			forword = YES;
-			lChangeChapter = YES;
-		}
-	}
-	else if ((mouseUp.y - mouseDown.y) < 50 && (mouseUp.y - mouseDown.y) > -50)
-	{
-		if ((mouseUp.x - mouseDown.x) > 50 )
-		{
-      			forword = NO;
-			lChangeChapter = YES;
-		}
-		else if ((mouseUp.x - mouseDown.x) < -50)
-		{
-			forword = YES;
-			lChangeChapter = YES;
-		}
-	
-	}
-
-	if (lChangeChapter == YES)
-	{
-		if (currentView == My_Text_View)
-		{
-			if (forword == YES)
-			{
-				[textView pageDown];
-			}
-			else
-			{
-				[textView pageUp];
-
-			}
-		
-		}
-
-		mouseDown = CGPointMake(-1, -1);
+		isInDragMode = NO;
+		mouseDown = CGPointMake(-1, -1);		
 		return;
-	
 	}
-	//Until here - Allen Li ========================================
 	
+	//Until here -Allen Li
 	// If no text loaded, show the bar and keep it up
 	if (!textView || ![textView getText])
 	{
@@ -792,6 +751,31 @@
 		
 } // mouseUp
 
+//Added by Allen Li --- Handle Mouse-Dragged
+- (void)mouseDragged: (struct __GSEvent *)event
+{
+
+	// Did they want this turned off?
+	if (!swipe)
+		return;
+		
+	CGPoint point = [self getOrientedEventLocation:event];
+
+	int dragLen;
+	int fontHeight;
+
+	fontHeight = [textView getFontHeight];
+
+	dragLen = point.y - offset.y;
+
+	if( (dragLen >= fontHeight) || (dragLen <= (-fontHeight)) )
+	{
+		isInDragMode = YES;
+		offset = point;
+		[textView dragText:(dragLen)];
+	}
+	
+}//mouseDragged
 
 // Handle navBar buttons ...
 - (void) navigationBar: (UINavigationBar*) navBar buttonClicked: (int) button 
