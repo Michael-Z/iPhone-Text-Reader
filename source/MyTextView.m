@@ -143,7 +143,7 @@ typedef unsigned int NSUInteger;
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
    
    [self moveUp:lines];
@@ -573,12 +573,10 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 		else
 			x = [NSString stringWithCharacters:&c length:1];
 
-		// Draw the text
-		used = [x drawAtPoint:currentPt withFont:gsFont];
+		// Draw the text - 1 below the current pt to avoid artifacts
+		used = [x drawAtPoint:CGPointMake(currentPt.x,currentPt.y+1) withFont:gsFont];
 
 		// Update the current position at the end of the text we drew
-		CGPoint tmpPt = currentPt;
-		tmpPt.y++;
 		currentPt.x += used.width;
 	
 		struct CGPoint endPoint = currentPt;
@@ -651,7 +649,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
    int width      = viewSize.width;
    int hpad       = padMargins ? 10 : 0;
@@ -820,7 +818,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
    int lines      = viewSize.height / lineHeight;
 
    if ((moveLines <= 0) || (moveLines > lines))
@@ -835,7 +833,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	// Get font metrics instead of this kludge!!!
 	// No idea how to get info from a GSFont tho ...
 
-   int lineHeight = fontSize * 1.25; // Blech!!! Figure this properly!!!
+   int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
 
 	if(offset > 0)
 	{
