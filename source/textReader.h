@@ -36,6 +36,8 @@
 #import <UIKit/UIView-Geometry.h>
 #import <UIKit/UISliderControl.h>
 #import <UIKit/UINavBarButton.h>
+#import <UIKit/UIProgressHUD.h>
+#import <UIkit/UIProgressIndicator.h>
 
 
 #import "UIOrientingApplication.h"
@@ -101,6 +103,8 @@ typedef enum _MyViewName {
 } MyViewName;
 
 @interface textReader : UIOrientingApplication {
+
+	UIWindow                *mainWindow;
 	UITransitionView		*transView;
 
 	MyTextView              *textView;
@@ -117,17 +121,23 @@ typedef enum _MyViewName {
 
 	MyDownloadTable         *downloadTable;
 
+	UIProgressHUD			*wait;
+
 	CGPoint         		 mouseDown;
-	//Added by Allen Li
-	CGPoint			offset;
-	bool				isInDragMode;
-	//Until here - Allen Li
+
+	CGPoint				     offset;
+	bool				     isInDragMode;
+
 	int             		 currentOrientation;
 	bool              		 reverseTap;
 	bool              		 swipe;
 	MyViewName				 currentView;
 
 	bool					 orientationInitialized;
+
+	// KLUDGE to try to get wait HUD working
+	NSString                *openname;
+	NSString                *openpath;
 
 	NSUserDefaults			*defaults;
 }
@@ -136,7 +146,7 @@ typedef enum _MyViewName {
 - (id)   init;
 - (void) applicationWillSuspend;
 - (void) loadDefaults;
-- (bool) openFile:(NSString *)name path:(NSString *)path;
+- (void) openFile:(NSString *)name path:(NSString *)path;
 - (int)  getDefaultStart:(NSString*)name;
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
 - (void) removeDefaults:(NSString*)name;
@@ -151,6 +161,8 @@ typedef enum _MyViewName {
 - (void) mouseUp:(struct __GSEvent *)event;
 - (void)mouseDragged: (struct __GSEvent *)event;
 
+- (void) showWait;
+- (void) hideWait;
 
 - (void) showView:(MyViewName)viewName;
 

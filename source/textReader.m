@@ -47,6 +47,7 @@
 	defaults = [[NSUserDefaults standardUserDefaults] retain];
 	
 	currentOrientation 	= -9999;
+	wait                = nil;
 	transView  			= nil;
 	textView  			= nil;
 	fileTable           = nil;
@@ -63,6 +64,7 @@
 	orientationInitialized = false;
 
 	[super init];
+	
 } // init
 
 - (void) setReverseTap:(bool)rtap {
@@ -73,7 +75,54 @@
 	swipe = sw;
 }
 
+- (void) showWait {
+
+	if (!wait)
+	{		
+		struct CGRect rect = [self getOrientedViewRect];
+		rect.origin.x = 0;
+		rect.origin.y = rect.size.height - (rect.size.height * 2) / 5;
+		rect.size.height = rect.size.height / 5;
+
+		wait = [[UIProgressHUD alloc] initWithWindow:mainWindow];
+		[wait setText:@"Loading ..."];
+		// [wait setText:@""];
+		[wait drawRect:rect];
+		[wait setNeedsDisplay];
+
+		// Sad - doesn't work ...		
+		// Try to hide the background of the spinner ...
+		// float backParts[4] = {0, 0, 0, .5};
+		// float backParts[4] = {0, 0, 0, 0};
+		// CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+		// [wait setBackgroundColor: CGColorCreate(colorSpace, backParts)];
+	}
+	
+// JIMB BUG BUG - handle this !!!	
+	// Rotate ?!?!?!? Not sure how best to do it ????
+	[transView setEnabled:NO];
+    [wait show:YES];
+
+} // showWait
+
+
+- (void) hideWait {
+  if (wait)
+  {
+ 	  [wait show:NO];
+ 	  // [wait removeFromSuperview];
+ 	  // [wait release];
+ 	  // wait = nil;
+  }
+  
+  [transView setEnabled:YES];
+  
+} // hideWait
+
+
+
 - (bool) getReverseTap { return reverseTap; }
+
 - (bool) getSwipe { return swipe; }
 
 - (NSString*) getFileName {
@@ -184,7 +233,7 @@
 	}
 						  	
 	// Position lock button
-	btnRect.origin.x -= btnRect.size.width - 3;
+	btnRect.origin.x -= btnRect.size.width;
 	[lockBtn setFrame:btnRect];
 	
 } // fixButtons
@@ -194,15 +243,6 @@
 
 	// Restore general prefs
 	[textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
-
-	// [self setUIOrientation:1];
-	// [self unlockUIOrientation];
-	// bool locked = [defaults integerForKey:TEXTREADER_OLOCKED];
-	// if (locked)
-	// {
-	// 	[self lockUIToOrientation:[defaults integerForKey:TEXTREADER_OCODE]];
-	// 	[self fixButtons];
-	// }
 
 	[self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
@@ -230,9 +270,16 @@
 	NSString * name = [defaults stringForKey:TEXTREADER_OPENFILE];
 	if (name)
 		[self openFile:name path:path];
+		// Leave wait up - openfile will clear it when done
 	else
+	{
+		// No file to open - switch to info view
 		[self showView:My_Info_View];
-	
+		
+		// Done waiting
+		[self hideWait];
+	}
+		
 } // loadDefaults
 
 
@@ -264,9 +311,6 @@
 		[slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];	
 	
 		[textView addSubview:slider];	
-
-		// [slider setAlpha:1];
-		// [slider setAlpha:0];
 	}
 	
 } // recreateSlider
@@ -304,7 +348,6 @@
 				FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
 				downloadTable = [ [ MyDownloadTable alloc ] initWithFrame:FSrect];
 				[downloadTable setTextReader:self];
-				//[downloadTable setTextView:textView];
 				[downloadTable reloadData];
 				
 				[downloadBar setDelegate:downloadTable];
@@ -492,13 +535,15 @@
 	struct CGRect FSrect = [self getOrientedViewRect];
 	   
 	// Initialize the main window 
-	UIWindow *mainWindow = [[UIWindow alloc] initWithContentRect: FSrect];
+	mainWindow = [[UIWindow alloc] initWithContentRect: FSrect];
 	[mainWindow orderFront: self];
 	[mainWindow makeKey: self];
 	[mainWindow _setHidden: false];
 	[mainWindow setAutoresizingMask: kMainAreaResizeMask];
 	[mainWindow setAutoresizesSubviews: YES];
 
+	// Fire up the loading wait msg
+	[self showWait];
 
 	// Main view holds other views ...
 	transView = [[[UITransitionView alloc] initWithFrame: FSrect] retain];
@@ -555,7 +600,7 @@
 	
 	[super setInitialized: true];	
 	
-	[self loadDefaults];	
+	[self loadDefaults];
 	
 } // applicationDidFinishLaunching
 
@@ -754,7 +799,6 @@
 //Added by Allen Li --- Handle Mouse-Dragged
 - (void)mouseDragged: (struct __GSEvent *)event
 {
-
 	// Did they want this turned off?
 	if (!swipe)
 		return;
@@ -812,14 +856,42 @@
 } // redraw
 
 
-- (bool) openFile:(NSString *)name path:(NSString *)path {
-	if (name && [textView openFile:name path:path])
-	{
-		[self showView:My_Text_View];
-		[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:name]];
-	}
-	else
-		[self showView:My_Info_View];
+// Try splitting this out so we can show the wait hud ... D'Oh! Still doesn't work
+- (void) openFile2
+{
+ 	if (openname && [textView openFile:openname path:openpath])
+ 	{
+ 		[self showView:My_Text_View];
+ 		[navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:openname]];
+ 	}
+ 	else
+ 		[self showView:My_Info_View];
+
+ 	[self hideWait];
+}
+
+// Even with everything commented out this blows up ...
+- (void) thrdOpenFile:(id)ignored 
+{   
+	[self performSelectorOnMainThread:@selector(openFile2) 
+							withObject:nil waitUntilDone:YES];
+}
+
+- (void) openFile:(NSString *)name path:(NSString *)path {
+
+	[self showWait];
+	
+	// KLUDGE!!!!
+	// Remember the open file and path
+	openname = name;
+	openpath = path;
+
+	// For some reason, we often don't get the "wait" when loading default file
+	// Maybe because the mainwindow isn't quite up?!?!?
+    [NSThread detachNewThreadSelector:@selector(thrdOpenFile:)
+	  						 toTarget:self
+	  					   withObject:nil];
+    
 } // openFile
 
 
@@ -858,6 +930,7 @@
 	}
 
 	return type;
+	
 } // getFileType
 
 
