@@ -233,7 +233,7 @@
 	}
 						  	
 	// Position lock button
-	btnRect.origin.x -= btnRect.size.width;
+	btnRect.origin.x -= btnRect.size.width - 4;
 	[lockBtn setFrame:btnRect];
 	
 } // fixButtons
@@ -669,7 +669,9 @@
 	rect.origin.y = [UIHardware statusBarHeight];
 	rect.size.width = FSrect.size.width;
 	[navBar setFrame:rect];
-	
+
+	// Set the locked orientation
+	// Can't do this during finishedLaunchine because UIOrientation is set up at that point
 	if (!orientationInitialized)
 	{
 		orientationInitialized = TRUE;
@@ -680,6 +682,11 @@
 	// Resize the buttons on the navbar
 	[self fixButtons];
 	
+	// // Rotate wait msg
+	// JIMB BUG BUG - has some strange side effects ...
+	// //[wait setRotationBy:currentOrientation - [super getOrientation]];
+	// [wait setRotationBy:[super getOrientation]];
+
 	// Force a screen update
 	[self redraw];
 	

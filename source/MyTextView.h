@@ -46,7 +46,6 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 // *****************************************************************************
 @interface MyTextView : UIView {
 
-	UIAlertSheet     *wait;
 	textReader   	 *trApp;
 	NSLock	         *screenLock;
 
@@ -67,7 +66,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 	NSString         *filePath;
 	NSString         *fileName;
 
-	bool              pageUp;
+	// bool              pageUp;
 }
 
 - (void) setTextReader:(textReader*)tr;
