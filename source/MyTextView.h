@@ -1,13 +1,17 @@
-//
+
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//   * http://iphonedevdoc.com/index.php - random hints
-//   * jYopp - http://jyopp.com/iphone.php - UIOrientingApplication example
+//	 * The iPhone Dev Team for toolchain and more!
+//   * James Yopp for the UIOrientingApplication example
+//   * Paul J. Lucas for txt2pdbdoc
+//   * http://iphonedevdoc.com/index.php - random hints and examples
 //   * mxweas - UITransitionView example
 //   * thebends.org - textDrawing example
+//   * Books.app - written by Zachary Brewster-Geisz (and others)
 //   * "iPhone Open Application Development" by Jonathan Zdziarski - FileTable/UIDeletableCell example
-//   * BooksApp, written by Zachary Brewster-Geisz (and others)
+//   * http://garcya.us/ - for application icons
+//   * Allen Li for help with rotation lock and swipe/gestures
 //
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
@@ -22,7 +26,6 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program; if not, write to the Free Software
 //   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
 //
 
 

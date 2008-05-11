@@ -1,4 +1,33 @@
 
+//
+//   textReader.app -  kludged up by Jim Beesley
+//   This incorporates inspiration, code, and examples from (among others)
+//	 * The iPhone Dev Team for toolchain and more!
+//   * James Yopp for the UIOrientingApplication example
+//   * Paul J. Lucas for txt2pdbdoc
+//   * http://iphonedevdoc.com/index.php - random hints and examples
+//   * mxweas - UITransitionView example
+//   * thebends.org - textDrawing example
+//   * Books.app - written by Zachary Brewster-Geisz (and others)
+//   * "iPhone Open Application Development" by Jonathan Zdziarski - FileTable/UIDeletableCell example
+//   * http://garcya.us/ - for application icons
+//   * Allen Li for help with rotation lock and swipe/gestures
+//
+//   This program is free software; you can redistribute it and/or
+//   modify it under the terms of the GNU General Public License
+//   as published by the Free Software Foundation; version 2
+//   of the License.
+//
+//   This program is distributed in the hope that it will be useful,
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//   GNU General Public License for more details.
+//
+//   You should have received a copy of the GNU General Public License
+//   along with this program; if not, write to the Free Software
+//   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+
 
 
 #import "PrefsTable.h"
@@ -265,7 +294,7 @@
         case (2):
             switch (row) {
                 case (0):
-                    [ cell setTitle:@"Reverse Tap/Scroll" ];
+                    [ cell setTitle:@"Reverse Tap Zones" ];
                     reverseTap = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
@@ -273,7 +302,7 @@
                     [ cell addSubview: reverseTap ];
                     break;
                 case (1):
-                    [ cell setTitle:@"Swipe/Gestures" ];
+                    [ cell setTitle:@"Slide Scroll" ];
                     swipe = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ swipe setValue: [trApp getSwipe] ? 1 : 0 ];

@@ -1,14 +1,18 @@
+
 //
-//
-//   textReader.app -  kludged up by Jim Beesley 
+//   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//   * http://iphonedevdoc.com/index.php - random hints
-//   * jYopp - http://jyopp.com/iphone.php - UIOrientingApplication example
+//	 * The iPhone Dev Team for toolchain and more!
+//   * James Yopp for the UIOrientingApplication example
+//   * Paul J. Lucas for txt2pdbdoc
+//   * http://iphonedevdoc.com/index.php - random hints and examples
 //   * mxweas - UITransitionView example
 //   * thebends.org - textDrawing example
+//   * Books.app - written by Zachary Brewster-Geisz (and others)
 //   * "iPhone Open Application Development" by Jonathan Zdziarski - FileTable/UIDeletableCell example
-//   * BooksApp, written by Zachary Brewster-Geisz (and others)
-//   
+//   * http://garcya.us/ - for application icons
+//   * Allen Li for help with rotation lock and swipe/gestures
+//
 //   This program is free software; you can redistribute it and/or
 //   modify it under the terms of the GNU General Public License
 //   as published by the Free Software Foundation; version 2
@@ -22,7 +26,6 @@
 //   You should have received a copy of the GNU General Public License
 //   along with this program; if not, write to the Free Software
 //   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
 //
 
 #import "textReader.h"
@@ -834,6 +837,7 @@ if (current < 32)
    [self setStart:lineStart[moveLines]];
 }
 
+
 //Added by Allen Li
 -(void) dragText:(int)offset
 {
@@ -852,6 +856,7 @@ if (current < 32)
 		[self moveDown:(offset/lineHeight)];
 	}
 }
+
 
 - (void)mouseDown:(struct __GSEvent*)event {
 	[ [self tapDelegate] mouseDown: event ];
@@ -1071,126 +1076,220 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
  				UniChar entity = 0x0000;
  				
  				added.length -= added.location-1;
- 
+ 				
  				switch (added.length) 
  				{
  					case 4:
- 						// gt		003E
- 						if (getTag(dest, added.location, added.location+added.length, "GT;", "gt;"))
- 							entity = '>';
- 						// lt		003C
- 						else if (getTag(dest, added.location, added.location+added.length, "LT;", "lt;"))
- 							entity = '<';
+ 						switch([dest characterAtIndex:added.location+1])
+ 						{
+ 							case 'G': case 'g':
+								// gt		003E
+								if (getTag(dest, added.location, added.location+added.length, "GT;", "gt;"))
+									entity = '>';
+								break;
+								
+ 							case 'L': case 'l':
+								// lt		003C
+								if (getTag(dest, added.location, added.location+added.length, "LT;", "lt;"))
+									entity = '<';
+								break;
+
+ 							case '#':
+								// #34 == "
+								if (getTag(dest, added.location, added.location+added.length, "#34;", NULL))
+									entity = '"';
+								break;
+ 						}
  					break;
  
  					case 5:
- 						// amp		0026
- 						if (getTag(dest, added.location, added.location+added.length, "AMP;", "amp;"))
- 							entity = '&';
- 						// reg    	00AE
- 						else if (getTag(dest, added.location, added.location+added.length, "REG;", "reg;"))
- 							entity = 0x00AE;
- 						// uml		00A8
- 						else if (getTag(dest, added.location, added.location+added.length, "UML;", "uml;"))
- 							entity = 0x00A8;
- 						// yen		00A5
- 						else if (getTag(dest, added.location, added.location+added.length, "YEN;", "yen;"))
- 							entity = 0x00A5;
+ 						switch([dest characterAtIndex:added.location+1])
+ 						{
+ 							case 'A': case 'a':
+								// amp		0026
+								if (getTag(dest, added.location, added.location+added.length, "AMP;", "amp;"))
+									entity = '&';
+								break;
+								
+ 							case 'R': case 'r':
+								// reg    	00AE
+								if (getTag(dest, added.location, added.location+added.length, "REG;", "reg;"))
+									entity = 0x00AE;
+								break;
+								
+ 							case 'U': case 'u':
+								// uml		00A8
+								if (getTag(dest, added.location, added.location+added.length, "UML;", "uml;"))
+									entity = 0x00A8;
+								break;
+								
+ 							case 'Y': case 'y':
+								// yen		00A5
+								if (getTag(dest, added.location, added.location+added.length, "YEN;", "yen;"))
+									entity = 0x00A5;
+								break;
+						}
  					break;
  
  					case 6:
- 						// copy	  	00A9 
- 						if (getTag(dest, added.location, added.location+added.length, "COPY;", "copy;"))
- 							entity = 0x00A9;
- 						// cent		00A2	
- 						else if (getTag(dest, added.location, added.location+added.length, "CENT;", "cent;"))
- 							entity = 0x00A2;
- 						// emsp		2003
- 						else if (getTag(dest, added.location, added.location+added.length, "EMSP;", "emsp;"))
- 							entity = ' '; // entity = 0x2003;
- 						// ensp		2002
- 						else if (getTag(dest, added.location, added.location+added.length, "ENSP;", "ensp;"))
- 							entity = ' '; //entity = 0x2002;
- 						// euro		20ac
- 						else if (getTag(dest, added.location, added.location+added.length, "EURO;", "euro;"))
- 							entity = 0x20AC;
- 						// nbsp   	00A0
- 						else if (getTag(dest, added.location, added.location+added.length, "NBSP;", "nbsp;"))
- 							entity = ' '; //entity = 0x00A0;
- 						// quot		0022	
- 						else if (getTag(dest, added.location, added.location+added.length, "QUOT;", "quot;"))
- 							entity = '"'; //entity = 0x0022;
+ 						switch([dest characterAtIndex:added.location+1])
+ 						{
+ 							case 'C': case 'c':
+								// copy	  	00A9 
+								if (getTag(dest, added.location, added.location+added.length, "COPY;", "copy;"))
+									entity = 0x00A9;
+								// cent		00A2	
+								else if (getTag(dest, added.location, added.location+added.length, "CENT;", "cent;"))
+									entity = 0x00A2;
+								break;
+								
+ 							case 'E': case 'e':
+								// emsp		2003
+								if (getTag(dest, added.location, added.location+added.length, "EMSP;", "emsp;"))
+									entity = ' '; // entity = 0x2003;
+								// ensp		2002
+								else if (getTag(dest, added.location, added.location+added.length, "ENSP;", "ensp;"))
+									entity = ' '; //entity = 0x2002;
+								// euro		20ac
+								else if (getTag(dest, added.location, added.location+added.length, "EURO;", "euro;"))
+									entity = 0x20AC;
+								break;
+								
+ 							case 'N': case 'n':
+								// nbsp   	00A0
+								if (getTag(dest, added.location, added.location+added.length, "NBSP;", "nbsp;"))
+									entity = ' '; //entity = 0x00A0;
+								break;
+								
+ 							case 'Q': case 'q':
+								// quot		0022	
+								if (getTag(dest, added.location, added.location+added.length, "QUOT;", "quot;"))
+									entity = '"'; //entity = 0x0022;
+								break;
+						}
  					break;
  
  					case 7:
- 						// acute	00B4
- 						if (getTag(dest, added.location, added.location+added.length, "ACUTE;", "acute;"))
- 							entity = '\''; //entity = 0x00B4;
- 						// bdquo	201E
- 						else if (getTag(dest, added.location, added.location+added.length, "BDQUO;", "bdquo;"))
- 							entity = 0x201E;
- 						// iexcl    00A1
- 						else if (getTag(dest, added.location, added.location+added.length, "IEXCL;", "iexcl;"))
- 							entity = 0x00A1;
- 						// ldquo	201C
- 						else if (getTag(dest, added.location, added.location+added.length, "LDQUO;", "ldquo;"))
- 							entity = '"'; //entity = 0x201C;
- 						// lsquo	2018
- 						else if (getTag(dest, added.location, added.location+added.length, "LSQUO;", "lsquo;"))
- 							entity = '\''; //entity = 0x2018;
- 						// mdash	2014
- 						else if (getTag(dest, added.location, added.location+added.length, "MDASH;", "mdash;"))
- 							entity = '-'; //entity = 0x2014;
- 						// ndash	2013
- 						else if (getTag(dest, added.location, added.location+added.length, "NDASH;", "ndash;"))
- 							entity = '-'; //entity = 0x2013;
- 						// pound	00A3
- 						else if (getTag(dest, added.location, added.location+added.length, "POUND;", "pound;"))
- 							entity = '#'; //entity = 0x00A3;
- 						// rdquo	201D
- 						else if (getTag(dest, added.location, added.location+added.length, "RDQUO;", "rdquo;"))
- 							entity = '"'; //entity = 0x201D;
- 						// rsquo	2019
- 						else if (getTag(dest, added.location, added.location+added.length, "RSQUO;", "rsquo;"))
- 							entity = '\''; //entity = 0x2019;
- 						// sbquo	201A
- 						else if (getTag(dest, added.location, added.location+added.length, "SBQUO;", "sbquo;"))
- 							entity = 0x201A;
- 						// tilde	00C3
- 						else if (getTag(dest, added.location, added.location+added.length, "TILDE;", "tilde;"))
- 							entity = '~'; //entity = 0x00C3;
- 							
- 						// Blech forgot about these ... Why do people do this ?!?!?!?
- 						// #8212
- 						else if (getTag(dest, added.location, added.location+added.length, "#8212;", NULL))
- 							entity = '"'; //entity = 0x2014;
- 						// #8216
- 						else if (getTag(dest, added.location, added.location+added.length, "#8216;", NULL))
- 							entity = '\''; //entity = 0x2018;
- 						// #8217
- 						else if (getTag(dest, added.location, added.location+added.length, "#8217;", NULL))
- 							entity = '\''; //entity = 0x2019;
- 						// #8220
- 						else if (getTag(dest, added.location, added.location+added.length, "#8220;", NULL))
- 							entity = '"'; //entity = 0x201C;
- 						// #8221
- 						else if (getTag(dest, added.location, added.location+added.length, "#8221;", NULL))
- 							entity = '"'; //entity = 0x201D;
+ 						switch([dest characterAtIndex:added.location+1])
+ 						{
+ 							case 'A': case 'a':
+								// acute	00B4
+								if (getTag(dest, added.location, added.location+added.length, "ACUTE;", "acute;"))
+									entity = '\''; //entity = 0x00B4;
+								break;
+								
+ 							case 'B': case 'b':
+								// bdquo	201E
+								if (getTag(dest, added.location, added.location+added.length, "BDQUO;", "bdquo;"))
+									entity = 0x201E;
+								break;
+								
+ 							case 'I': case 'i':
+								// iexcl    00A1
+								if (getTag(dest, added.location, added.location+added.length, "IEXCL;", "iexcl;"))
+									entity = 0x00A1;
+								break;
+								
+ 							case 'L': case 'l':
+								// ldquo	201C
+								if (getTag(dest, added.location, added.location+added.length, "LDQUO;", "ldquo;"))
+									entity = '"'; //entity = 0x201C;
+								// lsquo	2018
+								else if (getTag(dest, added.location, added.location+added.length, "LSQUO;", "lsquo;"))
+									entity = '\''; //entity = 0x2018;
+								break;
+								
+ 							case 'M': case 'm':
+								// mdash	2014
+								if (getTag(dest, added.location, added.location+added.length, "MDASH;", "mdash;"))
+									entity = '-'; //entity = 0x2014;
+								break;
+								
+ 							case 'N': case 'n':
+								// ndash	2013
+								if (getTag(dest, added.location, added.location+added.length, "NDASH;", "ndash;"))
+									entity = '-'; //entity = 0x2013;
+								break;
+								
+ 							case 'P': case 'p':
+								// pound	00A3
+								if (getTag(dest, added.location, added.location+added.length, "POUND;", "pound;"))
+									entity = '#'; //entity = 0x00A3;
+								break;
+								
+ 							case 'R': case 'r':
+								// rdquo	201D
+								if (getTag(dest, added.location, added.location+added.length, "RDQUO;", "rdquo;"))
+									entity = '"'; //entity = 0x201D;
+								// rsquo	2019
+								else if (getTag(dest, added.location, added.location+added.length, "RSQUO;", "rsquo;"))
+									entity = '\''; //entity = 0x2019;
+								break;
+								
+ 							case 'S': case 's':
+								// sbquo	201A
+								if (getTag(dest, added.location, added.location+added.length, "SBQUO;", "sbquo;"))
+									entity = 0x201A;
+								break;
+								
+ 							case 'T': case 't':
+								// tilde	00C3
+								if (getTag(dest, added.location, added.location+added.length, "TILDE;", "tilde;"))
+									entity = '~'; //entity = 0x00C3;
+								break;
+								
+ 							case '#':
+ 								if ([dest characterAtIndex:added.location+2] != '8' || 
+ 								    [dest characterAtIndex:added.location+3] != '2')
+ 									break;
+ 									
+								// Blech forgot about these ... Why do people do this ?!?!?!?
+								// #8212
+								if (getTag(dest, added.location, added.location+added.length, "#8212;", NULL))
+									entity = '"'; //entity = 0x2014;
+								// #8216
+								else if (getTag(dest, added.location, added.location+added.length, "#8216;", NULL))
+									entity = '\''; //entity = 0x2018;
+								// #8217
+								else if (getTag(dest, added.location, added.location+added.length, "#8217;", NULL))
+									entity = '\''; //entity = 0x2019;
+								// #8220
+								else if (getTag(dest, added.location, added.location+added.length, "#8220;", NULL))
+									entity = '"'; //entity = 0x201C;
+								// #8221
+								else if (getTag(dest, added.location, added.location+added.length, "#8221;", NULL))
+									entity = '"'; //entity = 0x201D;
+								break;
+						}
  					break;
  
  					case 8:
- 						// curren	00A4
- 						if (getTag(dest, added.location, added.location+added.length, "CURREN;", "curren;"))
- 							entity = 0x00A4;
- 						// eacute	00C9
- 						else if (getTag(dest, added.location, added.location+added.length, "EACUTE;", "eacute;"))
- 							entity = 0x00C9;
- 						// iquest	00BF
- 						else if (getTag(dest, added.location, added.location+added.length, "IQUEST;", "iquest;"))
- 							entity = 0x00BF;
- 						// middot	00B7
- 						else if (getTag(dest, added.location, added.location+added.length, "MIDDOT;", "middot;"))
- 							entity = 0x00B7;
+ 						switch([dest characterAtIndex:added.location+1])
+ 						{
+ 							case 'C': case 'c':
+								// curren	00A4
+								if (getTag(dest, added.location, added.location+added.length, "CURREN;", "curren;"))
+									entity = 0x00A4;
+								break;
+								
+ 							case 'E': case 'e':
+								// eacute	00C9
+								if (getTag(dest, added.location, added.location+added.length, "EACUTE;", "eacute;"))
+									entity = 0x00C9;
+								break;
+								
+ 							case 'I': case 'i':
+								// iquest	00BF
+								if (getTag(dest, added.location, added.location+added.length, "IQUEST;", "iquest;"))
+									entity = 0x00BF;
+								break;
+								
+ 							case 'M': case 'm':
+								// middot	00B7
+								if (getTag(dest, added.location, added.location+added.length, "MIDDOT;", "middot;"))
+									entity = 0x00B7;
+								break;
+						}
  					break;
  				}
  				
@@ -1212,17 +1311,8 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
 } // addHTMLText
 
 
-bool isBlank(unichar c) {
-
-	if (c==' '||c=='\t'||c==0x0a||c==0x0d||c=='>')
-		return true;
-	else
-		return false;
-		
-} // isBlank
-
 // Honor some tags - ignore most others ...
-// KLUDGE!!!
+// KLUDGE!!! - move this stuff to it's own class!!!
 static bool openParagraph = false;
 void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest) 
 {
@@ -1391,15 +1481,21 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 // KLUDGE - fix this !!!!
 
 // Strips out HTML tags and produces ugly text for reading enjoyment ...
-- (void)stripHTML:(NSMutableString  *)newText type:(TextFileType)ftype {
+- (void) stripHTML:(NSMutableString  *)newText type:(TextFileType)ftype {
 
 	NSMutableString  *src   = newText;
 	NSRange 	  	  rtext = {0};
 	NSRange 		  rtag  = {0};
 	
+	if (!newText || ![newText length])
+		return;
+	
 	// KLUDGE - put HTML stuff in it's own class !!!!
 	openParagraph = false;
 
+	// Special case a check for the document starting with <BODY
+	// The check below wouldn't find it because the offset would be 0
+	
     // Look for the start of the body tag - we ignore everything before it
  	rtag.location = getTag(src, 0, 0, "<BODY", "<body");
  	
@@ -1536,8 +1632,12 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 			if (data)
 				[data release];
 				
-			// Check the PDB for HTML - look for <HEAD in the first 512 bytes
-			if (newText && getTag(newText, 0, 512, "<HEAD", "<head"))
+			// Check the PDB for HTML - We'll consider anything with 
+			// a < and a > in the first 128 characters an HTML doc
+			if ( newText && 
+				 ([newText characterAtIndex:0] == '<' ||
+			      (getTag(newText, 0, 256, "<", NULL) && 
+			       getTag(newText, 0, 256, ">", NULL))) )
 			   ftype = kTextFileTypeHTML;
 		}
 		else
