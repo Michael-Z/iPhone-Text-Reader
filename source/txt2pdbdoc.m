@@ -193,19 +193,102 @@ enum {
 
 #define	FREE_BUFFER(b)	((b)->data ? free( (b)->data ) : 0)
 
-//#define	GET_DWord(f,n) 	{ if ( fread( &n, 4, 1, f ) != 1 ) read_error(); n = ntohl(n); }
-int GET_DWord(	FILE * fin, DWord * n) 	
+// ***********************************************
+typedef unsigned int NSUInteger;
+
+typedef  struct _pdbFILE {
+	NSData     * data;
+	NSUInteger   pos;
+} pdbFILE;
+
+int GET_DWord(pdbFILE * fin, DWord * n)
 { 
-	if ( fread( n, 4, 1, fin ) != 1 ) 
+	if (fin->pos + sizeof(DWord) >= [fin->data length])
 		return 1;
+
+	NSRange range = {fin->pos, sizeof(DWord)};
+
+	[fin->data getBytes:n range:range];
+
+	fin->pos += range.length;
 	
 	*n = ntohl(*n); 
+	
 	return 0;
 }
 
+int pdbfseek(pdbFILE * fin, size_t offset, int start)
+{
+	if (start == SEEK_END)
+	{
+		fin->pos = [fin->data length];
+		return 0;
+	}
+	else if (start == SEEK_SET)
+	{
+		fin->pos = offset;
+		
+		if (fin->pos >= [fin->data length])
+			return 1;
+
+		return 0;	
+	}
+
+	return 1;
+}
 
 #define	SEEK_REC_ENTRY(f,i) \
-	fseek( f, DatabaseHdrSize + RecordEntrySize * (i), SEEK_SET )
+	pdbfseek( f, DatabaseHdrSize + RecordEntrySize * (i), SEEK_SET )
+
+pdbFILE * pdbfopen(NSString * fullpath)
+{
+	NSData * data = [[NSData dataWithContentsOfMappedFile:fullpath] retain];
+	if (!data)
+		return nil;
+		
+	pdbFILE * fin = (pdbFILE *)malloc(sizeof(pdbFILE));
+	if (fin)
+	{
+		fin->pos = 0;
+		fin->data = data;
+	}
+	else
+		[data release];
+		
+	return fin;
+}
+
+void pdbfclose(pdbFILE * fin)
+{
+	if (fin)
+	{
+		[fin->data release];
+		free(fin);
+	}
+}
+
+int pdbfread( void *buf, size_t size, int cnt, pdbFILE * fin)
+{
+	NSRange range = {fin->pos, MIN(size*cnt, [fin->data length]-fin->pos)};
+	[fin->data getBytes:buf range:range];
+
+	fin->pos += range.length;
+	
+	return range.length;	
+}
+
+
+NSUInteger pdbftell(pdbFILE * fin)
+{
+	if (fin)
+		return fin->pos;
+		
+	return 0;
+}
+
+// ***********************************************
+
+
 
 /*****************************************************************************
  *
@@ -252,7 +335,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 	buffer			buf = {0};
 	int		    	compression;
 	DWord			file_size, offset, rec_size;
-	FILE			*fin = NULL;
+	// FILE			*fin = NULL;
+	pdbFILE			*fin = NULL;
 	DatabaseHdrType	header;
 	int				num_records, rec_num;
 	doc_record0		rec0;
@@ -263,13 +347,15 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 
 	/********** open files, read header, ensure source is a Doc file *****/
 
-	fin = fopen([src cString], "rb");
+	// fin = fopen([src cString], "rb");
+	fin = pdbfopen(src);
 	if (!fin)
 	   rc = 1;
 	   
 	while (fin)
 	{
-		if ( fread( &header, DatabaseHdrSize, 1, fin ) != 1 )
+		// if ( fread( &header, DatabaseHdrSize, 1, fin ) != 1 )
+		if ( pdbfread( &header, DatabaseHdrSize, 1, fin ) != DatabaseHdrSize )
 			break;
 
 		// Return the type and creator ...
@@ -354,8 +440,10 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 			break;
 		
 		
-		fseek( fin, offset, SEEK_SET );
-		if ( fread( &rec0, sizeof rec0, 1, fin ) != 1 )
+		// fseek( fin, offset, SEEK_SET );
+		pdbfseek( fin, offset, SEEK_SET );
+		// if ( fread( &rec0, sizeof rec0, 1, fin ) != 1 )
+		if ( pdbfread( &rec0, sizeof rec0, 1, fin ) != sizeof rec0 )
 			break;
 
 		compression = ntohs( rec0.version );
@@ -368,8 +456,10 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 
 		/********* read Doc file record-by-record ****************************/
 	
-		fseek( fin, 0, SEEK_END );
-		file_size = ftell( fin );
+		// fseek( fin, 0, SEEK_END );
+		pdbfseek( fin, 0, SEEK_END );
+		// file_size = ftell( fin );
+		file_size = pdbftell( fin );
 
 		rc = 0;
 		
@@ -405,9 +495,11 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
                break;
 
 			/* read the record */
-			fseek( fin, offset, SEEK_SET );
+			// fseek( fin, offset, SEEK_SET );
+			pdbfseek( fin, offset, SEEK_SET );
 
-			buf.len = fread( buf.data, 1, rec_size, fin );
+			// buf.len = fread( buf.data, 1, rec_size, fin );
+			buf.len = pdbfread( buf.data, 1, rec_size, fin );
 			if ( buf.len != rec_size )
 			{
 				rc = 2;
@@ -428,7 +520,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 	}
 	
 	if (fin)
-		fclose( fin );
+		// fclose( fin );
+		pdbfclose( fin );
 		
 	return rc;
 	
