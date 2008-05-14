@@ -55,7 +55,9 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 	NSMutableString  *text;
 	int               start;
 	int               end;
-	int		    lineStart[480]; //Added by Allen Li
+	int		          lineStart[480]; //Added by Allen Li
+	int		    	  backLineStart[480]; //Added by Allen Li
+	int		    	  currentBackLine;
 
 	NSStringEncoding  encoding;
 	NSStringEncoding  gb2312enc;
@@ -63,6 +65,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 	struct __GSFont  *gsFont;
 	float             fontSize;
 	int               color;
+
 	bool              ignoreNewLine;
 	bool              padMargins;
 
@@ -90,6 +93,10 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 -(void) moveDown:(int)moveLines; //Added by Allen Li
 -(void) moveUp:(int)moveLines; //Added by Allen Li
 -(void) dragText:(int)offset; //Added by Allen Li
+-(int) calcLines:(int)tStart lookingEnd:(int) tEnd; //Added by Allen Li
+-(int) lookingBackForCRLF:(int)start limitation:(int)searchLength; //Added by Allen Li
+-(void) moveUpByDrawingBack:(int)moveLines textEnd:(int)tEnd; //Added by Allen Li
+
 
 - (bool)              openFile:(NSString *)name path:(NSString *)path;
 - (NSMutableString *) getText;

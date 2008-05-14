@@ -44,17 +44,27 @@
 	
     self = [ super initWithFrame: rect ];
     if (nil != self) {
-        int i, j;
-
-        for(i=0;i<NUM_GROUPS;i++) {
-            groupcell[i] = NULL;
-            for(j=0;j<CELLS_PER_GROUP;j++)
-                cells[i][j] = NULL;
-        }
+    
+    	memset(groupcell, sizeof(groupcell), 0x00);
+    	memset(cells,     sizeof(groupcell), 0x00);
+    	
+//        int i, j;
+//
+//        for(i=0;i<NUM_GROUPS;i++) {
+//            groupcell[i] = NULL;
+//            for(j=0;j < CELLS_PER_GROUP;j++)
+//                cells[i][j] = NULL;
+//        }
 
         [ self setDataSource: self ];
         [ self setDelegate: self ];
     }
+    
+    invertScreen = nil;
+    ignoreNewLine = nil;
+    padMargins = nil;
+    reverseTap = nil;
+    swipe = nil;
 
     return self;
 }
@@ -228,7 +238,7 @@
 {
     UIPreferencesTableCell *cell;
 	
-    if (cells[group][row] != NULL)
+    if (cells[group][row])
         return cells[group][row];
 
     cell = [ [ UIPreferencesTableCell alloc ] init ];
@@ -406,11 +416,14 @@
 			}				
 			
 			// Apply preferences ...
-			[textView setColor:[invertScreen value]];
-			[textView setIgnoreNewLine:[ignoreNewLine value]];
-			[textView setPadMargins:[padMargins value]];
-			[trApp setSwipe:[swipe value]];
-			[trApp setReverseTap:[reverseTap value]];
+			
+// JIMB BUG BUG - this are causing problems ?!?!?!?			
+			[textView setColor:[invertScreen value] ? 1 : 0];
+			[textView setIgnoreNewLine:[ignoreNewLine value]  ? 1 : 0];
+			[textView setPadMargins:[padMargins value] ? 1 : 0];
+			[trApp setSwipe:[swipe value] ? 1 : 0];
+			[trApp setReverseTap:[reverseTap value] ? 1 : 0];
+// JIMB BUG BUG - this are causing problems ?!?!?!?			
 			
 			NSString * font  = [fontCell value];
 			int        size  = [[fontSizeCell value] intValue];

@@ -641,8 +641,269 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 } // drawRect
 
 
+//Added by Allen Li -- Caculating how many lines from tStart to tEnd
+-(int) calcLines:(int)tStart lookingEnd:(int) tEnd
+{
+	// These are used below to blank bkgrnd and draw text
+	CGSize          used;
+	NSString      * x;
+    	struct CGRect   lineRect;
+		
+	CGPoint currentPt = CGPointMake(0,0);
+	CGSize viewSize = [trApp getOrientedViewSize];
+
+	// Get font metrics instead of this kludge!!!
+	// No idea how to get info from a GSFont tho ...
+
+	int lineHeight = fontSize * 1.25+1; // Blech!!! Figure this properly!!!
+	int lines      = viewSize.height / lineHeight;
+	int width      = viewSize.width;
+	int hpad       = padMargins ? 10 : 0;
+	int vpad       = (viewSize.height - lineHeight*lines) / 2;
+	int line, current;
+	Direction dir;
+
+	if (tEnd >= [text length])
+	tEnd = [text length] -1;
+
+	// Handle pageup by looping twice
+	dir =  kDirectionForward;
+
+	// Blank the top "pad" portion of the screen
+	lineRect = CGRectMake(0, 0, width, vpad);
+
+	struct CGPoint lastBlankPoint;
+	int            lastBlankIndex;
+	bool            afterCrLf = false;
+	int		     tmpLineStart[480];
+	bool		GotSomethingToDraw = false;
+
+	current = tStart;
+
+	// JIMB BUG BUG - optimize this!  Only draw lines that are in the visible rect!
+	// (Too much trouble for now, plus it seems fast enough as is ...)
+	for (line = 0; (currentBackLine+line<480) && (current <= tEnd); line++) 
+	{
+		bool           emptyLine = true;
+
+		// Remember the start position of each line
+		tmpLineStart[line] = current;
+
+		// Keep track of the last blank in this line 
+		lastBlankIndex = -1;
+
+		// JIMB BUG BUG - clean up the rect calculations  	
+		// We really want this to cover the writing for this line (with descenders), but 
+		// not take out the descenders from the line above.
+		// Update lineRect - it can get munged when we blank the end of the line
+		lineRect = CGRectMake(0, vpad + line * lineHeight, width, lineHeight);
+
+		currentPt = CGPointMake(hpad, vpad + line * lineHeight);
+
+		while  (current <= tEnd)
+		{
+			struct CGPoint beginPoint = currentPt;
+			unichar c = [self currentChar:current direction:dir];
+
+			// Move forwards as needed
+			current = current+1;
+
+			// Find the next character
+			unichar nextc = [self currentChar:current direction:dir];
+
+			// Special case for Windows CRLF x0d0a- only use one
+			if (c == 0x0d && nextc == 0x0a)
+			{
+				current++;
+				nextc = [self currentChar:current direction:dir];
+			}
+/*
+			// Handle ignore single LF option
+			if (ignoreNewLine && (c == '\n' || c == 0x0d || c == 0x0a))
+			{
+				if (nextc != '\n' && nextc != 0x0d && nextc != 0x0a)
+				{
+				   afterCrLf = true;
+			          GotSomethingToDraw = true;
+				   if (nextc == ' ' || nextc == '\t')
+				   	  continue;
+				   c = ' ';
+				}
+			}
+*/			   
+			// Special case for white space chars
+			if (c == '\n' || c == 0x0d || c == 0x0a)
+			{
+			   afterCrLf = true;
+			   GotSomethingToDraw = true;
+			   break;
+			}
+
+			// Eat leading blanks on a new line, unless they follow a CR/LF
+			if (c == ' ' && emptyLine && !afterCrLf)
+			   continue;
+
+			// JIMB BUG BUG - allow breaking a line of text at a '-' as well
+			// Remember blanks - we will back up to 
+			// here when we run out of space (tabs should work correctly ... I hope)
+			if (c == ' ' || c == '\t')
+			{
+				lastBlankIndex = current; // this is actually 1 past ...
+				lastBlankPoint = currentPt;
+			}
+
+			// At this point, we are going to try to write something ...
+			emptyLine = false;
+			afterCrLf = false;
+			GotSomethingToDraw = true;
+
+			// Get the substring we want to draw ...
+			// special case a tab as 4 blanks (should we do "real" tab stops?!?!?)
+			if (c == '\t')
+				x = @"   ";
+			else
+				x = [NSString stringWithCharacters:&c length:1];
+
+			// Draw the text - 1 below the current pt to avoid artifacts
+			used = [x sizeWithFont:gsFont];
+
+			// Update the current position at the end of the text we drew
+			currentPt.x += used.width;
+
+			struct CGPoint endPoint = currentPt;
+			if (endPoint.x > (width-hpad))
+			{
+				// Can we back up to a blank?
+				if (lastBlankIndex > 0)
+				{
+					// plus one skips this space
+					current    =  lastBlankIndex+1; 
+					beginPoint = lastBlankPoint;
+				}
+				else
+				{
+			// JIMB BUG BUG - add a trailing '-' when we are forced to break a word?!?!
+			// This is tricy to calculate - we probably ought to calc the size needed above
+			// and save it so we know how far to back up - it might be several characters,
+			// but I suspect 1 character plus whatever partial char put us past the edge will
+			// probably be enough.  Two plus partial ought to always be sufficient ...
+				}
+
+				// No need to erase if going backwards
+				if (dir==kDirectionForward)
+				{
+					// Erase the last partial character(s) (back to last blank if possible)
+					lineRect.origin.x = beginPoint.x;
+				}
+				
+				// Save the new current position 
+				// (i.e. before the one that put us past the edge)
+				current =  current-1;
+				break;
+			}
+
+		} // while space on this line
+
+	}
+
+	if (GotSomethingToDraw == false)
+	{
+		return -1;
+	}
+	
+	int i;
+	for (i = line-1; i >=0; i--)
+	{
+		backLineStart[currentBackLine] = tmpLineStart[i];
+		currentBackLine++;
+	}
+
+	return line;
+}
+
+
+//Added by Allen Li
+-(int) lookingBackForCRLF:(int)thestart limitation:(int)searchLength
+{
+	int current = thestart;
+	unichar c;
+	bool emptyLine = true;
+	
+	while  ( (current >= 0) && ((thestart-current)<searchLength))
+	{
+		
+		c = [self currentChar:current direction:kDirectionBackward];
+
+		if (c == '\n' && (emptyLine != true))
+		{
+			return current+1;
+		}
+
+		// Move backwards
+		current = current-1;
+		
+		// Special case for Windows CRLF x0d0a- only use one
+		if (c == 0x0a && current >=0)
+		{
+			// Find the next character
+			unichar nextc = [self currentChar:current direction:kDirectionBackward];
+			if(nextc == 0x0d)
+			{
+				if (emptyLine != true)
+					return current+2;
+				else
+					current = current -1;
+			}
+		}
+
+		if(c == ' ' && emptyLine)
+			continue;
+
+		emptyLine = false;
+	}
+	return -1; //Not found
+}
+
+
 //Added by Allen Li -- Handle moving up
 -(void) moveUp:(int)moveLines
+{
+	int tStart = lineStart[0]-1;
+	int tEnd;
+	int searchLength = 1000;
+	int backLines = 0;
+	int tmp;
+
+
+	currentBackLine = 0;
+
+	while (backLines < moveLines)
+	{
+		tEnd = tStart;
+		tStart = [self lookingBackForCRLF:tEnd limitation:searchLength];
+		if(tStart == -1)
+			break;
+
+		tmp = [self calcLines:tStart lookingEnd:tEnd];
+		if(tmp == -1)
+			continue;
+
+		backLines = backLines + tmp;
+		searchLength = searchLength - ( tEnd - tStart);
+	}
+
+	if(backLines >= moveLines)
+	{
+		[self setStart:backLineStart[moveLines-1]];
+	}
+	else
+	{
+		[self moveUpByDrawingBack:(moveLines-backLines) textEnd:tEnd];
+	}
+}
+
+//Added by Allen Li -- Moving up by drawing the text backwards
+-(void) moveUpByDrawingBack:(int)moveLines textEnd:(int)tEnd
 {
 	// These are used below to blank bkgrnd and draw text
 	CGSize          used;
@@ -676,7 +937,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 	   int            lastBlankIndex;
 	   int            afterCrLf = false;
 	   
-	   current = lineStart[0]-1;
+	   current = tEnd;
 
 
 	//Cut the line from: (lines - moveLines) to lines-1, so the end is lineStart[lines-moveLines]-1;
@@ -1597,7 +1858,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 			NSString        * type = nil;
 			
 			int rc = decodePDB(fullpath, &data, &type);
-			if (rc)
+			if (rc || !data || ![data length])
 			{
 				if (data)
 					[data release];
@@ -1607,7 +1868,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 				if (rc == 2)
 				{
 					NSString *errorMsg = [NSString stringWithFormat:
-												   @"The format of \"%@\" is \"%@\".\n%@ is only able to open Text files and PalmDoc PDB files.\nSorry ...", 
+												   @"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ...", 
 												   fullpath, type, TEXTREADER_NAME];
 					CGRect rect = [[UIWindow keyWindow] bounds];
 					UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];

@@ -41,12 +41,13 @@
 #import <UIKit/UINavBarButton.h>
 #import <UIKit/UIProgressHUD.h>
 #import <UIkit/UIProgressIndicator.h>
+#import <Celestial/AVSystemController.h>
 
 
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.6.0"
+#define TEXTREADER_VERSION  		@"0.7.0Beta1"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -133,11 +134,14 @@ typedef enum _MyViewName {
 	bool				     isInDragMode;
 
 	int             		 currentOrientation;
-	bool              		 reverseTap;
-	bool              		 swipe;
 	MyViewName				 currentView;
 
 	bool					 orientationInitialized;
+
+	bool              		 reverseTap;
+	bool              		 swipe;
+
+    float 					 initVol;
 
 	// KLUDGE to try to get wait HUD working
 	NSString                *openname;

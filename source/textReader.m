@@ -531,6 +531,59 @@
 }
 
 
+- (void) pageText:(bool)pgup
+{
+	if (currentView == My_Text_View)
+	{
+		if (pgup)
+		{
+			if (reverseTap)
+				// Move down one page 
+				[textView pageDown];
+			else
+				// Move up one page 
+				[textView pageUp];
+		}
+		else
+		{
+			if (reverseTap)
+				// Move down one page 
+				[textView pageUp];
+			else
+				// Move up one page 
+				[textView pageDown];
+		}
+	}
+} // pageText
+
+
+- (void) volumeChanged:(NSNotification *)notify
+{
+	float newVol;
+ 	NSString * name;
+ 	
+	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+	
+ 	[avsc getActiveCategoryVolume:&newVol andName:&name];
+
+ 	if (newVol < initVol) 
+ 	{
+ 		// Scroll down
+ 		[self pageText:false];
+		[avsc setActiveCategoryVolumeTo:initVol];
+ 	}
+ 	else if (newVol > initVol)
+ 	{
+ 		// Scroll up
+ 		[self pageText:true];
+		[avsc setActiveCategoryVolumeTo:initVol];
+ 	}
+ 
+ 	// Restore our initial volume
+ 
+} // volumeChanged
+
+
 - (void) applicationDidFinishLaunching: (id) unused {
 
 	[self setUIOrientation: [UIHardware deviceOrientation:YES]];
@@ -544,7 +597,7 @@
 	[mainWindow _setHidden: false];
 	[mainWindow setAutoresizingMask: kMainAreaResizeMask];
 	[mainWindow setAutoresizesSubviews: YES];
-
+	
 	// Fire up the loading wait msg
 	[self showWait];
 
@@ -600,6 +653,25 @@
 	[navBar addSubview:lockBtn];
 
 	[self fixButtons];
+
+	// // Volume scrolling ...	
+	[self setSystemVolumeHUDEnabled:NO];
+	
+	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+
+	[[NSNotificationCenter defaultCenter] addObserver:self 
+		selector:@selector(volumeChanged:) 
+		name:@"AVSystemController_SystemVolumeDidChangeNotification" 
+		object:avsc];
+
+	NSString *name;
+	[avsc getActiveCategoryVolume:&initVol andName:&name];
+
+	// Leave volumn close to where it is, but give ourselves a little room to move up/down
+	// 16 steps from 0.0 to 1.0
+	initVol == MIN(MAX(initVol, 15.0/16.0), 1.0/16.0);
+
+	// [avsc setActiveCategoryVolumeTo:initVol];
 	
 	[super setInitialized: true];	
 	
