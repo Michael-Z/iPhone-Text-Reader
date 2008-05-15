@@ -4,7 +4,7 @@ VERSION := 0.1
 CC	:= arm-apple-darwin-gcc
 CFLAGS	:= -Wall -pipe  -O3 -I/opt/local/include  -I/usr/local/arm-apple-darwin/include/Foundation
 LD	:= ${CC}
-LDFLAGS	:= -lobjc -framework CoreFoundation -framework Foundation -framework UIKit -framework LayerKit \
+LDFLAGS	:= -lz -lobjc -framework CoreFoundation -framework Foundation -framework UIKit -framework LayerKit \
 		   -framework CoreGraphics -framework GraphicsServices \
 		   -framework CoreAudio -framework AudioToolbox -framework Celestial 
 		   

@@ -47,7 +47,7 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.7.0Beta1"
+#define TEXTREADER_VERSION  		@"0.7.0Beta2"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -142,6 +142,8 @@ typedef enum _MyViewName {
 	bool              		 swipe;
 
     float 					 initVol;
+    float 					 curVol;
+    bool                     volChanged;
 
 	// KLUDGE to try to get wait HUD working
 	NSString                *openname;

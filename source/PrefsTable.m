@@ -48,14 +48,6 @@
     	memset(groupcell, sizeof(groupcell), 0x00);
     	memset(cells,     sizeof(groupcell), 0x00);
     	
-//        int i, j;
-//
-//        for(i=0;i<NUM_GROUPS;i++) {
-//            groupcell[i] = NULL;
-//            for(j=0;j < CELLS_PER_GROUP;j++)
-//                cells[i][j] = NULL;
-//        }
-
         [ self setDataSource: self ];
         [ self setDelegate: self ];
     }

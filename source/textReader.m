@@ -62,6 +62,7 @@
 	lockBtn             = nil;
 	currentView         = My_No_View;
 	mouseDown           = CGPointMake(-1,-1);
+	volChanged          = false;
 	reverseTap          = false;
 	swipe               = false;
 	orientationInitialized = false;
@@ -155,6 +156,14 @@
 
 // Write current preferences and clean up
 - (void) applicationWillSuspend {
+
+	// Restore original volume
+	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+	if (curVol != initVol)
+	{
+		curVol = initVol;
+		[avsc setActiveCategoryVolumeTo:initVol];
+	}
 
 	[defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
 	
@@ -557,31 +566,67 @@
 } // pageText
 
 
+// This is used to "de-bounce" the volume buttons
+- (void)clearVolumeChanged:(id)unused {  
+	volChanged = false;
+}
+
+
 - (void) volumeChanged:(NSNotification *)notify
 {
 	float newVol;
  	NSString * name;
- 	
+ 	 		
 	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
 	
  	[avsc getActiveCategoryVolume:&newVol andName:&name];
 
- 	if (newVol < initVol) 
+ 	if (newVol < curVol) 
  	{
  		// Scroll down
- 		[self pageText:false];
-		[avsc setActiveCategoryVolumeTo:initVol];
+ 		if (!volChanged)
+ 		{
+ 			volChanged = true;
+ 			[self pageText:false];
+			[NSTimer scheduledTimerWithTimeInterval:0.4f target:self 
+			         selector:@selector(clearVolumeChanged:) userInfo:nil repeats:NO];
+ 		}
  	}
- 	else if (newVol > initVol)
+ 	else if (newVol > curVol)
  	{
  		// Scroll up
- 		[self pageText:true];
-		[avsc setActiveCategoryVolumeTo:initVol];
+ 		if (!volChanged)
+ 		{
+ 			volChanged = true;
+ 			[self pageText:true];
+			[NSTimer scheduledTimerWithTimeInterval:0.4f target:self 
+			         selector:@selector(clearVolumeChanged:) userInfo:nil repeats:NO];
+ 		}
  	}
+ 	
+ 	if (newVol != curVol)
+		[avsc setActiveCategoryVolumeTo:curVol];
  
  	// Restore our initial volume
  
 } // volumeChanged
+
+// Make sure the current volume is within bounds
+- (void)setCurVolume:(id)unused {  
+
+	curVol = initVol;
+	
+	// There are 16 bars on the volume HUD
+	// 1/16 = 0.0625, but apparently that isn't quite enough - add 0.005
+    if (curVol == 1.0f) 
+    	curVol = 1.0f - 0.063f;
+    if (curVol < 0.063f) 
+    	curVol = 0.063f;
+		
+	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+	[avsc setActiveCategoryVolumeTo:curVol];
+}
+
 
 
 - (void) applicationDidFinishLaunching: (id) unused {
@@ -667,11 +712,10 @@
 	NSString *name;
 	[avsc getActiveCategoryVolume:&initVol andName:&name];
 
-	// Leave volumn close to where it is, but give ourselves a little room to move up/down
-	// 16 steps from 0.0 to 1.0
-	initVol == MIN(MAX(initVol, 15.0/16.0), 1.0/16.0);
-
-	// [avsc setActiveCategoryVolumeTo:initVol];
+	// We need to set the current volume so it has some up and down room
+	// Can't do this here because the HUDEnabled:NO has not yet taken effect - use a timer
+	// [avsc setActiveCategoryVolumeTo:curVol];
+    [NSTimer scheduledTimerWithTimeInterval:0.1f target:self selector:@selector(setCurVolume:) userInfo:nil repeats:NO];
 	
 	[super setInitialized: true];	
 	
@@ -1009,6 +1053,9 @@
 
 		else if (![ext compare:@"html" options:kCFCompareCaseInsensitive ])
 			type = kTextFileTypeHTML;
+
+		else if (![ext compare:@"mobi" options:kCFCompareCaseInsensitive ])
+			type = kTextFileTypePDB;
 	}
 
 	return type;

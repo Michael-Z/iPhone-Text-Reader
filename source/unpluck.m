@@ -33,7 +33,7 @@
 // #include <fcntl.h>              /* for O_RDONLY */
 // #include <assert.h>             /* for assert() */
 
-// #include <zlib.h>
+#include <zlib.h>
 
 #include "pdbfile.h"
 
@@ -141,70 +141,70 @@ static unsigned int UncompressDOC
     return 1;
 }
 
-// /* uncompress ZLib compressed document/image */
-// static unsigned int UncompressZLib
-//     (
-//     unsigned char*  src,         /* in:  compressed document */
-//     unsigned int    src_len,     /* in:  size of compressed document */
-//     unsigned char*  dest,        /* out: buffer to put uncompressed
-//                                     document in */
-//     unsigned int    dest_len,    /* out: size of buffer to put uncompressed
-//                                     document in */
-//     unsigned char*  owner_id     /* in:  owner-id key */
-//     )
-// {
-//     z_stream       z;
-//     unsigned int   err;
-//     unsigned int   keylen;
-//     unsigned int   i;
-//     unsigned char  keybuf[OWNER_ID_HASH_LEN];
-// 
-//     assert (src != NULL && src_len != 0 && dest != NULL && dest_len != 0);
-// 
-//     keylen = (owner_id == NULL) ? 0 : MIN (src_len, OWNER_ID_HASH_LEN);
-// 
-//     memset (&z, 0, sizeof z);
-// 
-//     if (owner_id != NULL) {
-// 
-//         for (i = 0; i < keylen; i++)
-//             keybuf[i] = src[i] ^ owner_id[i];
-//         z.next_in = keybuf;
-//         z.avail_in = keylen;
-// 
-//     }
-//     else {
-// 
-//         z.next_in = src;
-//         z.avail_in = src_len;
-// 
-//     }
-// 
-//     z.next_out = dest;
-//     z.avail_out = dest_len;
-// 
-//     err = inflateInit (&z);
-//     if (err != Z_OK) {
-//         return err;
-//     }
-// 
-//     do {
-//         if (z.avail_in == 0 && keylen > 0) {
-//             z.next_in = src + keylen;
-//             z.avail_in = src_len - keylen;
-//         }
-// 
-//         err = inflate (&z, Z_SYNC_FLUSH);
-// 
-//     } while (err == Z_OK);
-// 
-//     if (err != Z_STREAM_END)
-//         return err;
-// 
-//     assert (z.total_out == dest_len);
-// 
-//     return inflateEnd (&z);
-// }
+/* uncompress ZLib compressed document/image */
+static unsigned int UncompressZLib
+    (
+    unsigned char*  src,         /* in:  compressed document */
+    unsigned int    src_len,     /* in:  size of compressed document */
+    unsigned char*  dest,        /* out: buffer to put uncompressed
+                                    document in */
+    unsigned int    dest_len,    /* out: size of buffer to put uncompressed
+                                    document in */
+    unsigned char*  owner_id     /* in:  owner-id key */
+    )
+{
+    z_stream       z;
+    unsigned int   err;
+    unsigned int   keylen;
+    unsigned int   i;
+    unsigned char  keybuf[OWNER_ID_HASH_LEN];
+
+    // assert (src != NULL && src_len != 0 && dest != NULL && dest_len != 0);
+
+    keylen = (owner_id == NULL) ? 0 : MIN (src_len, OWNER_ID_HASH_LEN);
+
+    memset (&z, 0, sizeof z);
+
+    if (owner_id != NULL) {
+
+        for (i = 0; i < keylen; i++)
+            keybuf[i] = src[i] ^ owner_id[i];
+        z.next_in = keybuf;
+        z.avail_in = keylen;
+
+    }
+    else {
+
+        z.next_in = src;
+        z.avail_in = src_len;
+
+    }
+
+    z.next_out = dest;
+    z.avail_out = dest_len;
+
+    err = inflateInit (&z);
+    if (err != Z_OK) {
+        return err;
+    }
+
+    do {
+        if (z.avail_in == 0 && keylen > 0) {
+            z.next_in = src + keylen;
+            z.avail_in = src_len - keylen;
+        }
+
+        err = inflate (&z, Z_SYNC_FLUSH);
+
+    } while (err == Z_OK);
+
+    if (err != Z_STREAM_END)
+        return err;
+
+    // assert (z.total_out == dest_len);
+
+    return inflateEnd (&z);
+}
 
 /***********************************************************************/
 /***********************************************************************/
@@ -377,20 +377,20 @@ static int GetUncompressedRecord
             }
 
             buf_to_use = size_needed - (start_of_data - buf);
-//             if (doc->compression == PLKR_COMPRESSION_ZLIB) {
-//                 if (UncompressZLib (start_of_data, len_of_data, output_ptr,
-//                                     buf_to_use,
-//                                     (doc->owner_id_required ? doc->
-//                                     owner_id_key : NULL)) != Z_OK) {
-//                     _plkr_message ("Bad Zlib uncompress of record %d",
-//                                    record_index);
-//                     free (buf);
-//                     if (tbuffer != buffer)
-//                         free (tbuffer);
-//                     return FALSE;
-//                 };
-//             }
-//             else 
+            if (doc->compression == PLKR_COMPRESSION_ZLIB) {
+                if (UncompressZLib (start_of_data, len_of_data, output_ptr,
+                                    buf_to_use,
+                                    (doc->owner_id_required ? doc->
+                                    owner_id_key : NULL)) != Z_OK) {
+                    _plkr_message ("Bad Zlib uncompress of record %d",
+                                   record_index);
+                    free (buf);
+                    if (tbuffer != buffer)
+                        free (tbuffer);
+                    return FALSE;
+                };
+            }
+            else 
 			   if (doc->compression == PLKR_COMPRESSION_DOC) {
                 if (UncompressDOC (start_of_data, len_of_data, output_ptr,
                                    buf_to_use) != 1) {

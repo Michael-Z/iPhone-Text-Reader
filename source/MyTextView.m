@@ -1818,13 +1818,13 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 	//       Don't pop a dialog since that will annoy people even more
 	NSString *fullpath = [[filePath stringByAppendingPathComponent:fileName] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
 	
-	if ([newText writeToFile:fullpath atomically:NO encoding:encoding error:NULL])
-	{
-		// If we cached it, change the file name so we will reload it automatically
-		NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
-		[fileName release];
-		fileName = tmp;
-	}	
+ 	if ([newText writeToFile:fullpath atomically:NO encoding:encoding error:NULL])
+ 	{
+ 		// If we cached it, change the file name so we will reload it automatically
+ 		NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
+ 		[fileName release];
+ 		fileName = tmp;
+ 	}	
 	
 } // stripHTML
 

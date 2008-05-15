@@ -38,28 +38,161 @@
 
 /********** Plucker stuff ******************************************************/
 
-// Handle the plucker file ...
-int decodePlucker(NSString * src, NSMutableData ** dest)
-{
-	// *dest = [[NSMutableData alloc] initWithCapacity:1024];
-	*dest = [[[NSMutableData alloc] initWithLength:1] retain];
-	// [*dest setLength:0];
-	
-	// *dest = [[NSMutableData alloc] dataWithBytes:"Plucker Doc!" length:12];
-	
-	// plkr_Document*  doc;
-	// int i;
-	
-// 	doc = plkr_OpenDBFile(src);
-	
 
-// 	if (doc)
-	  	// [*dest appendBytes:"Plucker Doc!" length:2];
+typedef struct {
+  int   size;
+  int   attributes;
+} ParagraphInfo;
+
+static ParagraphInfo *ParseParagraphInfo(unsigned char* bytes, int len, int* nparas) {
+  ParagraphInfo*  paragraph_info;
+  int             j;
+  int             n;
+  
+  n =(bytes[2] << 8) + bytes[3];
+  paragraph_info =(ParagraphInfo *) malloc(sizeof(ParagraphInfo) * n);
+  for(j = 0; j < n; j++) {
+    paragraph_info[j].size =
+    (bytes[8 +(j * 4) + 0] << 8) + bytes[8 +(j * 4) + 1];
+    paragraph_info[j].attributes =
+      (bytes[8 +(j * 4) + 2] << 8) + bytes[8 +(j * 4) + 3];
+  }
+  *nparas = n;
+  return paragraph_info;
+}
+
+
+#define GET_FUNCTION_CODE_TYPE(x)   (((x)>>3) & 0x1F)
+#define GET_FUNCTION_CODE_DATALEN(x)((x) & 0x7)
+
+
+
+// Handle the plucker file ...
+int decodePlucker(NSString * src, NSMutableData ** dest, NSString ** type)
+{
+	plkr_Document *  doc;
+	unsigned char *  text;
+	int              textL;
+	int              rec;
 	
+ 	doc = plkr_OpenDBFile(src);
+ 	if (!doc)
+ 		return 1;
+ 		
+	*dest = [[NSMutableData alloc] initWithCapacity:4096];
+
 	// Do stuff here ...
 
+	[*dest appendBytes:"<html><head><body>" length:18];
 
-// 	plkr_CloseDoc(doc);	
+	text  = plkr_GetName(doc);
+	textL = strlen(text);
+	[*dest appendBytes:"<book-title>" length:12];
+	[*dest appendBytes:text length:textL];
+	[*dest appendBytes:"</book-title>" length:13];
+		
+	for (rec = 0; rec <= plkr_GetRecordCount(doc); rec++)
+	{
+		plkr_DataRecordType   type;
+		unsigned char       * data, * para_start;
+		int                   data_len, fctype, fclen;
+
+		ParagraphInfo * paragraphs;
+		int             nparagraphs;
+		int 			para_index, para_len;
+		unsigned char * run;
+		unsigned char * start; 
+		unsigned char * ptr; 
+
+		data = plkr_GetRecordBytes(doc, rec, &data_len, &type);
+		if (!data || 
+			(type != PLKR_DRTYPE_TEXT_COMPRESSED && type != PLKR_DRTYPE_TEXT))
+
+			continue;
+
+		paragraphs = ParseParagraphInfo(data, data_len, &nparagraphs);
+		start = data + 8 + ((data[2] << 8) + data[3]) * 4;
+	
+	
+		for(para_index = 0, ptr = start, run = start; para_index < nparagraphs; para_index++) 
+		{	
+			[*dest appendBytes:"<p>" length:3];
+
+			para_len = paragraphs[para_index].size;
+
+			for (para_start = ptr; (ptr - para_start) < para_len;) {
+
+			if (!*ptr) 
+			{
+				/* function code */
+
+				if ((ptr - run) > 0) 
+				   // append run, (ptr-run)
+				   [*dest appendBytes:run length:ptr-run];
+
+				ptr++;
+
+				fctype = GET_FUNCTION_CODE_TYPE(*ptr);
+				fclen  = GET_FUNCTION_CODE_DATALEN(*ptr);
+				ptr++;
+
+				switch (fctype)
+				{
+					case PLKR_TFC_NEWLINE:
+						[*dest appendBytes:"<br />" length:6];
+						break;
+						
+					case PLKR_TFC_HRULE:
+						[*dest appendBytes:"<br /><br />" length:12];
+						break;
+						
+					case PLKR_TFC_UCHAR:
+						{
+							char tmp[16] = {0};
+							
+							if(fclen == 3)
+								sprintf(tmp, "&#%d;", (ptr[1] << 8) + ptr[2]);
+							else if(fclen == 5)
+								sprintf(tmp, "&#%d;", (ptr[3] << 8) + ptr[4]);
+							[*dest appendBytes:tmp length:strlen(tmp)];
+					  	}
+					  	
+			            // skip over alternate text
+           			    ptr += ptr[0];
+           			    break;
+						
+					default:
+					    // Ignore ...
+					    break;
+				}
+
+				ptr += fclen; // Should this be fclen-1 since we already ++'d earlier???
+				run = ptr;
+      		}
+	  		else 
+		        ptr++;
+
+	    } // for para_start = ptr
+
+		// Write out remaining text ...
+    	if ((ptr - run) > 0) 
+		{
+		  // append run, (ptr-run)
+		  [*dest appendBytes:run length:ptr-run];
+      	  run = ptr;
+    	}
+    	
+		[*dest appendBytes:"</p>" length:4];
+		
+	} // for each paragraph in the record
+
+	free(paragraphs);
+
+	} // for each record
+	
+	[*dest appendBytes:"</body></head></html>" length:21];	
+	
+ 	plkr_CloseDoc(doc);	
 	
 	return 0;
 	
@@ -258,7 +391,7 @@ typedef struct {
 } buffer;
 
 
-void		uncompress( buffer* );
+void		pdbuncompress( buffer* );
 
 
 // 0 == success
@@ -294,7 +427,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 		{
 			// We handle plucker below
 			*type = @"Plucker";
-			//rc = 0;
+			rc = 0;
 			break;
 		}
 		
@@ -437,7 +570,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 			}
 
 			if ( compression == COMPRESSED )
-				uncompress( &buf );			
+				pdbuncompress( &buf );			
 	
 			[*dest appendBytes:buf.data length:buf.len];					
 		}
@@ -453,9 +586,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
 		
 	// Handle Plucker files ...
 	if (!rc && !strncmp( header.type, "DataPlkr", 8 ))
-	{
-		rc = decodePlucker(src, dest);
-	}
+		rc = decodePlucker(src, dest, type);
 		
 	return rc;
 	
@@ -467,7 +598,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
  *
  * SYNOPSIS
  */
-	void uncompress( register buffer *b )
+	void pdbuncompress( register buffer *b )
 /*
  * DESCRIPTION
  *

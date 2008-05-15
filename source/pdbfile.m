@@ -31,22 +31,25 @@ int GET_DWord(pdbFILE * fin, DWord * n)
 
 int pdbfseek(pdbFILE * fin, size_t offset, int start)
 {
+	if (!fin)
+		return -1;
+		
 	if (start == SEEK_END)
 	{
 		fin->pos = [fin->data length];
-		return 0;
+		return fin->pos;
 	}
 	else if (start == SEEK_SET)
 	{
 		fin->pos = offset;
 
 		if (fin->pos >= [fin->data length])
-			return 1;
+			return -2;
 
-		return 0;
+		return fin->pos;
 	}
 
-	return 1;
+	return -3;
 }
 
 pdbFILE * pdbfopen(NSString * fullpath)
