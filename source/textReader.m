@@ -157,13 +157,15 @@
 // Write current preferences and clean up
 - (void) applicationWillSuspend {
 
-	// Restore original volume
-	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
-	if (curVol != initVol)
-	{
-		curVol = initVol;
-		[avsc setActiveCategoryVolumeTo:initVol];
-	}
+// 	// Restore original volume
+// 	AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+// 	if (curVol != initVol)
+// 	{
+// 		// Wish there was a way to restore the vol w/o having the volume 
+// 		// HUD appear when we exit ?!?!?!?!?
+// 		curVol = initVol;
+// 		[avsc setActiveCategoryVolumeTo:initVol];
+// 	}
 
 	[defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
 	
