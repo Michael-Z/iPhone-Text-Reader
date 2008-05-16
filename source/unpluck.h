@@ -402,3 +402,8 @@ int plkr_GetConfigBoolean (
     unsigned char *option_name,
     int default_value
 );
+
+int plkr_GetRecordUid (
+    plkr_Document*  doc,
+    int             record_index
+);

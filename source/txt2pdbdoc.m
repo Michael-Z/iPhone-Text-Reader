@@ -62,7 +62,6 @@ static ParagraphInfo *ParseParagraphInfo(unsigned char* bytes, int len, int* npa
 }
 
 
-#define GET_FUNCTION_CODE_TYPE(x)   (((x)>>3) & 0x1F)
 #define GET_FUNCTION_CODE_DATALEN(x)((x) & 0x7)
 
 
@@ -103,8 +102,11 @@ int decodePlucker(NSString * src, NSMutableData ** dest, NSString ** type)
 		unsigned char * run;
 		unsigned char * start; 
 		unsigned char * ptr; 
+		
+		int             uid = plkr_GetRecordUid(doc, rec);
 
-		data = plkr_GetRecordBytes(doc, rec, &data_len, &type);
+		// data = plkr_GetRecordBytes(doc, rec, &data_len, &type);
+		data = plkr_GetRecordBytes(doc, uid, &data_len, &type);
 		if (!data || 
 			(type != PLKR_DRTYPE_TEXT_COMPRESSED && type != PLKR_DRTYPE_TEXT))
 
@@ -120,7 +122,8 @@ int decodePlucker(NSString * src, NSMutableData ** dest, NSString ** type)
 
 			para_len = paragraphs[para_index].size;
 
-			for (para_start = ptr; (ptr - para_start) < para_len;) {
+			for (para_start = ptr; ((ptr - para_start) < para_len) && (ptr < data + data_len);) 
+			{
 
 			if (!*ptr) 
 			{
@@ -132,20 +135,57 @@ int decodePlucker(NSString * src, NSMutableData ** dest, NSString ** type)
 
 				ptr++;
 
-				fctype = GET_FUNCTION_CODE_TYPE(*ptr);
+				fctype = PLKR_FC_CODE(*ptr);
 				fclen  = GET_FUNCTION_CODE_DATALEN(*ptr);
 				ptr++;
 
 				switch (fctype)
 				{
+					// Missing the following functions
+					// PLKR_FC_CODE(0x0B) // Targeted page link begins 3 record ID, target 
+					// PLKR_FC_CODE(0x0C) // Paragraph link begins 4 record ID, paragraph number 
+					// PLKR_FC_CODE(0x0D) // Targeted paragraph link begins 5 record ID, paragraph number, target 
+					// PLKR_FC_CODE(0x08) // Link ends 0 no data 
+					// PLKR_FC_CODE(0x85) 32-bit Unicode character 5 alternate text length, 32-bit unicode character 
+					// PLKR_FC_CODE(0x9A) Exact link modifier 2 Paragraph Offset 
+					//      (The Exact Link Modifier modifies a Paragraph Link or Targeted Paragraph 
+					//       Link function to specify an exact byte offset within the paragraph. 
+					//       This function must be followed immediately by the function it modifies). 
+
+
+					// PLKR_FC_CODE(0x0A) // Page link begins 2 record ID 
+					case PLKR_TFC_LINK:
+						switch(fclen) {
+							case 4:        /* ANCHOR_BEGIN */
+							{
+							  int              record_id = (ptr[2] << 8) + ptr[3];
+							  plkr_DataRecordType   type = (plkr_DataRecordType)plkr_GetRecordType(doc, record_id);
+              
+							//  if(type == PLKR_DRTYPE_IMAGE || type == PLKR_DRTYPE_IMAGE_COMPRESSED)
+							// 		???
+							//  else
+							// 		???
+							//  Do something with this record_id
+							}
+							break;
+
+							case 2:        /* ANCHOR_END */
+							  // Ignore ...
+							break;
+						}
+						break;
+						
+					// PLKR_FC_CODE(0x38) // New line 0 no data 
 					case PLKR_TFC_NEWLINE:
 						[*dest appendBytes:"<br />" length:6];
 						break;
 						
+					// PLKR_FC_CODE(0x33) Horizontal rule 3 8-bit height, 8-bit width (pixels), 8-bit width (%, 1-100) 
 					case PLKR_TFC_HRULE:
 						[*dest appendBytes:"<br /><br />" length:12];
 						break;
 						
+					// PLKR_FC_CODE(0x83) // 16-bit Unicode character 3 alternate text length, 16-bit unicode character 
 					case PLKR_TFC_UCHAR:
 						{
 							char tmp[16] = {0};

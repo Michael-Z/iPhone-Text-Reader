@@ -1214,3 +1214,12 @@ int plkr_GetRecordCharset
     else
         return 0;
 }
+
+int plkr_GetRecordUid
+    (
+    plkr_Document*  doc,
+    int             record_index
+    )
+{
+	return doc->records[record_index].uid;
+}
