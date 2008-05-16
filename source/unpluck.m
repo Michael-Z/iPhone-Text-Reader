@@ -53,9 +53,12 @@ unsigned char *_plkr_strndup (
     int len
 )
 {
-	unsigned char * dest = (unsigned char *)malloc(len);
+	unsigned char * dest = (unsigned char *)malloc(len+1);
 	if (dest)
+	{
 		memcpy(dest, str, len);
+		dest[len] = 0x00;
+	}
 	return dest;
 }
 
