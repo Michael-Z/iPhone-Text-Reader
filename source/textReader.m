@@ -217,13 +217,15 @@
 - (void)fixButtons {
 
 	struct CGSize viewSize   = [self getOrientedViewSize];
-	struct CGRect btnRect;
-
+	struct CGRect sbtnRect, lbtnRect;
+	
 	// Position settings button	
-	btnRect.size.width = btnRect.size.height = [UINavigationBar defaultSize].height *0.8;
-	btnRect.origin.x = viewSize.width - btnRect.size.width - 4;
-	btnRect.origin.y = ([UINavigationBar defaultSize].height - btnRect.size.height) / 2;
-	[settingsBtn setFrame:btnRect];
+	// btnRect.size.width = btnRect.size.height = [UINavigationBar defaultSize].height *0.8;
+	sbtnRect.size.width  = 43;
+	sbtnRect.size.height = 30;
+	sbtnRect.origin.x = viewSize.width - sbtnRect.size.width - 4;
+	sbtnRect.origin.y = ([UINavigationBar defaultSize].height - sbtnRect.size.height) / 2;
+	[settingsBtn setFrame:sbtnRect];
 	
 	// Handle lock image
 	UIImageView *imgLock = [ [ UIImage alloc ] 
@@ -247,8 +249,13 @@
 	}
 						  	
 	// Position lock button
-	btnRect.origin.x -= btnRect.size.width - 4;
-	[lockBtn setFrame:btnRect];
+	// btnRect.origin.x -= btnRect.size.width - 4;
+	lbtnRect.size.width  = 45;
+	lbtnRect.size.height = 30;
+	lbtnRect.origin.x = sbtnRect.origin.x - lbtnRect.size.width;
+	lbtnRect.origin.y = ([UINavigationBar defaultSize].height - sbtnRect.size.height) / 2;
+	
+	[lockBtn setFrame:lbtnRect];
 	
 } // fixButtons
 
@@ -537,7 +544,7 @@
 		else
 			[self lockUIOrientation];
 		[self fixButtons];
-		[self showView:My_Text_View];
+		// [self showView:My_Text_View];
 	}
 }
 

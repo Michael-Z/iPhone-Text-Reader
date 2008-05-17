@@ -158,14 +158,14 @@ int decodePlucker(NSString * src, NSMutableData ** dest, NSString ** type)
 						switch(fclen) {
 							case 4:        /* ANCHOR_BEGIN */
 							{
-							  int              record_id = (ptr[2] << 8) + ptr[3];
-							  plkr_DataRecordType   type = (plkr_DataRecordType)plkr_GetRecordType(doc, record_id);
+							  // int              record_id = (ptr[2] << 8) + ptr[3];
+							  // plkr_DataRecordType   type = (plkr_DataRecordType)plkr_GetRecordType(doc, record_id);
               
-							//  if(type == PLKR_DRTYPE_IMAGE || type == PLKR_DRTYPE_IMAGE_COMPRESSED)
-							// 		???
-							//  else
-							// 		???
-							//  Do something with this record_id
+							  //  if(type == PLKR_DRTYPE_IMAGE || type == PLKR_DRTYPE_IMAGE_COMPRESSED)
+							  // 		???
+							  //  else
+							  // 		???
+							  //  Do something with this record_id
 							}
 							break;
 
