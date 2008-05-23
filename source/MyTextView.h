@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -44,35 +43,56 @@
 int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 
+// This is the number of scroll positions above and below the "current" location on the slider
+// We have to use an arbitrary value because we don't know how many lines are in a file,
+// and it can change due to formatting, font changes, screen rotations, etc.
+// Changing the values on the fly while scrolling causes redraw scrolling glitches, and is wasteful
+// We pick this value because it is 8 significant digits (safe for a double), /2 because we need
+// a block above and below "current", and /100 to allow for the text height/font size multiplier
+// This is considerably larger than any user is ever likely to scroll, and whenever a file is
+// opened, closed, font or size changes, or slider is moved we will reset the thumb to current
+#define SCROLLER_SIZE   (99999999/200)
+
+#define TEXTREADER_MPAD             10
+
+#define MAX_LAYOUTS                128
+
+
 @class textReader;
 
 // *****************************************************************************
-@interface MyTextView : UIView {
+@interface MyTextView : UIScroller {
 
-	textReader   	 *trApp;
-	NSLock	         *screenLock;
+    textReader       *trApp;
+    NSLock           *screenLock;
 
-	NSMutableString  *text;
-	int               start;
-	int               end;
-	int		          lineStart[480]; //Added by Allen Li
-	int		    	  backLineStart[480]; //Added by Allen Li
-	int		    	  currentBackLine;
+    NSMutableString  *text;
 
-	NSStringEncoding  encoding;
-	NSStringEncoding  gb2312enc;
-	NSString         *font;
-	struct __GSFont  *gsFont;
-	float             fontSize;
-	int               color;
+    NSStringEncoding  encoding;
+    NSStringEncoding  gb2312enc;
+    NSString         *font;
+    struct __GSFont  *gsFont;
+    float             fontSize;
+    int               color;
 
-	bool              ignoreNewLine;
-	bool              padMargins;
+    bool              ignoreSingleLF;
+    bool              padMargins;
+    bool              repeatLine;
 
-	NSString         *filePath;
-	NSString         *fileName;
+    NSString         *filePath;
+    NSString         *fileName;
 
-	// bool              pageUp;
+
+    // Used while drawing text
+    NSRange          *layout;               // Character start/len for current lines
+    NSRange           layoutbuf[MAX_LAYOUTS];  // Buffer for layout
+    int               cLayouts;             // Number of lines laid out in layout
+    int               lStart;
+    int               cStart;               // Starting char of First *complete* line in current page
+                                            // generally the same as layout[0].location
+    int               yDelta;               // partial line offset from scrolling
+
+    bool              isDrag;
 }
 
 - (void) setTextReader:(textReader*)tr;
@@ -83,40 +103,38 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setColor:(int)newColor;
 - (int)  getColor;
-- (void) setIgnoreNewLine:(bool)ignore;
-- (bool) getIgnoreNewLine;
+- (void) setIgnoreSingleLF:(bool)ignore;
+- (bool) getIgnoreSingleLF;
 - (void) setPadMargins:(bool)pad;
 - (bool) getPadMargins;
-
-- (void) pageUp;
-- (void) pageDown;
--(void) moveDown:(int)moveLines; //Added by Allen Li
--(void) moveUp:(int)moveLines; //Added by Allen Li
--(void) dragText:(int)offset; //Added by Allen Li
--(int) calcLines:(int)tStart lookingEnd:(int) tEnd; //Added by Allen Li
--(int) lookingBackForCRLF:(int)start limitation:(int)searchLength; //Added by Allen Li
--(void) moveUpByDrawingBack:(int)moveLines textEnd:(int)tEnd; //Added by Allen Li
-
+- (void) setRepeatLine:(bool)repeat;
+- (bool) getRepeatLine;
 
 - (bool)              openFile:(NSString *)name path:(NSString *)path;
 - (NSMutableString *) getText;
 - (void)              setStart:(int)newStart;
 - (int)               getStart;
-- (int)               getEnd;
 - (NSString*)         getFileName;
 - (NSString*)         getFilePath;
 
 - (NSString *)getFont;
-- (int) getFontHeight; //Added by Allen Li
 - (bool)setFont:(NSString*)newFont size:(int)size;
 
 - (NSStringEncoding)getEncoding;
 - (bool)setEncoding:(NSStringEncoding)enc;
 
 - (int)getFontSize;
+- (int)getLineHeight;
 
-- (void) mouseDown:(struct __GSEvent*)event;
-- (void) mouseUp:(struct __GSEvent *)event;
+- (bool)getIsDrag;
+
+- (void) sizeScroller;
+
+- (void) doLayout:(int)newLine;
+
+- (void) pageUp;
+- (void) pageDown;
+
 
 @end // MyTextView : UIView
 

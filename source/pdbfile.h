@@ -9,8 +9,8 @@
 
 /*****************************************************************************
  *
- *	Define integral type Byte, Word, and DWord to match those on the
- *	Pilot being 8, 16, and 32 bits, respectively.
+ *  Define integral type Byte, Word, and DWord to match those on the
+ *  Pilot being 8, 16, and 32 bits, respectively.
  *
  *****************************************************************************/
 
@@ -24,8 +24,8 @@ typedef uint32_t DWord;
 typedef unsigned int NSUInteger;
 
 typedef  struct _pdbFILE {
-	NSData     * data;
-	NSUInteger   pos;
+    NSData     * data;
+    NSUInteger   pos;
 } pdbFILE;
 
 int GET_DWord(pdbFILE * fin, DWord * n);
@@ -42,7 +42,7 @@ int pdbfread( void *buf, size_t size, int cnt, pdbFILE * fin);
 NSUInteger pdbftell(pdbFILE * fin);
 
 struct pdbstat {
-	NSUInteger st_size;
+    NSUInteger st_size;
 };
 
 int pdbfstat(pdbFILE * fin, struct pdbstat * stat);

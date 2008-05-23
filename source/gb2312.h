@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -34,7 +33,7 @@
 // If 1st character > 0xF7 - This and the next (2nd) byte get mapped to 0x0000 <Encoding Error>
 // If 2nd character < 0xA1 - This and the prev (1st) byte get mapped to 0x0000 <Encoding Error>
 // Use map as follows:
-//	gb2312map[((1st byte)-0xA1)*0x60 + (2nd byte)] = UTF16 character to add
+//  gb2312map[((1st byte)-0xA1)*0x60 + (2nd byte)] = UTF16 character to add
 
 const uint16_t gb2312map[] = {
 0x3000, 0x3001, 0x3002, 0x00B7, 0x02C9, 0x02C7, 0x00A8, 0x3003, 0x3005, 0x2014, 0xFF5E, 0x2016, 0x2026, 0x2018, 0x2019, 0x201C,

@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -46,48 +45,50 @@
 
 #import "UIOrientingApplication.h"
 
-#define TEXTREADER_NAME     		@"textReader"
-#define TEXTREADER_VERSION  		@"0.7.0Beta2"
+#define TEXTREADER_NAME             @"textReader"
+#define TEXTREADER_VERSION          @"0.7.0Beta3"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
-#define TEXTREADER_DEF_PATH 		@"/var/mobile/Media/textReader/"
-#define TEXTREADER_PARENT_DIR 		@".."
+#define TEXTREADER_DEF_PATH         @"/var/mobile/Media/textReader/"
+#define TEXTREADER_PARENT_DIR       @".."
 #define TEXTREADER_DOWNLOAD_TITLE   @"Download File via URL"
 
-#define TEXTREADER_DFLT_FONT   		@"CourierNewBold"
-#define TEXTREADER_DFLT_FONTSIZE 	20
-#define TEXTREADER_DFLT_ENCODING 	kCGEncodingMacRoman
+#define TEXTREADER_DFLT_FONT        @"CourierNewBold"
+#define TEXTREADER_DFLT_FONTSIZE    20
+#define TEXTREADER_DFLT_ENCODING    kCGEncodingMacRoman
 
 
-#define TEXTREADER_COLOR    		@"color"
-#define TEXTREADER_IGNORELF 		@"ignoreLF"
-#define TEXTREADER_PADMARGINS 		@"padMargins"
-#define TEXTREADER_REVERSETAP 		@"reverseTap"
-#define TEXTREADER_SWIPE     		@"swipeOK"
+#define TEXTREADER_COLOR            @"color"        // This is really invert!
+#define TEXTREADER_IGNORELF         @"ignoreLF"
+#define TEXTREADER_PADMARGINS       @"padMargins"
+#define TEXTREADER_REPEATLINE       @"repeatLine"
+#define TEXTREADER_REVERSETAP       @"reverseTap"
+#define TEXTREADER_SWIPE            @"swipeOK"
 
-#define TEXTREADER_OLOCKED     		@"oLocked"
-#define TEXTREADER_OCODE     		@"oCode"
+#define TEXTREADER_OLOCKED          @"oLocked"
+#define TEXTREADER_OCODE            @"oCode"
 
-#define TEXTREADER_FONT 			@"font"
-#define TEXTREADER_FONTSIZE 		@"fontSize"
-#define TEXTREADER_ENCODING 		@"encoding"
+#define TEXTREADER_FONT             @"font"
+#define TEXTREADER_FONTSIZE         @"fontSize"
+#define TEXTREADER_ENCODING         @"encoding"
 
-#define TEXTREADER_OPENFILE 		@"OpenFileName"
-#define TEXTREADER_OPENPATH    		@"OpenFilePath"
+#define TEXTREADER_OPENFILE         @"OpenFileName"
+#define TEXTREADER_OPENPATH         @"OpenFilePath"
 
-#define TEXTREADER_SLIDERSCALE 		256
+#define TEXTREADER_SLIDERSCALE      256
 
-//#define TEXTREADER_GB2312			-2312
-//#define TEXTREADER_GB2312_NAME		@"Simplified Chinese (GB2312)"
+
+//#define TEXTREADER_GB2312         -2312
+//#define TEXTREADER_GB2312_NAME    @"Simplified Chinese (GB2312)"
 
 
 typedef enum _TextFileType {
-	kTextFileTypeUnknown = 0,
-	kTextFileTypeTXT  = 1,
-	kTextFileTypePDB  = 2,
-	kTextFileTypeHTML = 3,
-	kTextFileTypeFB2  = 4
+    kTextFileTypeUnknown = 0,
+    kTextFileTypeTXT  = 1,
+    kTextFileTypePDB  = 2,
+    kTextFileTypeHTML = 3,
+    kTextFileTypeFB2  = 4
 } TextFileType;
 
 
@@ -99,57 +100,56 @@ typedef enum _TextFileType {
 
 // *****************************************************************************
 typedef enum _MyViewName {
-	My_No_View,
-	My_Info_View,
-	My_Text_View,
-	My_File_View,
-	My_Prefs_View,
-	My_Download_View
+    My_No_View,
+    My_Info_View,
+    My_Text_View,
+    My_File_View,
+    My_Prefs_View,
+    My_Download_View
 } MyViewName;
+
 
 @interface textReader : UIOrientingApplication {
 
-	UIWindow                *mainWindow;
-	UITransitionView		*transView;
+    UIWindow                *mainWindow;
+    UITransitionView        *transView;
 
-	MyTextView              *textView;
+    UIView                  *baseTextView;
+    MyTextView              *textView;
 
-	UINavigationBar 		*navBar;
-	UINavBarButton          *settingsBtn;
-	UINavBarButton          *lockBtn;
+    UINavigationBar         *navBar;
+    UINavBarButton          *settingsBtn;
+    UINavBarButton          *lockBtn;
 
-	UISliderControl         *slider;
+    UISliderControl         *slider;
 
-	FileTable 				*fileTable;
+    FileTable               *fileTable;
 
-	MyPreferencesTable      *prefsTable;
+    MyPreferencesTable      *prefsTable;
 
-	MyDownloadTable         *downloadTable;
+    MyDownloadTable         *downloadTable;
 
-	UIProgressHUD			*wait;
+    UIProgressHUD           *wait;
 
-	CGPoint         		 mouseDown;
+    CGPoint                  mouseDown;
 
-	CGPoint				     offset;
-	bool				     isInDragMode;
+    int                      currentOrientation;
+    MyViewName               currentView;
 
-	int             		 currentOrientation;
-	MyViewName				 currentView;
+    bool                     orientationInitialized;
 
-	bool					 orientationInitialized;
+    bool                     reverseTap;
+    bool                     swipeOK;
 
-	bool              		 reverseTap;
-	bool              		 swipe;
-
-    float 					 initVol;
-    float 					 curVol;
+    float                    initVol;
+    float                    curVol;
     bool                     volChanged;
 
-	// KLUDGE to try to get wait HUD working
-	NSString                *openname;
-	NSString                *openpath;
+    // KLUDGE to try to get wait HUD working
+    NSString                *openname;
+    NSString                *openpath;
 
-	NSUserDefaults			*defaults;
+    NSUserDefaults          *defaults;
 }
 
 - (void) applicationDidFinishLaunching: (id) unused;
@@ -164,17 +164,17 @@ typedef enum _MyViewName {
 - (void) setReverseTap:(bool)rtap;
 - (bool) getReverseTap;
 
-- (void) setSwipe:(bool)sw;
-- (bool) getSwipe;
+- (void) setSwipeOK:(bool)sw;
+- (bool) getSwipeOK;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
-- (void)mouseDragged: (struct __GSEvent *)event;
 
 - (void) showWait;
 - (void) hideWait;
 
 - (void) showView:(MyViewName)viewName;
+- (MyViewName) getCurrentView;
 
 - (struct CGSize) getOrientedViewSize;
 - (struct CGRect) getOrientedViewRect;

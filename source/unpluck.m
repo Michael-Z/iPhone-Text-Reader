@@ -53,13 +53,13 @@ unsigned char *_plkr_strndup (
     int len
 )
 {
-	unsigned char * dest = (unsigned char *)malloc(len+1);
-	if (dest)
-	{
-		memcpy(dest, str, len);
-		dest[len] = 0x00;
-	}
-	return dest;
+    unsigned char * dest = (unsigned char *)malloc(len+1);
+    if (dest)
+    {
+        memcpy(dest, str, len);
+        dest[len] = 0x00;
+    }
+    return dest;
 }
 
 
@@ -394,7 +394,7 @@ static int GetUncompressedRecord
                 };
             }
             else 
-			   if (doc->compression == PLKR_COMPRESSION_DOC) {
+               if (doc->compression == PLKR_COMPRESSION_DOC) {
                 if (UncompressDOC (start_of_data, len_of_data, output_ptr,
                                    buf_to_use) != 1) {
                     _plkr_message ("Bad DOC uncompress of record %d",
@@ -1224,5 +1224,5 @@ int plkr_GetRecordUid
     int             record_index
     )
 {
-	return doc->records[record_index].uid;
+    return doc->records[record_index].uid;
 }

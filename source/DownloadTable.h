@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -57,20 +56,20 @@
     UIPreferencesTableCell *cells[NUM_DOWN_GROUPS][CELLS_PER_DOWN_GROUP];
     UIPreferencesTableCell *groupcell[NUM_DOWN_GROUPS];
 
-	UIPreferencesTableCell *urlCell;
-	UIPreferencesTableCell *saveAsCell;
-	UIPreferencesTableCell *downloadCell;
+    UIPreferencesTableCell *urlCell;
+    UIPreferencesTableCell *saveAsCell;
+    UIPreferencesTableCell *downloadCell;
 
 
-	NSString     * urlAddress;
-	NSString     * toFileName;
-	NSURL        * theURL;
-	NSString     * fullPath;
-	UIAlertSheet * wait;
+    NSString     * urlAddress;
+    NSString     * toFileName;
+    NSURL        * theURL;
+    NSString     * fullPath;
+    UIAlertSheet * wait;
 
 
 
-    textReader		   *trApp;
+    textReader         *trApp;
 
 } // MyPreferencesTable
 

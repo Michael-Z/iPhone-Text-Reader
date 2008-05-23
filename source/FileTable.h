@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples

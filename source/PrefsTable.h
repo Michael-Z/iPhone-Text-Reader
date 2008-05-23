@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -53,21 +52,21 @@
 
 
 typedef enum _PickerType {
-	kPicker_Type_None     = 0,
-	kPicker_Type_Font     = 1,
-	kPicker_Type_FontSize = 2,
-	kPicker_Type_Encoding = 3
+    kPicker_Type_None     = 0,
+    kPicker_Type_Font     = 1,
+    kPicker_Type_FontSize = 2,
+    kPicker_Type_Encoding = 3
 } PickerType;
 
 // **********************************************************************
 // Class for Picker
 @interface MyPickerView: UIPickerView{
 
-	MyPreferencesTable *prefsTable;
+    MyPreferencesTable *prefsTable;
 
-	NSMutableArray     *dataArray;
+    NSMutableArray     *dataArray;
 
-	PickerType			type;
+    PickerType          type;
 
 } // MyPickerView
 
@@ -86,23 +85,24 @@ typedef enum _PickerType {
 // Class for Preferences Page
 @interface MyPreferencesTable : UIPreferencesTable
 {
-    UIPreferencesTableCell *cells[NUM_GROUPS+8][CELLS_PER_GROUP];
-    UIPreferencesTableCell *groupcell[NUM_GROUPS+8];
+    UIPreferencesTableCell *cells[NUM_GROUPS][CELLS_PER_GROUP];
+    UIPreferencesTableCell *groupcell[NUM_GROUPS];
 
     UISwitchControl    *invertScreen;
-    UISwitchControl    *ignoreNewLine;
+    UISwitchControl    *ignoreSingleLF;
     UISwitchControl    *padMargins;
     UISwitchControl    *reverseTap;
-    UISwitchControl    *swipe;
+    UISwitchControl    *repeatLine;
+    UISwitchControl    *swipeOK;
 
-    textReader		   *trApp;
-    MyTextView		   *textView;
+    textReader         *trApp;
+    MyTextView         *textView;
 
-	MyPickerView	   *pickerView;
+    MyPickerView       *pickerView;
 
-	UIPreferencesTableCell *fontCell;
-	UIPreferencesTableCell *fontSizeCell;
-	UIPreferencesTableCell *encodingCell;
+    UIPreferencesTableCell *fontCell;
+    UIPreferencesTableCell *fontSizeCell;
+    UIPreferencesTableCell *encodingCell;
 
 } // MyPreferencesTable
 

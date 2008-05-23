@@ -1,8 +1,7 @@
-
 //
 //   textReader.app -  kludged up by Jim Beesley
 //   This incorporates inspiration, code, and examples from (among others)
-//	 * The iPhone Dev Team for toolchain and more!
+//   * The iPhone Dev Team for toolchain and more!
 //   * James Yopp for the UIOrientingApplication example
 //   * Paul J. Lucas for txt2pdbdoc
 //   * http://iphonedevdoc.com/index.php - random hints and examples
@@ -34,29 +33,31 @@
 #import "textReader.h"
 #import "MyTextView.h"
 
+static const int kUIControlEventMouseUpInside = 1 << 6;
 
 // **********************************************************************
 // Class for Preferences Page
 @implementation MyPreferencesTable
 
 - (id)initWithFrame:(CGRect)rect {
-	pickerView = nil;
-	
+    pickerView = nil;
+    
     self = [ super initWithFrame: rect ];
     if (nil != self) {
     
-    	memset(groupcell, sizeof(groupcell), 0x00);
-    	memset(cells,     sizeof(groupcell), 0x00);
-    	
+        memset(groupcell, sizeof(groupcell), 0x00);
+        memset(cells,     sizeof(groupcell), 0x00);
+        
         [ self setDataSource: self ];
         [ self setDelegate: self ];
     }
     
     invertScreen = nil;
-    ignoreNewLine = nil;
+    ignoreSingleLF = nil;
     padMargins = nil;
     reverseTap = nil;
-    swipe = nil;
+    swipeOK = nil;
+    repeatLine = nil;
 
     return self;
 }
@@ -74,25 +75,26 @@
 {
     switch (group) {
         case(0):
-        	// Font
-        	// Font Size
-        	// Encoding
+            // Font
+            // Font Size
+            // Encoding
             return 3; 
 
         case(1):
-        	// Invert
-        	// Ignore Single LF
-        	// Pad Margins
-            return 3;
+            // Invert
+            // Pad Margins
+            // Removed -- > Ignore Single LF
+            return 2;
             
         case(2):
-        	// Reverse Tap
-        	// Allow Swipe
-            return 2;
+            // Reverse Tap
+            // Repeat Line
+            // Allow Swipe
+            return 3;
         
         case(3):
-        	// Web Site
-        	// Email address
+            // Web Site
+            // Email address
             return 2;
     }
     return 0;
@@ -148,54 +150,54 @@
 
 - (void)tableRowSelected:(NSNotification *)notification 
 {
-	int           i    = [self selectedRow];
-	struct CGRect rect = [trApp getOrientedViewRect];
-	
-	if (pickerView)
-		[pickerView release];
-	pickerView = nil;
-	
-	switch (i)
-	{
-		case 1: // font
-			{	
-				pickerView = [[MyPickerView alloc] initWithFrame:rect];
-				[pickerView setDelegate: self];
-				[pickerView setType:kPicker_Type_Font];
-				[pickerView setPrefs:self];
+    int           i    = [self selectedRow];
+    struct CGRect rect = [trApp getOrientedViewRect];
+    
+    if (pickerView)
+        [pickerView release];
+    pickerView = nil;
+    
+    switch (i)
+    {
+        case 1: // font
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_Font];
+                [pickerView setPrefs:self];
 
-				[self addSubview:pickerView];		
-			}				
-			break;
+                [self addSubview:pickerView];       
+            }               
+            break;
 
-		case 2: // font Size
-			{	
-				pickerView = [[MyPickerView alloc] initWithFrame:rect];
-				[pickerView setDelegate: self];
-				[pickerView setType:kPicker_Type_FontSize];
-				[pickerView setPrefs:self];
+        case 2: // font Size
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_FontSize];
+                [pickerView setPrefs:self];
 
-				[self addSubview:pickerView];		
-			}				
-			break;
+                [self addSubview:pickerView];       
+            }               
+            break;
 
-		case 3: // Encoding
-			{	
-				pickerView = [[MyPickerView alloc] initWithFrame:rect];
-				[pickerView setDelegate: self];
-				[pickerView setType:kPicker_Type_Encoding];
-				[pickerView setPrefs:self];
+        case 3: // Encoding
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_Encoding];
+                [pickerView setPrefs:self];
 
-				[self addSubview:pickerView];		
-			}				
-			break;
+                [self addSubview:pickerView];       
+            }               
+            break;
 
-		default:
-	  		[[self cellAtRow:i column:0] setSelected:NO];
-	  		break;
-	  		
-	} // switch
-	
+        default:
+            [[self cellAtRow:i column:0] setSelected:NO];
+            break;
+            
+    } // switch
+    
 } // tableRowSelected
 
 
@@ -207,20 +209,43 @@
 
 //datasource methods
 - (int) pickerView:(UIPickerView*)picker numberOfRowsInColumn:(int)column{
-	return [[pickerView getDataArray] count];
+    return [[pickerView getDataArray] count];
 }
 
 - (UIPickerTableCell*) pickerView:(UIPickerView*)picker tableCellForRow:(int)row inColumn:(int)column{
-	UIPickerTableCell *cell = [[UIPickerTableCell alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 32.0f)];
-	
+    UIPickerTableCell *cell = [[UIPickerTableCell alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 32.0f)];
+    
     [cell setTitle:[[pickerView getDataArray] objectAtIndex:row]];
-	
-	[cell setSelectionStyle:0];
-	[cell setShowSelection:YES];
-	[[cell iconImageView] setFrame:CGRectMake(0,0,0,0)];
-	return cell;
+    
+    [cell setSelectionStyle:0];
+    [cell setShowSelection:YES];
+    [[cell iconImageView] setFrame:CGRectMake(0,0,0,0)];
+    return cell;
 }
 
+// We get this message when the switch is changed
+// Update the value the switch is associated with
+- (void) handleSwitch:(id)switchid
+{
+    if (switchid == swipeOK)
+        [trApp setSwipeOK:[swipeOK value] ? 1 : 0];
+
+    else if (switchid == reverseTap)
+        [trApp setReverseTap:[reverseTap value] ? 1 : 0];
+
+    else if (switchid == invertScreen)
+        [textView setColor:[invertScreen value] ? 1 : 0];
+
+//     else if (switchid == ignoreSingleLF)
+//         [textView setIgnoreSingleLF:[ignoreSingleLF value]  ? 1 : 0];
+
+    else if (switchid == padMargins)
+        [textView setPadMargins:[padMargins value] ? 1 : 0];
+
+    else if (switchid == repeatLine)
+        [textView setRepeatLine:[repeatLine value] ? 1 : 0];
+
+} // handleSwitch
 
 
 // Create the cells for the prefs table
@@ -229,7 +254,7 @@
     inGroup:(int)group
 {
     UIPreferencesTableCell *cell;
-	
+    
     if (cells[group][row])
         return cells[group][row];
 
@@ -244,25 +269,24 @@
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:@"Font" ];
                     [ cell setValue:[textView getFont] ];
-					// [ cell setEnabled:NO];
-					[ cell setShowDisclosure:YES];
-					fontCell = cell;
+                    [ cell setShowDisclosure:YES];
+                    fontCell = cell;
                     break;
                 case (1):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:@"Font Size" ];
                     [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
-					[ cell setShowDisclosure:YES];
-					fontSizeCell = cell;
+                    [ cell setShowDisclosure:YES];
+                    fontSizeCell = cell;
                     break;
                 case (2):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:@"Encoding" ];
                     [ cell setValue:[NSString localizedNameOfStringEncoding:[textView getEncoding]] ];
-					[ cell setShowDisclosure:YES];
-					encodingCell = cell;
+                    [ cell setShowDisclosure:YES];
+                    encodingCell = cell;
                     break;
            }
            break;
@@ -273,23 +297,26 @@
                     invertScreen = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ invertScreen setValue: [textView getColor] ];
+                    [ invertScreen addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [ cell addSubview: invertScreen ];
                     break;
                 case (1):
-                    [ cell setTitle:@"Ignore Single LF" ];
-                    ignoreNewLine = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ ignoreNewLine setValue: [textView getIgnoreNewLine] ? 1 : 0 ];
-                    [ cell setEnabled: YES ];
-                    [ cell addSubview: ignoreNewLine ];
-                    break;
-                case (2):
                     [ cell setTitle:@"Pad Margins" ];
                     padMargins = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
-                    [ cell setEnabled: YES ];
+                    [ padMargins addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [ cell setEnabled:YES ];
                     [ cell addSubview: padMargins ];
+                    break;
+//                 case (1):
+//                     [ cell setTitle:@"Ignore Single LF" ];
+//                     ignoreSingleLF = [ [ UISwitchControl alloc ]
+//                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+//                     [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
+//                     [ ignoreSingleLF addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+//                     [ cell setEnabled:YES ];
+//                     [ cell addSubview: ignoreSingleLF ];
                     break;
             }
             break;
@@ -300,28 +327,39 @@
                     reverseTap = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
+                    [ reverseTap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [ cell setEnabled: YES ];
                     [ cell addSubview: reverseTap ];
                     break;
                 case (1):
-                    [ cell setTitle:@"Slide Scroll" ];
-                    swipe = [ [ UISwitchControl alloc ]
+                    [ cell setTitle:@"Repeat Previous Line" ];
+                    repeatLine = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ swipe setValue: [trApp getSwipe] ? 1 : 0 ];
-                    [ cell setEnabled: YES ];
-                    [ cell addSubview: swipe ];
+                    [ repeatLine setValue: [textView getRepeatLine] ? 1 : 0 ];
+                    [ repeatLine addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [ cell setEnabled: YES];
+                    [ cell addSubview: repeatLine ];
+                    break;
+                case (2):
+                    [ cell setTitle:@"Smooth Scroll" ];
+                    swipeOK = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ swipeOK setValue: [trApp getSwipeOK] ? 1 : 0 ];
+                    [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [ cell setEnabled: YES];
+                    [ cell addSubview: swipeOK ];
                     break;
             }
             break;
         case (3):
             switch (row) {
                 case (0):
-		            [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
-		            break;
+                    [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
+                    break;
                 case (1):
-		            [ cell setTitle: @"email: iphonetextreader@gmail.com" ];
-		            break;
-		    }
+                    [ cell setTitle: @"email: iphonetextreader@gmail.com" ];
+                    break;
+            }
             break;
     }
 
@@ -332,102 +370,93 @@
 
 
 - (void) setTextReader:(textReader*)tr {
-	trApp = tr;
+    trApp = tr;
 } // setTextReader
 
 
 - (void) setTextView:(MyTextView*)tv {
-	textView = tv;
+    textView = tv;
 } // setTextView
 
 
 - (void) resize {
-	struct CGRect FSrect = [trApp getOrientedViewRect];
+    struct CGRect FSrect = [trApp getOrientedViewRect];
 
-	// Resize picker on rotation
-	if (pickerView)
-	{
-		struct CGRect rect = [pickerView frame];
-		
-		rect.size.width = FSrect.size.width;
-		
-		[pickerView setFrame:rect];
-	}
-	
-	FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-	FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-	[self setFrame:FSrect];
-	[self _updateVisibleCellsImmediatelyIfNecessary];
-	
-	[self setNeedsDisplay];
-	
+    // Resize picker on rotation
+    if (pickerView)
+    {
+        struct CGRect rect = [pickerView frame];
+        
+        rect.size.width = FSrect.size.width;
+        
+        [pickerView setFrame:rect];
+    }
+    
+    FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    [self setFrame:FSrect];
+    [self _updateVisibleCellsImmediatelyIfNecessary];
+    
+    [self setNeedsDisplay];
+    
 } // resize
 
 
 - (NSStringEncoding)encodingFromString:(NSString *)string {
-	const NSStringEncoding * enc = [NSString availableStringEncodings];
-		
-	while (enc && *enc)
-	{
-		if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
-		   break;
-		enc++;
-	}
-	
-	return (enc && *enc) ? *enc : kCGEncodingMacRoman;
+    const NSStringEncoding * enc = [NSString availableStringEncodings];
+        
+    while (enc && *enc)
+    {
+        if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
+           break;
+        enc++;
+    }
+    
+    return (enc && *enc) ? *enc : kCGEncodingMacRoman;
 } // encodingFromString
 
 
 - (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button 
 {
-	switch (button) {
-		case 0: // About
-			{
-				// [trApp lockUIOrientation];
-				NSString *Msg = [NSString stringWithFormat:
-				                          @"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
-				                          TEXTREADER_VERSION];
-				struct CGRect rect = [trApp getOrientedViewRect];
-				UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-				NSString *aboutMsg = [NSString stringWithFormat:@"About %@", TEXTREADER_NAME];
-				[alertSheet setTitle:aboutMsg];
-				[alertSheet setBodyText:Msg];
-				[alertSheet addButtonWithTitle:@"OK"];
-				[alertSheet setDelegate:self];
-				[alertSheet popupAlertAnimated:YES];
-			}
-			break;
+    switch (button) {
+        case 0: // About
+            {
+                // [trApp lockUIOrientation];
+                NSString *Msg = [NSString stringWithFormat:
+                                          @"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
+                                          TEXTREADER_VERSION];
+                struct CGRect rect = [trApp getOrientedViewRect];
+                UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
+                NSString *aboutMsg = [NSString stringWithFormat:@"About %@", TEXTREADER_NAME];
+                [alertSheet setTitle:aboutMsg];
+                [alertSheet setBodyText:Msg];
+                [alertSheet addButtonWithTitle:@"OK"];
+                [alertSheet setDelegate:self];
+                [alertSheet popupAlertAnimated:YES];
+            }
+            break;
 
-		case 1: // Done
-		
-			// If picker is active, just kill it
-			if (pickerView)
-			{
-				[pickerView release];
-				pickerView = nil;
-			}				
-			
-			// Apply preferences ...
-			
-// JIMB BUG BUG - this are causing problems ?!?!?!?			
-			[textView setColor:[invertScreen value] ? 1 : 0];
-			[textView setIgnoreNewLine:[ignoreNewLine value]  ? 1 : 0];
-			[textView setPadMargins:[padMargins value] ? 1 : 0];
-			[trApp setSwipe:[swipe value] ? 1 : 0];
-			[trApp setReverseTap:[reverseTap value] ? 1 : 0];
-// JIMB BUG BUG - this are causing problems ?!?!?!?			
-			
-			NSString * font  = [fontCell value];
-			int        size  = [[fontSizeCell value] intValue];
-			
-			[textView setFont:font size:size];
-			
-			[textView setEncoding:[self encodingFromString:[encodingCell value]]];
+        case 1: // Done
+        
+            // If picker is active, just kill it
+            if (pickerView)
+            {
+                [pickerView release];
+                pickerView = nil;
+            }               
+            
+            // Apply preferences ...            
+            NSString * font  = [fontCell value];
+            int        size  = [[fontSizeCell value] intValue];
+            
+            [textView setFont:font size:size];
+            
+            [textView setEncoding:[self encodingFromString:[encodingCell value]]];
 
-			[trApp showView:My_Info_View];
-			break;
-	} // switch
-	
+            [trApp showView:My_Info_View];
+            break;
+    } // switch
+    
 } // navigationBar
 
 
@@ -442,21 +471,21 @@
 
 
 - (void) setFont:(NSString*)font {
-	[ fontCell setValue:font ];
+    [ fontCell setValue:font ];
 } // setFont
 
 
 - (void) setEncoding:(NSString*)enc {
-	[ encodingCell setValue:enc ];
-	
-// 	// Force font to arial ?!?!?!
-// 	[ fontCell setValue:@"arialuni" ];
-	
+    [ encodingCell setValue:enc ];
+    
+//  // Force font to arial ?!?!?!
+//  [ fontCell setValue:@"arialuni" ];
+    
 } // setFont
 
 
 - (void) setFontSize:(NSString*)fontSize {
-	[ fontSizeCell setValue:fontSize ];
+    [ fontSizeCell setValue:fontSize ];
 } // setFontSize
 
 
@@ -475,105 +504,105 @@
 
 
 -(BOOL)table:(UIPickerTable*)table canSelectRow:(int)row {
-	[self removeFromSuperview];
-	
-	// Do something based on the ROW!!!!
-	switch (type)
-	{
-		case kPicker_Type_None:
-			break;
+    [self removeFromSuperview];
+    
+    // Do something based on the ROW!!!!
+    switch (type)
+    {
+        case kPicker_Type_None:
+            break;
 
-		case kPicker_Type_Encoding:
-			[ prefsTable setEncoding:[dataArray  objectAtIndex:row] ];
-			break;
-			
-		case kPicker_Type_Font:
-			[ prefsTable setFont:[dataArray  objectAtIndex:row] ];
-			break;
-			
-		case kPicker_Type_FontSize:
-			[ prefsTable setFontSize:[dataArray  objectAtIndex:row] ];
-			break;
-	}
-				
-	return YES;
+        case kPicker_Type_Encoding:
+            [ prefsTable setEncoding:[dataArray  objectAtIndex:row] ];
+            break;
+            
+        case kPicker_Type_Font:
+            [ prefsTable setFont:[dataArray  objectAtIndex:row] ];
+            break;
+            
+        case kPicker_Type_FontSize:
+            [ prefsTable setFontSize:[dataArray  objectAtIndex:row] ];
+            break;
+    }
+                
+    return YES;
 } // canSelectRow
 
 
 -(void) setType:(PickerType)theType {
 
-	int i;
-	
-	dataArray = [[NSMutableArray arrayWithCapacity:1] retain];
-	
-	type = theType;
-	
-	switch (type)
-	{
-		case kPicker_Type_None:
-			break;
+    int i;
+    
+    dataArray = [[NSMutableArray arrayWithCapacity:1] retain];
+    
+    type = theType;
+    
+    switch (type)
+    {
+        case kPicker_Type_None:
+            break;
 
-		case kPicker_Type_Font:
-			{		
-				// Based on code in Books.app		
-				NSString * fontFolderPath = @"/System/Library/Fonts/";
-				NSArray * fontsFolderContents = [[NSFileManager defaultManager] directoryContentsAtPath:fontFolderPath];
-				NSEnumerator * enumerator = [fontsFolderContents objectEnumerator];
-				NSString * font;
+        case kPicker_Type_Font:
+            {       
+                // Based on code in Books.app       
+                NSString * fontFolderPath = @"/System/Library/Fonts/";
+                NSArray * fontsFolderContents = [[NSFileManager defaultManager] directoryContentsAtPath:fontFolderPath];
+                NSEnumerator * enumerator = [fontsFolderContents objectEnumerator];
+                NSString * font;
 
-				NSArray *badFonts = 
-					[NSArray arrayWithObjects:
-					@"AppleGothicRegular.ttf",
-					@"DB_LCD_Temp-Black.ttf",
-					@"HelveticaNeue.ttf",
-					@"HelveticaNeueBold.ttf",
-					@"PhonepadTwo.ttf",
-					@"LockClock.ttf",
-					// @"arialuni.ttf",
-					@"Zapfino.ttf", nil];
+                NSArray *badFonts = 
+                    [NSArray arrayWithObjects:
+                    @"AppleGothicRegular.ttf",
+                    @"DB_LCD_Temp-Black.ttf",
+                    @"HelveticaNeue.ttf",
+                    @"HelveticaNeueBold.ttf",
+                    @"PhonepadTwo.ttf",
+                    @"LockClock.ttf",
+                    // @"arialuni.ttf",
+                    @"Zapfino.ttf", nil];
 
-				for (font = [enumerator nextObject]; font; font = [enumerator nextObject])
-				{
-					if ( [[font pathExtension] isEqualToString:@"ttf"] 
-					     && ![badFonts containsObject:font] )
-					{
-						[dataArray addObject:[font stringByDeletingPathExtension]];
-					}
-				} // for
-			}
-			break;
-			
-		case kPicker_Type_FontSize:
-			for(i=12; i<=32; i+=2)
-				[dataArray addObject:[NSString stringWithFormat:@"%i", i]];
-			break;
+                for (font = [enumerator nextObject]; font; font = [enumerator nextObject])
+                {
+                    if ( [[font pathExtension] isEqualToString:@"ttf"] 
+                         && ![badFonts containsObject:font] )
+                    {
+                        [dataArray addObject:[font stringByDeletingPathExtension]];
+                    }
+                } // for
+            }
+            break;
+            
+        case kPicker_Type_FontSize:
+            for(i=12; i<=32; i+=2)
+                [dataArray addObject:[NSString stringWithFormat:@"%i", i]];
+            break;
 
-		case kPicker_Type_Encoding:
-			{
-				// Add a list of available encodings to the data array
-				const NSStringEncoding *enc = [NSString availableStringEncodings];
+        case kPicker_Type_Encoding:
+            {
+                // Add a list of available encodings to the data array
+                const NSStringEncoding *enc = [NSString availableStringEncodings];
 
-				while (enc && *enc)
-				   [dataArray addObject:[NSString localizedNameOfStringEncoding:*(enc++)]];
-			}
-			break;			
-	}
-	
+                while (enc && *enc)
+                   [dataArray addObject:[NSString localizedNameOfStringEncoding:*(enc++)]];
+            }
+            break;          
+    }
+    
 } // setType
 
 
 - (PickerType) getType {
-	return type;
+    return type;
 } // getType
 
 
 -(void) setPrefs:(MyPreferencesTable*)prefs {
-	prefsTable = prefs;
+    prefsTable = prefs;
 } // setPrefs
 
 
 -(NSMutableArray*) getDataArray {
-	return dataArray;
+    return dataArray;
 } // getDataArray
 
 
