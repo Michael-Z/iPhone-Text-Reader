@@ -89,6 +89,7 @@ typedef unsigned int NSUInteger;
     cStart = 0;
     yDelta = 0;
     cLayouts = 0;
+    cDisplay = 0;
     lStart = 0;
     trApp = nil;
     fileName = nil;
@@ -138,8 +139,6 @@ typedef unsigned int NSUInteger;
 
 
 - (int) getStart { 
-    
-    // return cLayouts ? layout[0].location : cStart;
     return cStart;
 }
 
@@ -593,6 +592,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
     if (!text || ![text length])
     {
+        cDisplay = 0;
         cLayouts = 0;
         return;
     }
@@ -603,7 +603,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     CGSize  viewSiz = [trApp getOrientedViewSize];
 
     int lineHeight  = [self getLineHeight];
-    int lines       = (int)viewSiz.height / lineHeight + 1;
+    int lines       = ((int)viewSiz.height / lineHeight) + 2;
 
     deltaLine -= lStart;
 
@@ -713,16 +713,15 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
     // Remember how many lines are laid out in the layout array
     cLayouts = foundLines;
+    
+    // Remember the ma number of lines we can display ...
+    cDisplay = cLayouts;
 
     if (cLayouts)
         cStart = MAX(0, MIN((int)layout[0].location, (int)[text length]-1));
     
     lStart += deltaLine;
 
-    
-    // Remember how many lines layout[0] is above/below cStart 
-    // NOTE: This is only going to be valid if cLayouts > 0!
-    // lStart = deltaLine;
     
     // Eliminate delta if we are at the top or bottom ...
     if (!cLayouts ||
@@ -737,8 +736,8 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         yDelta = 0;
 
         // Strip out the partial line at the bottom???
-        if (cLayouts >= (int)viewSiz.height / lineHeight)
-            cLayouts = (int)viewSiz.height / lineHeight;
+        if (cDisplay >= (int)viewSiz.height / lineHeight)
+            cDisplay = (int)viewSiz.height / lineHeight;
     }
     
     [screenLock unlock];
@@ -870,7 +869,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
         [self fillBkgGroundRect:context rect:lineRect];
         
         // Nothing else to do if there is no text on this line
-        if (line >= cLayouts || layout[line].location >= [text length])
+        if (line >= cDisplay || layout[line].location >= [text length])
            continue;
 
         // Get the substring for this "chunk" of text
@@ -929,7 +928,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     [self centerScrollerOffset];   
     
     // Force new layout since we reset the offset
-    cLayouts = 0;
+    cDisplay = cLayouts = 0;
     
     // Do a new layout using the current position/line
     [self doLayout:0];
@@ -942,7 +941,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     if (text)
     {
         // Force layout to use the new start location
-        cLayouts = 0;
+        cDisplay = cLayouts = 0;
 
         cStart = MAX(0, MIN((int)[text length]-1, newStart));
         

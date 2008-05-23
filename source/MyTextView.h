@@ -87,6 +87,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     NSRange          *layout;               // Character start/len for current lines
     NSRange           layoutbuf[MAX_LAYOUTS];  // Buffer for layout
     int               cLayouts;             // Number of lines laid out in layout
+    int               cDisplay;             // Max number of lines to actually display
+                                            // (should always be <= cLayouts)
     int               lStart;
     int               cStart;               // Starting char of First *complete* line in current page
                                             // generally the same as layout[0].location
