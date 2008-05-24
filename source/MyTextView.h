@@ -73,7 +73,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     NSString         *font;
     struct __GSFont  *gsFont;
     float             fontSize;
-    int               color;
+
+    bool              invertColors;
 
     bool              ignoreSingleLF;
     bool              padMargins;
@@ -95,6 +96,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     int               yDelta;               // partial line offset from scrolling
 
     bool              isDrag;
+
+    MyColors          txtcolors;
 }
 
 - (void) setTextReader:(textReader*)tr;
@@ -103,8 +106,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (id)   initWithFrame:(CGRect)rect;
 
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
-- (void) setColor:(int)newColor;
-- (int)  getColor;
+- (void) setInvertColors:(bool)newInvertColors;
+- (bool) getInvertColors;
 - (void) setIgnoreSingleLF:(bool)ignore;
 - (bool) getIgnoreSingleLF;
 - (void) setPadMargins:(bool)pad;
@@ -137,6 +140,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (void) pageUp;
 - (void) pageDown;
 
+- (void) setTextColors:(MyColors*)newcolors;
+- (MyColors) getTextColors;
 
 @end // MyTextView : UIView
 

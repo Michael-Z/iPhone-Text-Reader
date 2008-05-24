@@ -32,6 +32,7 @@
 #import "MyTextView.h"
 #import "UIDeletableCell.h"
 #import "PrefsTable.h"
+#import "ColorTable.h"
 #import "DownloadTable.h"
 
 
@@ -54,6 +55,7 @@
     textView            = nil;
     fileTable           = nil;
     prefsTable          = nil;
+    colorTable          = nil;
     downloadTable       = nil;
     navBar              = nil;
     slider              = nil;
@@ -170,7 +172,7 @@
 //      [avsc setActiveCategoryVolumeTo:initVol];
 //  }
 
-    [defaults setInteger:[textView getColor] forKey:TEXTREADER_COLOR];
+    [defaults setInteger:[textView getInvertColors] forKey:TEXTREADER_INVERTCOLORS];
     
     [defaults setInteger:[self getOrientCode] forKey:TEXTREADER_OCODE];
     [defaults setInteger:[self orientationLocked] forKey:TEXTREADER_OLOCKED];
@@ -190,6 +192,16 @@
     [defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
 
     [defaults setInteger:[textView getEncoding] forKey:TEXTREADER_ENCODING];
+
+    [defaults setFloat:[textView getTextColors].text_red   forKey:TEXTREADER_TEXTRED];
+    [defaults setFloat:[textView getTextColors].text_green forKey:TEXTREADER_TEXTGREEN];
+    [defaults setFloat:[textView getTextColors].text_blue  forKey:TEXTREADER_TEXTBLUE];
+//     [defaults setFloat:[textView getTextColors].text_alpha forKey:TEXTREADER_TEXTALPHA];
+
+    [defaults setFloat:[textView getTextColors].bkg_red   forKey:TEXTREADER_BKGRED];
+    [defaults setFloat:[textView getTextColors].bkg_green forKey:TEXTREADER_BKGGREEN];
+    [defaults setFloat:[textView getTextColors].bkg_blue  forKey:TEXTREADER_BKGBLUE];
+//     [defaults setFloat:[textView getTextColors].bkg_alpha forKey:TEXTREADER_BKGALPHA];
 
     // Save currently open book so we can reopen it later
     NSString * fileName = [textView getFileName];
@@ -268,7 +280,7 @@
 - (void) loadDefaults {
 
     // Restore general prefs
-    [textView setColor:[defaults integerForKey:TEXTREADER_COLOR]];
+    [textView setInvertColors:[defaults integerForKey:TEXTREADER_INVERTCOLORS]];
 
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
@@ -292,6 +304,21 @@
     [textView setFont:font size:fontSize];
         
     [textView setEncoding:[defaults integerForKey:TEXTREADER_ENCODING]];
+
+    MyColors txtcolors;
+    
+    txtcolors.text_red   = [defaults floatForKey:TEXTREADER_TEXTRED];
+    txtcolors.text_green = [defaults floatForKey:TEXTREADER_TEXTGREEN];
+    txtcolors.text_blue  = [defaults floatForKey:TEXTREADER_TEXTBLUE];
+//     txtcolors.text_alpha = [defaults floatForKey:TEXTREADER_TEXTALPHA];
+
+    txtcolors.bkg_red    = [defaults floatForKey:TEXTREADER_BKGRED];
+    txtcolors.bkg_green  = [defaults floatForKey:TEXTREADER_BKGGREEN];
+    txtcolors.bkg_blue   = [defaults floatForKey:TEXTREADER_BKGBLUE];
+//     txtcolors.bkg_alpha  = [defaults floatForKey:TEXTREADER_BKGALPHA];
+
+    [textView setTextColors:&txtcolors];
+
 
     // Open last opened file at last position
     NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
@@ -334,7 +361,8 @@
         [slider setShowValue:NO];
         [slider setMinValue:0];
 
-        [slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag, 2=up
+        [slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag
+        [slider addTarget:self action:@selector(handleSlider:) forEvents:2]; // 2=up
         [slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
         [slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];   
     
@@ -355,10 +383,49 @@
         case My_No_View:
             break;
             
+        case My_Color_View:
+            if (currentView != My_Color_View)
+            {           
+                // A view with a NavBar and Prefs Table
+                UIView * colorsView = [[UIView alloc ] initWithFrame:FSrect];;
+                [colorsView setAutoresizingMask: kMainAreaResizeMask];
+                [colorsView setAutoresizesSubviews: YES];
+
+                FSrect.origin.y += [UIHardware statusBarHeight];
+                FSrect.size.height = [UINavigationBar defaultSize].height;
+                UINavigationBar * colorsBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
+                [colorsBar setBarStyle: 0];
+                [colorsBar showButtonsWithLeft: @"Save" right:@"Cancel" leftBack: YES];
+                [colorsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Colors"]];
+                [colorsBar setAutoresizingMask: kTopBarResizeMask];
+                
+                FSrect = [self getOrientedViewRect];
+                FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+                FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+                colorTable = [ [ MyColorTable alloc ] initWithFrame:FSrect];
+                [colorTable setTextReader:self];
+                [colorTable setTextView:textView];
+                [colorTable reloadData];
+                
+                [colorsBar setDelegate:colorTable];
+
+                [colorsView addSubview:colorsBar];  
+                [colorsView addSubview:colorTable];
+
+                [super hideStatus:false];
+            
+                // Switch views
+                [transView transition:1 toView:colorsView];
+                currentView = My_Color_View;
+
+                [self redraw];
+            }
+            break;
+            
         case My_Download_View:
             if (currentView != My_Download_View)
             {           
-                // A view with a Status Bar, NavBar and Table
+                // A view with a NavBar and Prefs Table
                 UIView * downloadView = [[UIView alloc ] initWithFrame:FSrect];;
                 [downloadView setAutoresizingMask: kMainAreaResizeMask];
                 [downloadView setAutoresizesSubviews: YES];
@@ -396,7 +463,7 @@
         case My_Prefs_View:
             if (currentView != My_Prefs_View)
             {           
-                // A view with a Status Bar, NavBar and Table
+                // A view with a NavBar and Prefs Table
                 UIView * prefsView = [[UIView alloc ] initWithFrame:FSrect];;
                 [prefsView setAutoresizingMask: kMainAreaResizeMask];
                 [prefsView setAutoresizesSubviews: YES];
@@ -435,7 +502,7 @@
         case My_File_View:
             if (currentView != My_File_View)
             {           
-                // A view with a Status Bar, NavBar and Table
+                // A view with a NavBar and Table
                 UIView * fileView = [[UIView alloc ] initWithFrame:FSrect];;
                 [fileView setAutoresizingMask: kMainAreaResizeMask];
                 [fileView setAutoresizesSubviews: YES];
@@ -986,6 +1053,8 @@
         [prefsTable resize];
     else if (currentView == My_Download_View)
         [downloadTable resize];
+    else if (currentView == My_Color_View)
+        [colorTable resize];
 } // redraw
 
 

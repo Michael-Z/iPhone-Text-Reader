@@ -38,93 +38,69 @@
 #import <UIKit/UIPickerTable.h>
 #import <UIKit/UIPickerTableCell.h>
 
+#import "textReader.h"
 
 
 // These are the MAX values - preferencesTable controls the actual number
-#define NUM_GROUPS      4
-#define CELLS_PER_GROUP 3
+#define NUM_COLOR_GROUPS      4
+#define COLOR_CELLS_PER_GROUP 4
 
 
 
 @class textReader;
 @class MyTextView;
-@class MyPreferencesTable;
-
-
-typedef enum _PickerType {
-    kPicker_Type_None     = 0,
-    kPicker_Type_Font     = 1,
-    kPicker_Type_FontSize = 2,
-    kPicker_Type_Encoding = 3
-} PickerType;
-
-// **********************************************************************
-// Class for Picker
-@interface MyPickerView: UIPickerView{
-
-    MyPreferencesTable *prefsTable;
-
-    NSMutableArray     *dataArray;
-
-    PickerType          type;
-
-} // MyPickerView
-
--(BOOL)table:(UIPickerTable*)table canSelectRow:(int)row;
-
--(void) setType:(PickerType)theType;
--(PickerType) getType;
--(void) setPrefs:(MyPreferencesTable*)prefs;
--(NSMutableArray*) getDataArray;
-
-@end
 
 
 
 // **********************************************************************
-// Class for Preferences Page
-@interface MyPreferencesTable : UIPreferencesTable
+// Class for Color Page
+@interface MyColorTable : UIPreferencesTable
 {
-    UIPreferencesTableCell *cells[NUM_GROUPS][CELLS_PER_GROUP];
-    UIPreferencesTableCell *groupcell[NUM_GROUPS];
+    UIPreferencesTableCell *cells[NUM_COLOR_GROUPS][COLOR_CELLS_PER_GROUP];
+    UIPreferencesTableCell *groupcell[NUM_COLOR_GROUPS];
 
-    UISwitchControl    *invertScreen;
-    UISwitchControl    *ignoreSingleLF;
-    UISwitchControl    *padMargins;
-    UISwitchControl    *reverseTap;
-    UISwitchControl    *repeatLine;
-    UISwitchControl    *swipeOK;
+    UISliderControl       *text_red;
+    UISliderControl       *text_green;
+    UISliderControl       *text_blue;
+//     UISliderControl       *text_alpha;
 
-    textReader         *trApp;
-    MyTextView         *textView;
+    UISliderControl       *bkg_red;
+    UISliderControl       *bkg_green;
+    UISliderControl       *bkg_blue;
+//     UISliderControl       *bkg_alpha;
 
-    MyPickerView       *pickerView;
+    UIPreferencesTableCell *exampleCell;
 
-    UIPreferencesTableCell *fontCell;
-    UIPreferencesTableCell *fontSizeCell;
-    UIPreferencesTableCell *encodingCell;
-    UIPreferencesTableCell *colorsCell;
+    MyColors               txtcolors;
+
+    textReader            *trApp;
+    MyTextView            *textView;
 
 } // MyPreferencesTable
 
 
 - (id)initWithFrame:(CGRect)rect;
+
 - (int)numberOfGroupsInPreferencesTable:(UIPreferencesTable *)aTable;
+
 - (UIPreferencesTableCell *)preferencesTable: (UIPreferencesTable *)aTable
-    cellForGroup:(int)group;
+                                cellForGroup:(int)group;
+
 - (float)preferencesTable:(UIPreferencesTable *)aTable
-    heightForRow:(int)row inGroup:(int)group withProposedHeight:(float)proposed;
-- (BOOL)preferencesTable:(UIPreferencesTable *)aTable isLabelGroup:(int)group;
+             heightForRow:(int)row inGroup:(int)group
+       withProposedHeight:(float)proposed;
+
+- (BOOL)preferencesTable:(UIPreferencesTable *)aTable
+            isLabelGroup:(int)group;
+
 - (UIPreferencesTableCell *)preferencesTable:(UIPreferencesTable *)aTable
-    cellForRow:(int)row inGroup:(int)group;
+                                  cellForRow:(int)row
+                                     inGroup:(int)group;
 
 - (void) setTextReader:(textReader*)tr;
 - (void) setTextView:(MyTextView*)tv;
 - (void) resize;
 
-- (void) setEncoding:(NSString*)enc;
-- (void) setFont:(NSString*)font;
-- (void) setFontSize:(NSString*)fontSize;
 
 @end
 

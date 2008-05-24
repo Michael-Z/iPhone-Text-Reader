@@ -46,7 +46,7 @@
 #import "UIOrientingApplication.h"
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.7.0Beta3"
+#define TEXTREADER_VERSION          @"0.7.0Beta4"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -59,7 +59,7 @@
 #define TEXTREADER_DFLT_ENCODING    kCGEncodingMacRoman
 
 
-#define TEXTREADER_COLOR            @"color"        // This is really invert!
+#define TEXTREADER_INVERTCOLORS     @"color"        // This is really invert!
 #define TEXTREADER_IGNORELF         @"ignoreLF"
 #define TEXTREADER_PADMARGINS       @"padMargins"
 #define TEXTREADER_REPEATLINE       @"repeatLine"
@@ -76,11 +76,36 @@
 #define TEXTREADER_OPENFILE         @"OpenFileName"
 #define TEXTREADER_OPENPATH         @"OpenFilePath"
 
+#define TEXTREADER_TEXTRED          @"textRed"
+#define TEXTREADER_TEXTGREEN        @"textGreen"
+#define TEXTREADER_TEXTBLUE         @"textBlue"
+#define TEXTREADER_TEXTALPHA        @"textAlpha"
+
+#define TEXTREADER_BKGRED           @"bkgRed"
+#define TEXTREADER_BKGGREEN         @"bkgGreen"
+#define TEXTREADER_BKGBLUE          @"bkgBlue"
+#define TEXTREADER_BKGALPHA         @"bkgAlpha"
+
 #define TEXTREADER_SLIDERSCALE      256
 
 
 //#define TEXTREADER_GB2312         -2312
 //#define TEXTREADER_GB2312_NAME    @"Simplified Chinese (GB2312)"
+
+
+typedef struct _MyColors {
+
+    float text_red;
+    float text_green;
+    float text_blue;
+    float text_alpha;
+
+    float bkg_red;
+    float bkg_green;
+    float bkg_blue;
+    float bkg_alpha;
+
+} MyColors;
 
 
 typedef enum _TextFileType {
@@ -95,6 +120,7 @@ typedef enum _TextFileType {
 @class FileTable;
 @class MyTextView;
 @class MyPreferencesTable;
+@class MyColorTable;
 @class MyDownloadTable;
 
 
@@ -105,6 +131,7 @@ typedef enum _MyViewName {
     My_Text_View,
     My_File_View,
     My_Prefs_View,
+    My_Color_View,
     My_Download_View
 } MyViewName;
 
@@ -126,6 +153,8 @@ typedef enum _MyViewName {
     FileTable               *fileTable;
 
     MyPreferencesTable      *prefsTable;
+
+    MyColorTable            *colorTable;
 
     MyDownloadTable         *downloadTable;
 

@@ -62,10 +62,12 @@ typedef unsigned int NSUInteger;
     
     screenLock = [[NSLock alloc] init];
 
-    color    = 0;
+    invertColors   = false;
     ignoreSingleLF = false;
     padMargins     = false;
     repeatLine     = false;
+    
+    [self setTextColors:nil];
     
     isDrag = false;
     
@@ -109,10 +111,10 @@ typedef unsigned int NSUInteger;
 
 // 0 = black text on white
 // 1 = white text on black
-- (void) setColor:(int)newColor {
-    color = newColor ? 1 : 0;
+- (void) setInvertColors:(bool)invert {
+    invertColors = invert;
     [self setNeedsDisplay];
-} // setColor
+} // setInvertColors
 
 
 - (void) setIgnoreSingleLF:(bool)ignore {
@@ -129,7 +131,7 @@ typedef unsigned int NSUInteger;
     repeatLine = repeat;
 } // setRepeastLine
 
-- (int) getColor { return color; }
+- (bool) getInvertColors { return invertColors; }
 - (bool) getIgnoreSingleLF { return ignoreSingleLF; }
 - (bool) getPadMargins { return padMargins; }
 - (bool) getRepeatLine { return repeatLine; };
@@ -148,28 +150,77 @@ typedef unsigned int NSUInteger;
 - (void)fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect {
 
     // Blank out the rect
-    if (color)
-        CGContextSetRGBFillColor(context, 0, 0, 0, 1); // black
+    if (invertColors)
+        CGContextSetRGBFillColor(context, txtcolors.text_red, 
+                                          txtcolors.text_green, 
+                                          txtcolors.text_blue, 
+                                          txtcolors.text_alpha);
     else
-        CGContextSetRGBFillColor(context, 1, 1, 1, 1); // white
+        CGContextSetRGBFillColor(context, txtcolors.bkg_red, 
+                                          txtcolors.bkg_green, 
+                                          txtcolors.bkg_blue, 
+                                          txtcolors.bkg_alpha);
     CGContextFillRect(context, rect);
 
     // Restore text colors
-    if (color)
+    if (invertColors)
     {
-        CGContextSetRGBFillColor(context, 1, 1, 1, 1);   // white
-        CGContextSetRGBStrokeColor(context, 1, 1, 1, 1); // white
+        CGContextSetRGBFillColor(context, txtcolors.bkg_red, 
+                                          txtcolors.bkg_green, 
+                                          txtcolors.bkg_blue, 
+                                          txtcolors.bkg_alpha);
+        CGContextSetRGBStrokeColor(context, txtcolors.bkg_red, 
+                                          txtcolors.bkg_green, 
+                                          txtcolors.bkg_blue, 
+                                          txtcolors.bkg_alpha);
     }
     else
     {
-        CGContextSetRGBFillColor(context, 0, 0, 0, 1);   // black    
-        CGContextSetRGBStrokeColor(context, 0, 0, 0, 1); // black 
+        CGContextSetRGBFillColor(context, txtcolors.text_red, 
+                                          txtcolors.text_green, 
+                                          txtcolors.text_blue, 
+                                          txtcolors.text_alpha);
+        CGContextSetRGBStrokeColor(context, txtcolors.text_red, 
+                                          txtcolors.text_green, 
+                                          txtcolors.text_blue, 
+                                          txtcolors.text_alpha);
     }
     
 } // fillBkgGroundRect
 
 
 
+- (void) setTextColors:(MyColors*)newcolors {
+
+    // Obviously wrong stuff will change to default
+    if (!newcolors ||
+        (newcolors->text_red   == newcolors->bkg_red && 
+         newcolors->text_green == newcolors->bkg_green && 
+         newcolors->text_blue  == newcolors->bkg_blue))
+    {
+       // Default black text on white bkg
+       txtcolors.text_red   = 0; // black
+       txtcolors.text_green = 0;
+       txtcolors.text_blue  = 0;
+       
+       txtcolors.bkg_red   = 1; // white
+       txtcolors.bkg_green = 1;
+       txtcolors.bkg_blue  = 1;
+    }
+    else
+    {
+        memcpy(&txtcolors, newcolors, sizeof(txtcolors));
+    }
+    
+    txtcolors.text_alpha = 1;
+    txtcolors.bkg_alpha = 1;
+    
+} // setTextColors
+
+
+- (MyColors) getTextColors {
+    return txtcolors;
+} // getTextColors
 
 
 
@@ -1906,7 +1957,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
 - (void)mouseDown:(struct __GSEvent*)event {
 
-    isDrag = false;
     [ [self tapDelegate] mouseDown: event ];
     [ super mouseDown: event ];
 
@@ -1922,13 +1972,14 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
 
 - (bool)getIsDrag {
+
     return isDrag;
+    
 } // getIsDrag
 
 
 - (void)mouseDragged:(struct __GSEvent *)event
 {
-    
     // We use this to disable scrolling as needed
     if ([trApp getSwipeOK])
     {
@@ -1942,7 +1993,8 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 // Keep current page up to date
 - (void) scrollerDidEndDragging: (id) id  willSmoothScroll: (BOOL) scr
 {
-    // Not being used for anything at the moment ...
+    // Clear the flag so we know dragging is finished
+    isDrag = false;    
 } // scrollerDidEndDragging
 
 
@@ -1952,6 +2004,8 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 {
     if (!text)
         return;
+        
+    isDrag = true;
     
     // Figure new line based on slider offset
     // CGPoint start = [self dragStartOffset];    

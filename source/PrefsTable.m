@@ -82,9 +82,10 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
         case(1):
             // Invert
+            // Colors
             // Pad Margins
             // Removed -- > Ignore Single LF
-            return 2;
+            return 3;
             
         case(2):
             // Reverse Tap
@@ -148,6 +149,41 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 }
 
 
+- (NSStringEncoding)encodingFromString:(NSString *)string {
+    const NSStringEncoding * enc = [NSString availableStringEncodings];
+        
+    while (enc && *enc)
+    {
+        if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
+           break;
+        enc++;
+    }
+    
+    return (enc && *enc) ? *enc : kCGEncodingMacRoman;
+} // encodingFromString
+
+
+// Called when we leave this view
+-(void)saveSettings {
+
+    // If picker is active, just kill it
+    if (pickerView)
+    {
+        [pickerView release];
+        pickerView = nil;
+    }               
+
+    // Apply preferences ...            
+    NSString * font  = [fontCell value];
+    int        size  = [[fontSizeCell value] intValue];
+
+    [textView setFont:font size:size];
+
+    [textView setEncoding:[self encodingFromString:[encodingCell value]]];
+
+} // saveSettings
+
+
 - (void)tableRowSelected:(NSNotification *)notification 
 {
     int           i    = [self selectedRow];
@@ -192,6 +228,13 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             }               
             break;
 
+        case 5: // Colors
+            {   
+                [self saveSettings];
+                [trApp showView:My_Color_View];
+            }               
+            break;
+
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
             break;
@@ -207,10 +250,12 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
      return 1;
 }
 
+
 //datasource methods
 - (int) pickerView:(UIPickerView*)picker numberOfRowsInColumn:(int)column{
     return [[pickerView getDataArray] count];
 }
+
 
 - (UIPickerTableCell*) pickerView:(UIPickerView*)picker tableCellForRow:(int)row inColumn:(int)column{
     UIPickerTableCell *cell = [[UIPickerTableCell alloc] initWithFrame: CGRectMake(0.0f, 0.0f, 320.0f, 32.0f)];
@@ -234,7 +279,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         [trApp setReverseTap:[reverseTap value] ? 1 : 0];
 
     else if (switchid == invertScreen)
-        [textView setColor:[invertScreen value] ? 1 : 0];
+        [textView setInvertColors:[invertScreen value] ? true : false];
 
 //     else if (switchid == ignoreSingleLF)
 //         [textView setIgnoreSingleLF:[ignoreSingleLF value]  ? 1 : 0];
@@ -293,14 +338,19 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (1):
             switch (row) {
                 case (0):
+                    [ cell setTitle:@"Select Colors" ];
+                    [ cell setShowDisclosure:YES];
+                    colorsCell = cell;
+                    break;
+                case (1):
                     [ cell setTitle:@"Invert Screen" ];
                     invertScreen = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ invertScreen setValue: [textView getColor] ];
+                    [ invertScreen setValue: [textView getInvertColors] ? 1 : 0 ];
                     [ invertScreen addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [ cell addSubview: invertScreen ];
                     break;
-                case (1):
+                case (2):
                     [ cell setTitle:@"Pad Margins" ];
                     padMargins = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
@@ -309,7 +359,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell setEnabled:YES ];
                     [ cell addSubview: padMargins ];
                     break;
-//                 case (1):
+//                 case (3):
 //                     [ cell setTitle:@"Ignore Single LF" ];
 //                     ignoreSingleLF = [ [ UISwitchControl alloc ]
 //                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
@@ -402,20 +452,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 } // resize
 
 
-- (NSStringEncoding)encodingFromString:(NSString *)string {
-    const NSStringEncoding * enc = [NSString availableStringEncodings];
-        
-    while (enc && *enc)
-    {
-        if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
-           break;
-        enc++;
-    }
-    
-    return (enc && *enc) ? *enc : kCGEncodingMacRoman;
-} // encodingFromString
-
-
 - (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button 
 {
     switch (button) {
@@ -437,22 +473,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             break;
 
         case 1: // Done
-        
-            // If picker is active, just kill it
-            if (pickerView)
-            {
-                [pickerView release];
-                pickerView = nil;
-            }               
-            
-            // Apply preferences ...            
-            NSString * font  = [fontCell value];
-            int        size  = [[fontSizeCell value] intValue];
-            
-            [textView setFont:font size:size];
-            
-            [textView setEncoding:[self encodingFromString:[encodingCell value]]];
-
+            [self saveSettings];
             [trApp showView:My_Info_View];
             break;
     } // switch
@@ -464,7 +485,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
-  //[trApp unlockUIOrientation];
   [sheet dismissAnimated:YES];
   [sheet release];
 } // alertSheet
@@ -476,11 +496,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
 
 - (void) setEncoding:(NSString*)enc {
-    [ encodingCell setValue:enc ];
-    
-//  // Force font to arial ?!?!?!
-//  [ fontCell setValue:@"arialuni" ];
-    
+    [ encodingCell setValue:enc ];    
 } // setFont
 
 
