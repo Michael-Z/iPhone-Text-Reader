@@ -449,7 +449,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
     
     int             rc = 2; // Assume invalid format ...
 
-    *type = @"Unable to open file!";
+    *type = _T(@"Unable to open file!");
 
     /********** open files, read header, ensure source is a Doc file *****/
 

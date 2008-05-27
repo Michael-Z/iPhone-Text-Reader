@@ -111,13 +111,13 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
      groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
      switch (group) {
          case (0):
-             [ groupcell[group] setTitle: @"Text Settings" ];
+             [ groupcell[group] setTitle: _T(@"Text Settings") ];
              break;
          case (1):
-             [ groupcell[group] setTitle: @"Display Settings" ];
+             [ groupcell[group] setTitle: _T(@"Display Settings") ];
              break;
          case (2):
-             [ groupcell[group] setTitle: @"Scroll Settings" ];
+             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
              break;
      }
      return groupcell[group];
@@ -312,7 +312,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 case (0):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
-                    [ cell setTitle:@"Font" ];
+                    [ cell setTitle:_T(@"Font") ];
                     [ cell setValue:[textView getFont] ];
                     [ cell setShowDisclosure:YES];
                     fontCell = cell;
@@ -320,7 +320,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 case (1):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
-                    [ cell setTitle:@"Font Size" ];
+                    [ cell setTitle:_T(@"Font Size") ];
                     [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
                     [ cell setShowDisclosure:YES];
                     fontSizeCell = cell;
@@ -328,7 +328,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 case (2):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
-                    [ cell setTitle:@"Encoding" ];
+                    [ cell setTitle:_T(@"Encoding") ];
                     [ cell setValue:[NSString localizedNameOfStringEncoding:[textView getEncoding]] ];
                     [ cell setShowDisclosure:YES];
                     encodingCell = cell;
@@ -338,12 +338,12 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (1):
             switch (row) {
                 case (0):
-                    [ cell setTitle:@"Select Colors" ];
+                    [ cell setTitle:_T(@"Select Colors") ];
                     [ cell setShowDisclosure:YES];
                     colorsCell = cell;
                     break;
                 case (1):
-                    [ cell setTitle:@"Invert Screen" ];
+                    [ cell setTitle:_T(@"Invert Screen") ];
                     invertScreen = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ invertScreen setValue: [textView getInvertColors] ? 1 : 0 ];
@@ -351,7 +351,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell addSubview: invertScreen ];
                     break;
                 case (2):
-                    [ cell setTitle:@"Pad Margins" ];
+                    [ cell setTitle:_T(@"Pad Margins") ];
                     padMargins = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
@@ -360,7 +360,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell addSubview: padMargins ];
                     break;
 //                 case (3):
-//                     [ cell setTitle:@"Ignore Single LF" ];
+//                     [ cell setTitle:_T(@"Ignore Single LF") ];
 //                     ignoreSingleLF = [ [ UISwitchControl alloc ]
 //                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
 //                     [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
@@ -373,7 +373,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (2):
             switch (row) {
                 case (0):
-                    [ cell setTitle:@"Reverse Tap Zones" ];
+                    [ cell setTitle:_T(@"Reverse Tap Zones") ];
                     reverseTap = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
@@ -382,7 +382,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell addSubview: reverseTap ];
                     break;
                 case (1):
-                    [ cell setTitle:@"Repeat Previous Line" ];
+                    [ cell setTitle:_T(@"Repeat Previous Line") ];
                     repeatLine = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ repeatLine setValue: [textView getRepeatLine] ? 1 : 0 ];
@@ -391,7 +391,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell addSubview: repeatLine ];
                     break;
                 case (2):
-                    [ cell setTitle:@"Smooth Scroll" ];
+                    [ cell setTitle:_T(@"Smooth Scroll") ];
                     swipeOK = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
                     [ swipeOK setValue: [trApp getSwipeOK] ? 1 : 0 ];
@@ -404,10 +404,10 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (3):
             switch (row) {
                 case (0):
-                    [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
+                    [ cell setTitle: _T(@"http://code.google.com/p/iphonetextreader") ];
                     break;
                 case (1):
-                    [ cell setTitle: @"email: iphonetextreader@gmail.com" ];
+                    [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
                     break;
             }
             break;
@@ -459,14 +459,14 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             {
                 // [trApp lockUIOrientation];
                 NSString *Msg = [NSString stringWithFormat:
-                                          @"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
+                                          _T(@"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader"),
                                           TEXTREADER_VERSION];
                 struct CGRect rect = [trApp getOrientedViewRect];
                 UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                NSString *aboutMsg = [NSString stringWithFormat:@"About %@", TEXTREADER_NAME];
+                NSString *aboutMsg = [NSString stringWithFormat:_T(@"About %@"), TEXTREADER_NAME];
                 [alertSheet setTitle:aboutMsg];
                 [alertSheet setBodyText:Msg];
-                [alertSheet addButtonWithTitle:@"OK"];
+                [alertSheet addButtonWithTitle:_T(@"OK")];
                 [alertSheet setDelegate:self];
                 [alertSheet popupAlertAnimated:YES];
             }

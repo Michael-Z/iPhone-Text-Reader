@@ -89,7 +89,7 @@
      groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
      switch (group) {
          case (0):
-             [ groupcell[group] setTitle: @"Download Details" ];
+             [ groupcell[group] setTitle: _T(@"Download Details") ];
              break;
      }
      return groupcell[group];
@@ -121,8 +121,8 @@
 
 // Quickie thread helper funcs
 - (void) threadShowSaving {
-    [wait setTitle:@"Saving ..."];
-    [wait setBodyText:[NSString stringWithFormat:@"Saving to %@", fullPath]];
+    [wait setTitle:_T(@"Saving ...")];
+    [wait setBodyText:[NSString stringWithFormat:_T(@"Saving to %@"), fullPath]];
 } // threadShowSaving
 
 - (void) threadReleaseWait {
@@ -139,9 +139,9 @@
     //[trApp lockUIOrientation];
     struct CGRect  rect     = [trApp getOrientedViewRect];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:@"Finished"];
-    [alertSheet setBodyText:@"Save complete!"];
-    [alertSheet addButtonWithTitle:@"OK"];
+    [alertSheet setTitle:_T(@"Finished")];
+    [alertSheet setBodyText:_T(@"Save complete!")];
+    [alertSheet addButtonWithTitle:_T(@"OK")];
     [alertSheet setDelegate:trApp];
     [alertSheet popupAlertAnimated:YES];
     
@@ -152,11 +152,11 @@
     //[trApp lockUIOrientation];
     struct CGRect  rect     = [trApp getOrientedViewRect];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:@"Error Saving File"];
+    [alertSheet setTitle:_T(@"Error Saving File")];
     [alertSheet setBodyText:[NSString stringWithFormat:
-                              @"Unable to save file as %@",
+                              _T(@"Unable to save file as %@"),
                               fullPath]];
-    [alertSheet addButtonWithTitle:@"OK"];
+    [alertSheet addButtonWithTitle:_T(@"OK")];
     [alertSheet setDelegate:trApp];
     [alertSheet popupAlertAnimated:YES];
 }
@@ -165,11 +165,11 @@
     //[trApp lockUIOrientation];
     struct CGRect  rect     = [trApp getOrientedViewRect];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:@"Error Loading From URL"];
+    [alertSheet setTitle:_T(@"Error Loading From URL")];
     [alertSheet setBodyText:[NSString stringWithFormat:
-                              @"Unable to load file from URL %@",
+                              _T(@"Unable to load file from URL %@"),
                               urlAddress]];
-    [alertSheet addButtonWithTitle:@"OK"];
+    [alertSheet addButtonWithTitle:_T(@"OK")];
     [alertSheet setDelegate:trApp];
     [alertSheet popupAlertAnimated:YES];
 } // threadShowSaving
@@ -257,9 +257,9 @@
             {
                 //[trApp lockUIOrientation];
                 UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:@"Error Invalid Save As File Name"];
-                [alertSheet setBodyText:@"The Save As file name can not contain slashes."];
-                [alertSheet addButtonWithTitle:@"OK"];
+                [alertSheet setTitle:_T(@"Error Invalid Save As File Name")];
+                [alertSheet setBodyText:_T(@"The Save As file name can not contain slashes.")];
+                [alertSheet addButtonWithTitle:_T(@"OK")];
                 [alertSheet setDelegate:trApp];
                 [alertSheet popupAlertAnimated:YES];
                 return;
@@ -273,9 +273,9 @@
             {
                 //[trApp lockUIOrientation];
                 UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:@"Error Invalid Save As File Name"];
-                [alertSheet setBodyText:@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt"];
-                [alertSheet addButtonWithTitle:@"OK"];
+                [alertSheet setTitle:_T(@"Error Invalid Save As File Name")];
+                [alertSheet setBodyText:_T(@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt")];
+                [alertSheet addButtonWithTitle:_T(@"OK")];
                 [alertSheet setDelegate:trApp];
                 [alertSheet popupAlertAnimated:YES];
                 return;
@@ -300,11 +300,11 @@
             {
                 //[trApp lockUIOrientation];
                 UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:@"Error Invalid URL"];
+                [alertSheet setTitle:_T(@"Error Invalid URL")];
                 [alertSheet setBodyText:[NSString stringWithFormat:
-                                          @"Invalid URL %@",
+                                          _T(@"Invalid URL %@"),
                                           urlAddress]];
-                [alertSheet addButtonWithTitle:@"OK"];
+                [alertSheet addButtonWithTitle:_T(@"OK")];
                 [alertSheet setDelegate:trApp];
                 [alertSheet popupAlertAnimated:YES];
                 return;
@@ -313,12 +313,12 @@
             // Show the loading message box         
             //[trApp lockUIOrientation];
             wait = [[UIAlertSheet alloc] initWithFrame:rect];
-            [wait setTitle:@"Downloading ..."];
+            [wait setTitle:_T(@"Downloading ...")];
             [wait setBodyText:[NSString stringWithFormat:
-                                      @"Downloading from URL %@",
+                                      _T(@"Downloading from URL %@"),
                                       urlAddress]];
             [wait setDelegate:trApp];
-            //[wait addButtonWithTitle:@"OK"];
+            //[wait addButtonWithTitle:_T(@"OK")];
             [wait popupAlertAnimated:YES];
 
             // Start the load thread
@@ -370,7 +370,7 @@
                 case (1):
                     [ cell release ];
                     cell = [ [ UIPreferencesTextTableCell alloc ] init ];
-                    [ cell setTitle:@"Save As:" ];
+                    [ cell setTitle:_T(@"Save As:") ];
                     [ cell setValue:@"" ];
 
 //[ cell setValue:@"Aza test.txt" ];
@@ -386,7 +386,7 @@
                 case (0):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
-                    [ cell setTitle:@"Download File Now" ];
+                    [ cell setTitle:_T(@"Download File Now") ];
                     [ cell setValue:@"" ];
                     [ cell setShowDisclosure:YES];
                     downloadCell = cell;
@@ -401,11 +401,11 @@
                     break;
                 case (1):
                     [ cell setTitle:[NSString stringWithFormat:@"%@%@%@%@%@",
-                                      @"Enter the complete URL of the Text or PalmDoc file you want to download ",
-                                      @"and the Name you want it saved as locally.\n\n",
-                                      @"If you leave name blank ",
+                                      _T(@"Enter the complete URL of the Text or PalmDoc file you want to download "),
+                                      _T(@"and the Name you want it saved as locally.\n\n"),
+                                      _T(@"If you leave name blank "),
                                       TEXTREADER_NAME,
-                                      @" will try to figure out the name and extension based on the URL." ]];
+                                      _T(@" will try to figure out the name and extension based on the URL.") ]];
                     break;
             } // switch row
             break;

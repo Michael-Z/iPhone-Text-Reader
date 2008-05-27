@@ -43,7 +43,7 @@
 
 
         colFilename = [ [ UITableColumn alloc ]
-                            initWithTitle: @"Filename"
+                            initWithTitle: _T(@"Filename")
                             identifier:@"filename"
                             width: rect.size.width];
 
@@ -365,8 +365,9 @@
              ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
               isDir)) // directory
     {
-        [self setPath:[path stringByAppendingPathComponent:fileName]];
-        [self reloadData];
+        // [self setPath:[path stringByAppendingPathComponent:fileName]];
+        // [self reloadData];
+        [trApp showFileTable:[path stringByAppendingPathComponent:fileName]];
     }
     else // Must be a text or pdb file ...
     {

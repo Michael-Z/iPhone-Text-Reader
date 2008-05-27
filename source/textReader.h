@@ -45,6 +45,8 @@
 
 #import "UIOrientingApplication.h"
 
+#define _T(x) NSLocalizedString(x,nil)
+
 #define TEXTREADER_NAME             @"textReader"
 #define TEXTREADER_VERSION          @"0.7.0Beta4"
 
@@ -214,6 +216,8 @@ typedef enum _MyViewName {
 - (NSString*) getFilePath;
 
 - (TextFileType) getFileType:(NSString*)fileName;
+
+- (void) showFileTable:(NSString*)path;
 
 - (void) redraw;
 

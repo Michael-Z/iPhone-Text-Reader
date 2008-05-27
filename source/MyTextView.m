@@ -1272,15 +1272,15 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
                         case 4:
                             switch([dest characterAtIndex:added.location+1])
                             {
-                                case 'G': case 'g':
+                                case 'g':
                                     // gt       003E
-                                    if (getTag(dest, added.location, added.location+added.length, "GT;", "gt;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "gt;", NULL))
                                         entity = 0x003E;
                                     break;
 
-                                case 'L': case 'l':
+                                case 'l':
                                     // lt       003C
-                                    if (getTag(dest, added.location, added.location+added.length, "LT;", "lt;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "lt;", NULL))
                                         entity = 0x003C;
                                     break;
                             }
@@ -1289,27 +1289,57 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
                         case 5:
                             switch([dest characterAtIndex:added.location+1])
                             {
-                                case 'A': case 'a':
+                                case 'a':
                                     // amp      0026
-                                    if (getTag(dest, added.location, added.location+added.length, "AMP;", "amp;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "amp;", NULL))
                                         entity = 0x0026;
                                     break;
 
-                                case 'R': case 'r':
+                                case 'd':
+                                    // deg      00B0
+                                    if (getTag(dest, added.location, added.location+added.length, "deg;", NULL))
+                                        entity = 0x00B0;
+                                    break;
+
+                                case 'E':
+                                    // ETH      00D0
+                                    if (getTag(dest, added.location, added.location+added.length, "ETH;", NULL))
+                                        entity = 0x00D0;
+                                    break;
+
+                                case 'e':
+                                    // eth      00F0
+                                    if (getTag(dest, added.location, added.location+added.length, "eth;", NULL))
+                                        entity = 0x00F0;
+                                    break;
+
+                                case 'n':
+                                    // not      00AC
+                                    if (getTag(dest, added.location, added.location+added.length, "not;", NULL))
+                                        entity = 0x00AC;
+                                    break;
+
+                                case 'r':
                                     // reg      00AE
-                                    if (getTag(dest, added.location, added.location+added.length, "REG;", "reg;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "reg;", NULL))
                                         entity = 0x00AE;
                                     break;
 
-                                case 'U': case 'u':
+                                case 's':
+                                    // shy      00AD
+                                    if (getTag(dest, added.location, added.location+added.length, "shy;", NULL))
+                                        entity = 0x00AD;
+                                    break;
+
+                                case 'u':
                                     // uml      00A8
-                                    if (getTag(dest, added.location, added.location+added.length, "UML;", "uml;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "uml;", NULL))
                                         entity = 0x00A8;
                                     break;
 
-                                case 'Y': case 'y':
+                                case 'y':
                                     // yen      00A5
-                                    if (getTag(dest, added.location, added.location+added.length, "YEN;", "yen;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "yen;", NULL))
                                         entity = 0x00A5;
                                     break;
                             }
@@ -1318,139 +1348,605 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
                         case 6:
                             switch([dest characterAtIndex:added.location+1])
                             {
-                                case 'C': case 'c':
+                                case 'A':
+                                    // Auml    00C4
+                                    if (getTag(dest, added.location, added.location+added.length, "Auml;", NULL))
+                                        entity = 0x00C4;
+                                    break;
+
+                                case 'a':
+                                    // auml    00E4
+                                    if (getTag(dest, added.location, added.location+added.length, "auml;", NULL))
+                                        entity = 0x00E4;
+                                    break;
+
+                                case 'b':
+                                    // bull     2022 
+                                    if (getTag(dest, added.location, added.location+added.length, "bull;", NULL))
+                                        entity = 0x2022;
+                                    break;
+
+                                case 'c':
                                     // copy     00A9 
-                                    if (getTag(dest, added.location, added.location+added.length, "COPY;", "copy;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "copy;", NULL))
                                         entity = 0x00A9;
                                     // cent     00A2    
-                                    else if (getTag(dest, added.location, added.location+added.length, "CENT;", "cent;"))
+                                    else if (getTag(dest, added.location, added.location+added.length, "cent;", NULL))
                                         entity = 0x00A2;
+                                    // circ     02C6    
+                                    else if (getTag(dest, added.location, added.location+added.length, "circ;", NULL))
+                                        entity = 0x02C6;
                                     break;
-
-                                case 'E': case 'e':
+                                    
+                                case 'e':
                                     // emsp     2003
-                                    if (getTag(dest, added.location, added.location+added.length, "EMSP;", "emsp;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "emsp;", NULL))
                                         entity = 0x2003;
                                     // ensp     2002
-                                    else if (getTag(dest, added.location, added.location+added.length, "ENSP;", "ensp;"))
+                                    else if (getTag(dest, added.location, added.location+added.length, "ensp;", NULL))
                                         entity = 0x2002;
                                     // euro     20ac
-                                    else if (getTag(dest, added.location, added.location+added.length, "EURO;", "euro;"))
+                                    else if (getTag(dest, added.location, added.location+added.length, "euro;", NULL))
                                         entity = 0x20AC;
+                                    // euml    00EB
+                                    else if (getTag(dest, added.location, added.location+added.length, "euml;", NULL))
+                                        entity = 0x00EB;
                                     break;
 
-                                case 'N': case 'n':
+                                case 'E':
+                                    // Euml    00CB
+                                    if (getTag(dest, added.location, added.location+added.length, "Euml;", NULL))
+                                        entity = 0x00CB;
+                                    break;
+
+                                case 'f':
+                                    // fnof     0192
+                                    if (getTag(dest, added.location, added.location+added.length, "fnof;", NULL))
+                                        entity = 0x0192;
+                                    break;
+
+                                case 'I':
+                                    // Iuml    00CF
+                                    if (getTag(dest, added.location, added.location+added.length, "Iuml;", NULL))
+                                        entity = 0x00CF;
+                                    break;
+
+                                case 'i':
+                                    // iuml    00EF
+                                    if (getTag(dest, added.location, added.location+added.length, "iuml;", NULL))
+                                        entity = 0x00EF;
+                                    break;
+
+                                case 'm':
+                                    // macr     00AF
+                                    if (getTag(dest, added.location, added.location+added.length, "macr;", NULL))
+                                        entity = 0x00AF;
+                                    break;
+
+                                case 'n':
                                     // nbsp     00A0
-                                    if (getTag(dest, added.location, added.location+added.length, "NBSP;", "nbsp;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "nbsp;", NULL))
                                         entity = 0x00A0;
                                     break;
 
-                                case 'Q': case 'q':
+                                case 'o':
+                                    // ordf     00AA
+                                    if (getTag(dest, added.location, added.location+added.length, "ordf;", NULL))
+                                        entity = 0x00AA;
+                                    else
+                                    // ordm     00BA
+                                    if (getTag(dest, added.location, added.location+added.length, "ordm;", NULL))
+                                        entity = 0x00BA;
+                                    else
+                                    // ouml    00F6
+                                    if (getTag(dest, added.location, added.location+added.length, "ouml;", NULL))
+                                        entity = 0x00F6;
+                                    break;
+
+                                case 'O':
+                                    // Ouml    00D6
+                                    if (getTag(dest, added.location, added.location+added.length, "Ouml;", NULL))
+                                        entity = 0x00D6;
+                                    break;
+
+                                case 'p':
+                                    // para     00B6    
+                                    if (getTag(dest, added.location, added.location+added.length, "para;", NULL))
+                                        entity = 0x00B6;
+                                    // sup2     00B2
+                                    else if (getTag(dest, added.location, added.location+added.length, "sup2;", NULL))
+                                        entity = 0x00B2;
+                                    // sup3     00B3
+                                    else if (getTag(dest, added.location, added.location+added.length, "sup3;", NULL))
+                                        entity = 0x00B3;
+                                    // sup1     00B9
+                                    else if (getTag(dest, added.location, added.location+added.length, "sup1;", NULL))
+                                        entity = 0x00B9;
+                                    break;
+
+                                case 'q':
                                     // quot     0022    
-                                    if (getTag(dest, added.location, added.location+added.length, "QUOT;", "quot;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "quot;", NULL))
                                         entity = 0x0022;
                                     break;
+
+                                case 's':
+                                    // sect     00A7    
+                                    if (getTag(dest, added.location, added.location+added.length, "sect;", NULL))
+                                        entity = 0x00A7;
+                                    break;
+
+                                case 'U':
+                                    // Uuml    00DC
+                                    if (getTag(dest, added.location, added.location+added.length, "Uuml;", NULL))
+                                        entity = 0x00DC;
+                                    break;
+
+                                case 'u':
+                                    // uuml    00FC
+                                    if (getTag(dest, added.location, added.location+added.length, "uuml;", NULL))
+                                        entity = 0x00FC;
+                                    break;
+
+                                case 'Y':
+                                    // Yuml     0178    
+                                    if (getTag(dest, added.location, added.location+added.length, "Yuml;", NULL))
+                                        entity = 0x0178;
+                                    break;
+
+                                case 'y':
+                                    // yuml     00FF    
+                                    if (getTag(dest, added.location, added.location+added.length, "yuml;", NULL))
+                                        entity = 0x00FF;
+                                    break;
+
+
                             }
                         break;
 
                         case 7:
                             switch([dest characterAtIndex:added.location+1])
                             {
-                                case 'A': case 'a':
-                                    // acute    00B4
-                                    if (getTag(dest, added.location, added.location+added.length, "ACUTE;", "acute;"))
-                                        entity = 0x00B4;
+                                case 'A':
+                                    // Acirc    00C2
+                                    if (getTag(dest, added.location, added.location+added.length, "Acirc;", NULL))
+                                        entity = 0x00C2;
+                                    else
+                                    // Aring    00C5
+                                    if (getTag(dest, added.location, added.location+added.length, "Aring;", NULL))
+                                        entity = 0x00C5;
+                                    else
+                                    // AElig    00C6
+                                    if (getTag(dest, added.location, added.location+added.length, "AElig;", NULL))
+                                        entity = 0x00C6;
                                     break;
 
-                                case 'B': case 'b':
+                                case 'a':
+                                    // acute
+                                    if (getTag(dest, added.location, added.location+added.length, "acute;", NULL))
+                                        entity = 0x00B4;
+                                    else
+                                    // acirc    00E2
+                                    if (getTag(dest, added.location, added.location+added.length, "acirc;", NULL))
+                                        entity = 0x00E2;
+                                    else
+                                    // aring    00E5
+                                    if (getTag(dest, added.location, added.location+added.length, "aring;", NULL))
+                                        entity = 0x00E5;
+                                    else
+                                    // aelig    00E6
+                                    if (getTag(dest, added.location, added.location+added.length, "aelig;", NULL))
+                                        entity = 0x00E6;
+                                    break;
+
+                                case 'b':
                                     // bdquo    201E
-                                    if (getTag(dest, added.location, added.location+added.length, "BDQUO;", "bdquo;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "bdquo;", NULL))
                                         entity = 0x201E;
                                     break;
 
-                                case 'I': case 'i':
-                                    // iexcl    00A1
-                                    if (getTag(dest, added.location, added.location+added.length, "IEXCL;", "iexcl;"))
-                                        entity = 0x00A1;
+                                case 'c':
+                                    // cedil    00B8
+                                    if (getTag(dest, added.location, added.location+added.length, "cedil;", NULL))
+                                        entity = 0x00B8;
                                     break;
 
-                                case 'L': case 'l':
+                                case 'E':
+                                    // Ecirc    00CA
+                                    if (getTag(dest, added.location, added.location+added.length, "Ecirc;", NULL))
+                                        entity = 0x00CA;
+                                    break;
+
+                                case 'e':
+                                    // ecirc    00EA
+                                    if (getTag(dest, added.location, added.location+added.length, "ecirc;", NULL))
+                                        entity = 0x00EA;
+                                    break;
+
+                                case 'i':
+                                    // iexcl    00A1
+                                    if (getTag(dest, added.location, added.location+added.length, "iexcl;", NULL))
+                                        entity = 0x00A1;
+                                    else
+                                    // icirc    00EE
+                                    if (getTag(dest, added.location, added.location+added.length, "icirc;", NULL))
+                                        entity = 0x00EE;
+                                    break;
+
+                                case 'I':
+                                    // Icirc    00CE
+                                    if (getTag(dest, added.location, added.location+added.length, "Icirc;", NULL))
+                                        entity = 0x00CE;
+                                    break;
+
+                                case 'l':
                                     // ldquo    201C
-                                    if (getTag(dest, added.location, added.location+added.length, "LDQUO;", "ldquo;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "ldquo;", NULL))
                                         entity = 0x201C;
                                     // lsquo    2018
-                                    else if (getTag(dest, added.location, added.location+added.length, "LSQUO;", "lsquo;"))
+                                    else if (getTag(dest, added.location, added.location+added.length, "lsquo;", NULL))
                                         entity = 0x2018;
+                                    // laquo    00AB
+                                    else if (getTag(dest, added.location, added.location+added.length, "laquo;", NULL))
+                                        entity = 0x00AB;
                                     break;
 
-                                case 'M': case 'm':
+                                case 'm':
                                     // mdash    2014
-                                    if (getTag(dest, added.location, added.location+added.length, "MDASH;", "mdash;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "mdash;", NULL))
                                         entity = 0x2014;
+                                    // micro    00B5
+                                    else if (getTag(dest, added.location, added.location+added.length, "micro;", NULL))
+                                        entity = 0x00B5;
                                     break;
 
-                                case 'N': case 'n':
+                                case 'n':
                                     // ndash    2013
-                                    if (getTag(dest, added.location, added.location+added.length, "NDASH;", "ndash;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "ndash;", NULL))
                                         entity = 0x2013;
                                     break;
 
-                                case 'P': case 'p':
+                                case 'O':
+                                    // OElig    0152
+                                    if (getTag(dest, added.location, added.location+added.length, "OElig;", NULL))
+                                        entity = 0x0152;
+                                    else
+                                    // Ocirc    00D4
+                                    if (getTag(dest, added.location, added.location+added.length, "Ocirc;", NULL))
+                                        entity = 0x00D4;
+                                    break;
+
+                                case 'o':
+                                    // oelig    0153
+                                    if (getTag(dest, added.location, added.location+added.length, "oelig;", NULL))
+                                        entity = 0x0153;
+                                    else
+                                    // ocirc    00F4
+                                    if (getTag(dest, added.location, added.location+added.length, "ocirc;", NULL))
+                                        entity = 0x00F4;
+                                    break;
+
+                                case 'p':
                                     // pound    00A3
-                                    if (getTag(dest, added.location, added.location+added.length, "POUND;", "pound;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "pound;", NULL))
                                         entity = 0x00A3;
                                     break;
 
-                                case 'R': case 'r':
+                                case 'r':
                                     // rdquo    201D
-                                    if (getTag(dest, added.location, added.location+added.length, "RDQUO;", "rdquo;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "rdquo;", NULL))
                                         entity = 0x201D;
                                     // rsquo    2019
-                                    else if (getTag(dest, added.location, added.location+added.length, "RSQUO;", "rsquo;"))
+                                    else if (getTag(dest, added.location, added.location+added.length, "rsquo;", NULL))
                                         entity = 0x2019;
+                                    // raquo    00BB
+                                    else if (getTag(dest, added.location, added.location+added.length, "raquo;", NULL))
+                                        entity = 0x00BB;
                                     break;
 
-                                case 'S': case 's':
+                                case 's':
                                     // sbquo    201A
-                                    if (getTag(dest, added.location, added.location+added.length, "SBQUO;", "sbquo;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "sbquo;", NULL))
                                         entity = 0x201A;
+                                    else
+                                    // szlig    00DF
+                                    if (getTag(dest, added.location, added.location+added.length, "szlig;", NULL))
+                                        entity = 0x00DF;
                                     break;
 
-                                case 'T': case 't':
-                                    // tilde    00C3
-                                    if (getTag(dest, added.location, added.location+added.length, "TILDE;", "tilde;"))
-                                        entity = 0x00C3;
+                                case 't':
+                                    // tilde    02DC
+                                    if (getTag(dest, added.location, added.location+added.length, "tilde;", NULL))
+                                        entity = 0x02DC;
+                                    else
+                                    // trade    2122
+                                    if (getTag(dest, added.location, added.location+added.length, "trade;", NULL))
+                                        entity = 0x2122;
+                                    else
+                                    // times    00D7
+                                    if (getTag(dest, added.location, added.location+added.length, "times;", NULL))
+                                        entity = 0x00D7;
+                                    else
+                                    // thorn    00FE
+                                    if (getTag(dest, added.location, added.location+added.length, "thorn;", NULL))
+                                        entity = 0x00FE;
                                     break;
+
+                                case 'T':
+                                    // THORN    00DE
+                                    if (getTag(dest, added.location, added.location+added.length, "THORN;", NULL))
+                                        entity = 0x00DE;
+                                    break;
+                                    
+                                case 'U':
+                                    // Ucirc    00DB
+                                    if (getTag(dest, added.location, added.location+added.length, "Ucirc;", NULL))
+                                        entity = 0x00DB;
+                                    break;
+
+                                case 'u':
+                                    // ucirc    00FB
+                                    if (getTag(dest, added.location, added.location+added.length, "ucirc;", NULL))
+                                        entity = 0x00FB;
+                                    break;
+
                             }
+
                         break;
 
                         case 8:
                             switch([dest characterAtIndex:added.location+1])
                             {
-                                case 'C': case 'c':
-                                    // curren   00A4
-                                    if (getTag(dest, added.location, added.location+added.length, "CURREN;", "curren;"))
-                                        entity = 0x00A4;
+                                case 'A':
+                                    // Agrave    00C0
+                                    if (getTag(dest, added.location, added.location+added.length, "Agrave;", NULL))
+                                        entity = 0x00C0;
+                                    else
+                                    // Aacute    00C1
+                                    if (getTag(dest, added.location, added.location+added.length, "Aacute;", NULL))
+                                        entity = 0x00C1;
+                                    else
+                                    // Atilde    00C3
+                                    if (getTag(dest, added.location, added.location+added.length, "Atilde;", NULL))
+                                        entity = 0x00C3;
                                     break;
 
-                                case 'E': case 'e':
-    // JIMB BUG BUG - Should this be upper or lower case ?!?!?!? is 0xC9 correct ?!?!?                    
-                                    // eacute   00C9
-                                    if (getTag(dest, added.location, added.location+added.length, "EACUTE;", "eacute;"))
+                                case 'a':
+                                    // agrave    00E0
+                                    if (getTag(dest, added.location, added.location+added.length, "agrave;", NULL))
+                                        entity = 0x00E0;
+                                    else
+                                    // aacute    00E1
+                                    if (getTag(dest, added.location, added.location+added.length, "aacute;", NULL))
+                                        entity = 0x00E1;
+                                    else
+                                    // atilde    00E3
+                                    if (getTag(dest, added.location, added.location+added.length, "atilde;", NULL))
+                                        entity = 0x00E3;
+                                    break;
+
+                                case 'b':
+                                    // brvbar    00A6
+                                    if (getTag(dest, added.location, added.location+added.length, "brvbar;", NULL))
+                                        entity = 0x00A6;
+                                    break;
+
+                                case 'c':
+                                    // curren   00A4
+                                    if (getTag(dest, added.location, added.location+added.length, "curren;", NULL))
+                                        entity = 0x00A4;
+                                    else
+                                    // ccedil   00E7
+                                    if (getTag(dest, added.location, added.location+added.length, "ccedil;", NULL))
+                                        entity = 0x00E7;
+                                    break;
+
+                                case 'C':
+                                    // Ccedil   00C7
+                                    if (getTag(dest, added.location, added.location+added.length, "Ccedil;", NULL))
+                                        entity = 0x00C7;
+                                    break;
+
+                                case 'D':
+                                    // Dagger   2021
+                                    if (getTag(dest, added.location, added.location+added.length, "Dagger;", NULL))
+                                        entity = 0x2021;
+                                    break;
+
+                                case 'd':
+                                    // dagger   2020
+                                    if (getTag(dest, added.location, added.location+added.length, "dagger;", NULL))
+                                        entity = 0x2020;
+                                    else
+                                    // divide   00F7
+                                    if (getTag(dest, added.location, added.location+added.length, "divide;", NULL))
+                                        entity = 0x00F7;
+                                    break;
+
+                                case 'E':
+                                    // Egrave    00C8
+                                    if (getTag(dest, added.location, added.location+added.length, "Egrave;", NULL))
+                                        entity = 0x00C8;
+                                    else
+                                    // Eacute    00C9
+                                    if (getTag(dest, added.location, added.location+added.length, "Eacute;", NULL))
                                         entity = 0x00C9;
                                     break;
 
-                                case 'I': case 'i':
-                                    // iquest   00BF
-                                    if (getTag(dest, added.location, added.location+added.length, "IQUEST;", "iquest;"))
-                                        entity = 0x00BF;
+                                case 'e':
+                                    // egrave    00E8
+                                    if (getTag(dest, added.location, added.location+added.length, "egrave;", NULL))
+                                        entity = 0x00E8;
+                                    else
+                                    // eacute   00E9
+                                    if (getTag(dest, added.location, added.location+added.length, "eacute;", NULL))
+                                        entity = 0x00E9;
                                     break;
 
-                                case 'M': case 'm':
+                                case 'f':
+                                    // frac14   00BC
+                                    if (getTag(dest, added.location, added.location+added.length, "frac14;", NULL))
+                                        entity = 0x00BC;
+                                    // frac12   00BD
+                                    else
+                                    if (getTag(dest, added.location, added.location+added.length, "frac12;", NULL))
+                                        entity = 0x00BD;
+                                    // frac34   00BE
+                                    else
+                                    if (getTag(dest, added.location, added.location+added.length, "frac34;", NULL))
+                                        entity = 0x00BE;
+                                    break;
+
+                                case 'h':
+                                    // hellip   2026
+                                    if (getTag(dest, added.location, added.location+added.length, "hellip;", NULL))
+                                        entity = 0x2026;
+                                    break;
+                                    
+                                case 'i':
+                                    // iquest   00BF
+                                    if (getTag(dest, added.location, added.location+added.length, "iquest;", NULL))
+                                        entity = 0x00BF;
+                                    else
+                                    // igrave    00EC
+                                    if (getTag(dest, added.location, added.location+added.length, "igrave;", NULL))
+                                        entity = 0x00EC;
+                                    else
+                                    // iacute    00ED
+                                    if (getTag(dest, added.location, added.location+added.length, "iacute;", NULL))
+                                        entity = 0x00ED;
+                                    break;
+
+                                case 'I':
+                                    // Igrave    00CC
+                                    if (getTag(dest, added.location, added.location+added.length, "Igrave;", NULL))
+                                        entity = 0x00CC;
+                                    else
+                                    // Iacute    00CD
+                                    if (getTag(dest, added.location, added.location+added.length, "Iacute;", NULL))
+                                        entity = 0x00CD;
+                                    break;
+
+                                case 'l':
+                                    // lsaquo   2039
+                                    if (getTag(dest, added.location, added.location+added.length, "lsaquo;", NULL))
+                                        entity = 0x2039;
+                                    break;
+
+                                case 'm':
                                     // middot   00B7
-                                    if (getTag(dest, added.location, added.location+added.length, "MIDDOT;", "middot;"))
+                                    if (getTag(dest, added.location, added.location+added.length, "middot;", NULL))
                                         entity = 0x00B7;
                                     break;
+
+                                case 'N':
+                                    // Ntilde    00D1
+                                    if (getTag(dest, added.location, added.location+added.length, "Ntilde;", NULL))
+                                        entity = 0x00D1;
+                                    break;
+
+                                case 'n':
+                                    // ntilde    00F1
+                                    if (getTag(dest, added.location, added.location+added.length, "ntilde;", NULL))
+                                        entity = 0x00F1;
+                                    break;
+
+                                case 'O':
+                                    // Ograve    00D2
+                                    if (getTag(dest, added.location, added.location+added.length, "Ograve;", NULL))
+                                        entity = 0x00D2;
+                                    else
+                                    // Oacute    00D3
+                                    if (getTag(dest, added.location, added.location+added.length, "Oacute;", NULL))
+                                        entity = 0x00D3;
+                                    else
+                                    // Otilde    00D5
+                                    if (getTag(dest, added.location, added.location+added.length, "Otilde;", NULL))
+                                        entity = 0x00D5;
+                                    else
+                                    // Oslash    00D8
+                                    if (getTag(dest, added.location, added.location+added.length, "Oslash;", NULL))
+                                        entity = 0x00D8;
+                                    break;
+
+                                case 'o':
+                                    // ograve    00F2
+                                    if (getTag(dest, added.location, added.location+added.length, "ograve;", NULL))
+                                        entity = 0x00F2;
+                                    else
+                                    // oacute    00F3
+                                    if (getTag(dest, added.location, added.location+added.length, "oacute;", NULL))
+                                        entity = 0x00F3;
+                                    else
+                                    // otilde    00F5
+                                    if (getTag(dest, added.location, added.location+added.length, "otilde;", NULL))
+                                        entity = 0x00F5;
+                                    else
+                                    // oslash    00F8
+                                    if (getTag(dest, added.location, added.location+added.length, "oslash;", NULL))
+                                        entity = 0x00F8;
+                                    break;
+
+                                case 'p':
+                                    // permil   2030
+                                    if (getTag(dest, added.location, added.location+added.length, "permil;", NULL))
+                                        entity = 0x2030;
+                                    // plusmn   00B1
+                                    else
+                                    if (getTag(dest, added.location, added.location+added.length, "plusmn;", NULL))
+                                        entity = 0x00B1;
+                                    break;
+
+                                case 'r':
+                                    // rsaquo    203A
+                                    if (getTag(dest, added.location, added.location+added.length, "rsaquo;", NULL))
+                                        entity = 0x203A;
+                                    break;
+
+                                case 'S':
+                                    // Scaron   0160
+                                    if (getTag(dest, added.location, added.location+added.length, "Scaron;", NULL))
+                                        entity = 0x0160;
+                                    break;
+
+                                case 's':
+                                    // scaron   0161
+                                    if (getTag(dest, added.location, added.location+added.length, "scaron;", NULL))
+                                        entity = 0x0161;
+                                    break;
+
+                                case 'U':
+                                    // Ugrave    00D9
+                                    if (getTag(dest, added.location, added.location+added.length, "Ugrave;", NULL))
+                                        entity = 0x00D9;
+                                    else
+                                    // Uacute    00DA
+                                    if (getTag(dest, added.location, added.location+added.length, "Uacute;", NULL))
+                                        entity = 0x00DA;
+                                    break;
+
+                                case 'u':
+                                    // ugrave    00F9
+                                    if (getTag(dest, added.location, added.location+added.length, "ugrave;", NULL))
+                                        entity = 0x00F9;
+                                    else
+                                    // uacute    00FA
+                                    if (getTag(dest, added.location, added.location+added.length, "uacute;", NULL))
+                                        entity = 0x00FA;
+                                    break;
+
+                                case 'Y':
+                                    // Yacute    00DD
+                                    if (getTag(dest, added.location, added.location+added.length, "Yacute;", NULL))
+                                        entity = 0x00DD;
+                                    break;
+
+                                case 'y':
+                                    // yacute    00FD
+                                    if (getTag(dest, added.location, added.location+added.length, "yacute;", NULL))
+                                        entity = 0x00FD;
+                                    break;
+
                             }
                         break;
                     }
@@ -1736,10 +2232,86 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 // ---------------------------------------------
 
 
+- (NSMutableString*) openPDBFile:(NSString*)fullpath type:(TextFileType*)ftype  {
+
+    NSMutableString * newText = nil;
+    NSMutableData   * data = nil;
+    NSString        * type = nil;
+
+    int rc = decodePDB(fullpath, &data, &type);
+    if (rc || !data || ![data length])
+    {
+        if (data)
+            [data release];
+        data = nil;
+
+        // Handle invalid format ...                
+        if (rc == 2)
+        {
+            NSString *errorMsg = [NSString stringWithFormat:
+                                           _T(@"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ..."), 
+                                           fullpath, type, TEXTREADER_NAME];
+            CGRect rect = [[UIWindow keyWindow] bounds];
+            UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
+            [alertSheet setTitle:_T(@"Unable to Open PDB File!")];
+            [alertSheet setBodyText:errorMsg];
+            [alertSheet addButtonWithTitle:_T(@"OK")];
+            [alertSheet setDelegate:self];
+            [alertSheet popupAlertAnimated:YES];
+
+            return false;
+        }
+    }
+    else
+    {
+        newText = [[NSMutableString alloc] initWithData:data encoding:encoding];
+
+        // Double clutch for GB2312
+        if (!newText && encoding == gb2312enc)
+            newText = convertGB2312Data(data);  
+    }
+
+    if (data)
+        [data release];
+
+    // Check the PDB for HTML - We'll consider anything with 
+    // a < and a > in the first 128 characters an HTML doc
+    if ( newText && 
+         ([newText characterAtIndex:0] == '<' ||
+          (getTag(newText, 0, 256, "<", NULL) && 
+           getTag(newText, 0, 256, ">", NULL))) )
+       *ftype = kTextFileTypeHTML;
+
+    return newText;
+    
+} // openPDBFile
+
+
+
+- (NSMutableString*) openTextFile:(NSString*)fullpath type:(TextFileType*)ftype {
+
+    NSMutableString * newText = nil;
+
+    // Read in the text file - let NSMutableString do the work
+    newText = [[NSMutableString 
+                stringWithContentsOfFile:fullpath
+                encoding:encoding
+                error:nil] retain];
+
+    // Double clutch for GB2312
+    if (!newText && encoding == gb2312enc)
+        newText = loadGB2312(fullpath);
+        
+    return newText;
+    
+} // opentextFile
+
+
+
 // Open specified file and display
 - (bool) openFile:(NSString *)name path:(NSString*)path {
     NSMutableString * newText = nil;
-    NSError         * error   = nil;
+    // NSError         * error   = nil;
 
     // Load the text ...
     if (!path)
@@ -1753,67 +2325,20 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         NSString *fullpath = [path stringByAppendingPathComponent:name];
         TextFileType ftype = [trApp getFileType:fullpath];
 
-        // Read in the requested file ...
-        if (ftype == kTextFileTypePDB)
-        {
-            NSMutableData   * data = nil;
-            NSString        * type = nil;
-            
-            int rc = decodePDB(fullpath, &data, &type);
-            if (rc || !data || ![data length])
-            {
-                if (data)
-                    [data release];
-                data = nil;
-
-                // Handle invalid format ...                
-                if (rc == 2)
-                {
-                    NSString *errorMsg = [NSString stringWithFormat:
-                                                   @"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ...", 
-                                                   fullpath, type, TEXTREADER_NAME];
-                    CGRect rect = [[UIWindow keyWindow] bounds];
-                    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-                    [alertSheet setTitle:@"Unable to Open PDB File!"];
-                    [alertSheet setBodyText:errorMsg];
-                    [alertSheet addButtonWithTitle:@"OK"];
-                    [alertSheet setDelegate:self];
-                    [alertSheet popupAlertAnimated:YES];
-                    
-                    return false;
-                }
-            }
-            else
-            {
-                newText = [[NSMutableString alloc] initWithData:data encoding:encoding];
+        switch (ftype)
+        {            
+            case kTextFileTypePDB:
+                // Open a PDB file
+                newText = [self openPDBFile:fullpath type:&ftype];
+                break;
                 
-                // Double clutch for GB2312
-                if (!newText && encoding == gb2312enc)
-                    newText = convertGB2312Data(data);  
-            }
-                
-            if (data)
-                [data release];
-                
-            // Check the PDB for HTML - We'll consider anything with 
-            // a < and a > in the first 128 characters an HTML doc
-            if ( newText && 
-                 ([newText characterAtIndex:0] == '<' ||
-                  (getTag(newText, 0, 256, "<", NULL) && 
-                   getTag(newText, 0, 256, ">", NULL))) )
-               ftype = kTextFileTypeHTML;
-        }
-        else
-        {
-            // Read in the text file - let NSMutableString do the work
-            newText = [[NSMutableString 
-                        stringWithContentsOfFile:fullpath
-                        encoding:encoding
-                        error:&error] retain];
-                        
-            // Double clutch for GB2312
-            if (!newText && encoding == gb2312enc)
-                newText = loadGB2312(fullpath);
+            case kTextFileTypeTXT:
+            case kTextFileTypeHTML:
+            case kTextFileTypeFB2:
+            default:
+                // everything else gets loaded as a plain old text file
+                newText = [self openTextFile:fullpath type:&ftype];
+                break;
         }
         
         // An empty string probably meant it didn't get loaded properly ...
@@ -1857,13 +2382,13 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     }
 
     NSString *errorMsg = [NSString stringWithFormat:
-                                   @"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding.", 
+                                   _T(@"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding."), 
                                    name, path, [NSString localizedNameOfStringEncoding:encoding]];
     CGRect rect = [[UIWindow keyWindow] bounds];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-    [alertSheet setTitle:@"Error opening file"];
+    [alertSheet setTitle:_T(@"Error opening file")];
     [alertSheet setBodyText:errorMsg];
-    [alertSheet addButtonWithTitle:@"OK"];
+    [alertSheet addButtonWithTitle:_T(@"OK")];
     [alertSheet setDelegate:self];
     [alertSheet popupAlertAnimated:YES];
 
@@ -1935,9 +2460,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     
     CGRect rect = [[UIWindow keyWindow] bounds];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-    [alertSheet setTitle:@"Error"];
-    [alertSheet setBodyText:[NSString stringWithFormat:@"Unable to create font %@", font]];
-    [alertSheet addButtonWithTitle:@"OK"];
+    [alertSheet setTitle:_T(@"Error")];
+    [alertSheet setBodyText:[NSString stringWithFormat:_T(@"Unable to create font %@"), font]];
+    [alertSheet addButtonWithTitle:_T(@"OK")];
     [alertSheet setDelegate:self];
     [alertSheet popupAlertAnimated:YES];
 

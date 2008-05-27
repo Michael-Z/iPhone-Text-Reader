@@ -107,13 +107,13 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
      groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
      switch (group) {
          case (1):
-             [ groupcell[group] setTitle: @"Example Text" ];
+             [ groupcell[group] setTitle: _T(@"Example Text") ];
              break;
          case (0):
-             [ groupcell[group] setTitle: @"Text Color" ];
+             [ groupcell[group] setTitle: _T(@"Text Color") ];
              break;
          case (2):
-             [ groupcell[group] setTitle: @"Background Color" ];
+             [ groupcell[group] setTitle: _T(@"Background Color") ];
              break;
      }
      return groupcell[group];
@@ -158,7 +158,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
-    [exampleCell setTitle:@"This is how the text will look ..."];
+    [exampleCell setTitle:_T(@"This is how the text will look ...")];
     
     [[exampleCell titleTextLabel] sizeToFit];
     [[exampleCell valueTextLabel] sizeToFit];
@@ -210,7 +210,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     
     [ cell setTitle:title ];
     slider = [ [ UISliderControl alloc ]
-        initWithFrame:CGRectMake(90.0f, 9.0f, 180.0f, 30.0f) ];
+        initWithFrame:CGRectMake(75.0f, 9.0f, 225.0f, 30.0f) ];
     [slider setMinValue:0.];
     [slider setMaxValue:1.];
     [slider setShowValue:YES];
@@ -246,42 +246,42 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (0):
             switch (row) {
                 case (0):
-                    text_red = [self addSliderToCell:@"Red" forCell:cell init:txtcolors.text_red];
+                    text_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.text_red];
                     break;
                 case (1):
-                    text_green = [self addSliderToCell:@"Green" forCell:cell init:txtcolors.text_green];
+                    text_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.text_green];
                     break;
                 case (2):
-                    text_blue = [self addSliderToCell:@"Blue" forCell:cell init:txtcolors.text_blue];
+                    text_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.text_blue];
                     break;
 //                 case (3):
-//                     text_alpha = [self addSliderToCell:@"Alpha" forCell:cell init:txtcolors.text_alpha];
+//                     text_alpha = [self addSliderToCell:_T(@"Alpha") forCell:cell init:txtcolors.text_alpha];
 //                     break;
             }
             break;
         case (2):
             switch (row) {
                 case (0):
-                    bkg_red = [self addSliderToCell:@"Red" forCell:cell init:txtcolors.bkg_red];
+                    bkg_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.bkg_red];
                     break;
                 case (1):
-                    bkg_green = [self addSliderToCell:@"Green" forCell:cell init:txtcolors.bkg_green];
+                    bkg_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.bkg_green];
                     break;
                 case (2):
-                    bkg_blue = [self addSliderToCell:@"Blue" forCell:cell init:txtcolors.bkg_blue];
+                    bkg_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.bkg_blue];
                     break;
 //                 case (3):
-//                     bkg_alpha = [self addSliderToCell:@"Alpha" forCell:cell init:txtcolors.bkg_alpha];
+//                     bkg_alpha = [self addSliderToCell:_T(@"Alpha") forCell:cell init:txtcolors.bkg_alpha];
 //                     break;
             }
             break;
         case (3):
             switch (row) {
                 case (0):
-                    [ cell setTitle: @"http://code.google.com/p/iphonetextreader" ];
+                    [ cell setTitle: _T(@"http://code.google.com/p/iphonetextreader") ];
                     break;
                 case (1):
-                    [ cell setTitle: @"email: iphonetextreader@gmail.com" ];
+                    [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
                     break;
             }
             break;

@@ -93,7 +93,7 @@
         rect.size.height = rect.size.height / 5;
 
         wait = [[UIProgressHUD alloc] initWithWindow:mainWindow];
-        [wait setText:@"Loading ..."];
+        [wait setText:_T(@"Loading ...")];
         // [wait setText:@""];
         [wait drawRect:rect];
         [wait setNeedsDisplay];
@@ -310,12 +310,10 @@
     txtcolors.text_red   = [defaults floatForKey:TEXTREADER_TEXTRED];
     txtcolors.text_green = [defaults floatForKey:TEXTREADER_TEXTGREEN];
     txtcolors.text_blue  = [defaults floatForKey:TEXTREADER_TEXTBLUE];
-//     txtcolors.text_alpha = [defaults floatForKey:TEXTREADER_TEXTALPHA];
 
     txtcolors.bkg_red    = [defaults floatForKey:TEXTREADER_BKGRED];
     txtcolors.bkg_green  = [defaults floatForKey:TEXTREADER_BKGGREEN];
     txtcolors.bkg_blue   = [defaults floatForKey:TEXTREADER_BKGBLUE];
-//     txtcolors.bkg_alpha  = [defaults floatForKey:TEXTREADER_BKGALPHA];
 
     [textView setTextColors:&txtcolors];
 
@@ -372,6 +370,49 @@
 } // recreateSlider
 
 
+- (void) showFileTable:(NSString*)path
+{           
+    struct CGRect FSrect     = [self getOrientedViewRect];
+
+    // A view with a NavBar and Table
+    UIView * fileView = [[UIView alloc ] initWithFrame:FSrect];;
+    [fileView setAutoresizingMask: kMainAreaResizeMask];
+    [fileView setAutoresizesSubviews: YES];
+
+    FSrect.origin.y += [UIHardware statusBarHeight];
+    FSrect.size.height = [UINavigationBar defaultSize].height;
+    UINavigationBar * fileBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
+    [fileBar setBarStyle: 0];
+    [fileBar setDelegate: self];
+    [fileBar showButtonsWithLeft: _T(@"Back") right: nil leftBack: YES];
+    [fileBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Open Text File")]];
+    [fileBar setAutoresizingMask: kTopBarResizeMask];
+
+    FSrect = [self getOrientedViewRect];
+    FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
+
+    [fileTable setNavBar:fileBar];
+
+    [fileTable setPath:path];
+
+    [fileTable setTextReader:self];
+    [fileTable reloadData];
+
+    [fileView addSubview:fileBar];  
+    [fileView addSubview:fileTable];
+
+    [super hideStatus: false];
+
+    // Switch views
+    [transView transition:1 toView:fileView];
+    currentView = My_File_View;
+
+    [self redraw];
+} // showFileTable
+
+
 - (void) showView:(MyViewName)viewName
 {
     struct CGRect FSrect     = [self getOrientedViewRect];
@@ -395,8 +436,8 @@
                 FSrect.size.height = [UINavigationBar defaultSize].height;
                 UINavigationBar * colorsBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
                 [colorsBar setBarStyle: 0];
-                [colorsBar showButtonsWithLeft: @"Save" right:@"Cancel" leftBack: YES];
-                [colorsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Colors"]];
+                [colorsBar showButtonsWithLeft: _T(@"Save") right:_T(@"Cancel") leftBack: YES];
+                [colorsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Colors")]];
                 [colorsBar setAutoresizingMask: kTopBarResizeMask];
                 
                 FSrect = [self getOrientedViewRect];
@@ -434,8 +475,8 @@
                 FSrect.size.height = [UINavigationBar defaultSize].height;
                 UINavigationBar * downloadBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
                 [downloadBar setBarStyle: 0];
-                [downloadBar showButtonsWithLeft: @"Done" right:nil leftBack: YES];
-                [downloadBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Download File via URL"]];
+                [downloadBar showButtonsWithLeft: _T(@"Done") right:nil leftBack: YES];
+                [downloadBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Download File via URL")]];
                 [downloadBar setAutoresizingMask: kTopBarResizeMask];
                 
                 FSrect = [self getOrientedViewRect];
@@ -472,8 +513,8 @@
                 FSrect.size.height = [UINavigationBar defaultSize].height;
                 UINavigationBar * prefsBar  = [[UINavigationBar alloc] initWithFrame:FSrect];
                 [prefsBar setBarStyle: 0];
-                [prefsBar showButtonsWithLeft: @"Done" right:@"About" leftBack: YES];
-                [prefsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Settings"]];
+                [prefsBar showButtonsWithLeft: _T(@"Done") right:_T(@"About") leftBack: YES];
+                [prefsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Settings")]];
                 [prefsBar setAutoresizingMask: kTopBarResizeMask];
                 
                 FSrect = [self getOrientedViewRect];
@@ -502,42 +543,7 @@
         case My_File_View:
             if (currentView != My_File_View)
             {           
-                // A view with a NavBar and Table
-                UIView * fileView = [[UIView alloc ] initWithFrame:FSrect];;
-                [fileView setAutoresizingMask: kMainAreaResizeMask];
-                [fileView setAutoresizesSubviews: YES];
-
-                FSrect.origin.y += [UIHardware statusBarHeight];
-                FSrect.size.height = [UINavigationBar defaultSize].height;
-                UINavigationBar * fileBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
-                [fileBar setBarStyle: 0];
-                [fileBar setDelegate: self];
-                [fileBar showButtonsWithLeft: @"Back" right: nil leftBack: YES];
-                [fileBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: @"Open Text File"]];
-                [fileBar setAutoresizingMask: kTopBarResizeMask];
-                
-                FSrect = [self getOrientedViewRect];
-                FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-                FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-                fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
-
-                [fileTable setNavBar:fileBar];
-                
-                [fileTable setPath:[textView getFilePath]];
-                
-                [fileTable setTextReader:self];
-                [fileTable reloadData];
-                
-                [fileView addSubview:fileBar];  
-                [fileView addSubview:fileTable];
-
-                [super hideStatus: false];
-                
-                // Switch views
-                [transView transition:1 toView:fileView];
-                currentView = My_File_View;
-                
-                [self redraw];
+                [self showFileTable:[textView getFilePath]];
             }
             break;
             
@@ -760,7 +766,7 @@
     navBar  = [[[UINavigationBar alloc] initWithFrame: navBarRect] retain];
     [navBar setBarStyle: 0];
     [navBar setDelegate: self];
-    [navBar showButtonsWithLeft: @"Open" right:nil leftBack: YES];
+    [navBar showButtonsWithLeft: _T(@"Open") right:nil leftBack: YES];
     [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME]];
     [navBar setAutoresizingMask: kTopBarResizeMask];    
     [navBar setAlpha:0];
