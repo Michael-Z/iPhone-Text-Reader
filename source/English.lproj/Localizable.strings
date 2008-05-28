@@ -76,12 +76,30 @@
     <string>will try to figure out the name and extension based on the URL.</string>
     <key>Filename</key>
     <string>Filename</string>
-    <key>The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ...</key>
-    <string>The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ...</string>
+    
+    <key>The format of</key>
+    <string>The format of</string>
+    <key>is</key>
+    <string>is</string>
+    <key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
+    <string>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</string>
+    <key>Sorry ...</key>
+    <string>Sorry ...</string>
+    
     <key>Unable to Open PDB File!</key>
     <string>Unable to Open PDB File!</string>
-    <key>Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding.</key>
-    <string>Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding.</string>
+    
+    <key>Unable to open file</key>
+    <string>Unable to open file</string>
+    <key>in directory</key>
+    <string>in directory</string>
+    <key>.dir_suffix</key>
+    <string>.</string>
+    <key>Please make sure the directory and file exist, the read permissions are set, and the file is really in</key>
+    <string>Please make sure the directory and file exist, the read permissions are set, and the file is really in</string>
+    <key>encoding.</key>
+    <string>encoding.</string>  
+    
     <key>Error opening file</key>
     <string>Error opening file</string>
     <key>Unable to create font %@</key>
@@ -114,8 +132,12 @@
     <string>Smooth Scroll</string>
     <key>Repeat Previous Line</key>
     <string>Repeat Previous Line</string>
-    <key>version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader</key>
-    <string>version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader</string>
+
+    <key>Version</key>
+    <string>Version</string>
+    <key>Written by Jim Beesley</key>
+    <string>Written by Jim Beesley</string>
+
     <key>About %@</key>
     <string>About %@</string>
     <key>Loading ...</key>
@@ -136,8 +158,12 @@
     <string>Open Text File</string>
     <key>Unable to open file!</key>
     <string>Unable to open file!</string>
-    <key>Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set.</key>
-    <string>Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set.</string>
+
+    <key>Unable to delete file</key>
+    <string>Unable to delete file</string>
+    <key>Please make sure both the directory and file exist and have write permissions set.</key>
+    <string>Please make sure both the directory and file exist and have write permissions set.</string>
+
     <key>Error deleting file</key>
     <string>Error deleting file</string>
 
