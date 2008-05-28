@@ -400,12 +400,12 @@
                     [ cell setTitle: @"" ]; // A bit of blank space ...
                     break;
                 case (1):
-                    [ cell setTitle:[NSString stringWithFormat:@"%@%@%@%@%@",
-                                      _T(@"Enter the complete URL of the Text or PalmDoc file you want to download "),
-                                      _T(@"and the Name you want it saved as locally.\n\n"),
-                                      _T(@"If you leave name blank "),
+                    [ cell setTitle:[NSString stringWithFormat:@"%@ %@\n\n%@ %@ %@",
+                                      _T(@"Enter the complete URL of the Text or PalmDoc file you want to download"),
+                                      _T(@"and the Name you want it saved as locally."),
+                                      _T(@"If you leave name blank"),
                                       TEXTREADER_NAME,
-                                      _T(@" will try to figure out the name and extension based on the URL.") ]];
+                                      _T(@"will try to figure out the name and extension based on the URL.") ]];
                     break;
             } // switch row
             break;

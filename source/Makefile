@@ -13,6 +13,12 @@ all:	${NAME}
 ${NAME}:	UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o txt2pdbdoc.o PrefsTable.o pdbfile.o unpluck.o DownloadTable.o ColorTable.o ${NAME}.o
 	$(LD) $(LDFLAGS) -o $@ $^
 	scp ${NAME} root@192.168.1.69:/Applications/${NAME}.app/.
+#	scp English.lproj/Localizable.strings   root@192.168.1.69:/Applications/${NAME}.app/English.lproj/.
+#	scp German.lproj/Localizable.strings    root@192.168.1.69:/Applications/${NAME}.app/German.lproj/.
+#	scp Greek.lproj/Localizable.strings     root@192.168.1.69:/Applications/${NAME}.app/Greek.lproj/.
+#	scp Russian.lproj/Localizable.strings   root@192.168.1.69:/Applications/${NAME}.app/Russian.lproj/.
+#	scp zh_CN.lproj/Localizable.strings     root@192.168.1.69:/Applications/${NAME}.app/zh_CN.lproj/.
+	
 	
 %.o:	%.m
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@

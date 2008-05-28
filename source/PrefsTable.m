@@ -345,24 +345,25 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 case (1):
                     [ cell setTitle:_T(@"Invert Screen") ];
                     invertScreen = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
                     [ invertScreen setValue: [textView getInvertColors] ? 1 : 0 ];
                     [ invertScreen addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: invertScreen ];
                     break;
                 case (2):
                     [ cell setTitle:_T(@"Pad Margins") ];
                     padMargins = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
                     [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
                     [ padMargins addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [ cell setEnabled:YES ];
+                    [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: padMargins ];
                     break;
 //                 case (3):
 //                     [ cell setTitle:_T(@"Ignore Single LF") ];
 //                     ignoreSingleLF = [ [ UISwitchControl alloc ]
-//                         initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+//                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
 //                     [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
 //                     [ ignoreSingleLF addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
 //                     [ cell setEnabled:YES ];
@@ -375,28 +376,28 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 case (0):
                     [ cell setTitle:_T(@"Reverse Tap Zones") ];
                     reverseTap = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
                     [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
                     [ reverseTap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [ cell setEnabled: YES ];
+                    [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: reverseTap ];
                     break;
                 case (1):
                     [ cell setTitle:_T(@"Repeat Previous Line") ];
                     repeatLine = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
                     [ repeatLine setValue: [textView getRepeatLine] ? 1 : 0 ];
                     [ repeatLine addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [ cell setEnabled: YES];
+                    [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: repeatLine ];
                     break;
                 case (2):
                     [ cell setTitle:_T(@"Smooth Scroll") ];
                     swipeOK = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(200.0f, 9.0f, 120.0f, 30.0f) ];
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
                     [ swipeOK setValue: [trApp getSwipeOK] ? 1 : 0 ];
                     [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [ cell setEnabled: YES];
+                    [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: swipeOK ];
                     break;
             }

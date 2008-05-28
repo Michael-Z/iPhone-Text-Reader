@@ -210,7 +210,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     
     [ cell setTitle:title ];
     slider = [ [ UISliderControl alloc ]
-        initWithFrame:CGRectMake(75.0f, 9.0f, 225.0f, 30.0f) ];
+        initWithFrame:CGRectMake(85.0f, 9.0f, 215.0f, 30.0f) ];
     [slider setMinValue:0.];
     [slider setMaxValue:1.];
     [slider setShowValue:YES];

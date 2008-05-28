@@ -48,13 +48,13 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.7.0Beta4"
+#define TEXTREADER_VERSION          @"0.7.1"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
 #define TEXTREADER_DEF_PATH         @"/var/mobile/Media/textReader/"
 #define TEXTREADER_PARENT_DIR       @".."
-#define TEXTREADER_DOWNLOAD_TITLE   @"Download File via URL"
+#define TEXTREADER_DOWNLOAD_TITLE   _T(@"Download File via URL")
 
 #define TEXTREADER_DFLT_FONT        @"CourierNewBold"
 #define TEXTREADER_DFLT_FONTSIZE    20
