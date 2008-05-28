@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>About</key>
+    <string>Σχετικά</string>
+    <key>Done</key>
+    <string>Εντάξει</string>
+    <key>Open</key>
+    <string>Άνοιγμα</string>
+    <key>Example Text</key>
+    <string>Παράδειγμα κειμένου</string>
+    <key>Text Color</key>
+    <string>Χρώμα κειμένου</string>
+    <key>Background Color</key>
+    <string>Χρώμα φόντου</string>
+    <key>This is how the text will look ...</key>
+    <string>Το κείμενο θα έχει αυτήν την εμφάνιση ...</string>
+    <key>Red</key>
+    <string>Κόκκινο</string>
+    <key>Green</key>
+    <string>Πράσινο</string>
+    <key>Blue</key>
+    <string>Μπλε</string>
+    <key>Alpha</key>
+    <string>Alpha</string>
+    <key>http://code.google.com/p/iphonetextreader</key>
+    <string>http://code.google.com/p/iphonetextreader</string>
+    <key>email: iphonetextreader@gmail.com</key>
+    <string>email: iphonetextreader@gmail.com</string>
+    <key>Download Details</key>
+    <string>Λεπτομέρειες λήψης αρχείου</string>
+    <key>Saving ...</key>
+    <string>Αποθήκευση ...</string>
+    <key>Saving to %@</key>
+    <string>Αποθήκευση σε %@</string>
+    <key>Finished</key>
+    <string>Ολοκληρώθηκε</string>
+    <key>Save complete!</key>
+    <string>Η αποθήκευση ολοκληρώθηκε!</string>
+    <key>OK</key>
+    <string>OK</string>
+    <key>Error Saving File</key>
+    <string>Σφάλμα αποθήκευσης αρχείου</string>
+    <key>Unable to save file as %@</key>
+    <string>Αδύνατη η αποθήκευση του αρχείου ως %@</string>
+    <key>Error Loading From URL</key>
+    <string>Σφάλμα φόρτωσης από διεύθυνση URL</string>
+    <key>Unable to load file from URL %@"</key>
+    <string>Αδυναμία φόρτωσης αρχείου από διεύθυνση URL %@"</string>
+    <key>Error Invalid Save As File Name</key>
+    <string>Σφάλμα άκυρης αποθήκευσης ονόματος αρχείου</string>
+    <key>The Save As file name can not contain slashes.</key>
+    <string>Το όνομα του αποθηκευμένου αρχείου δεν μπορεί να περιέχει καθέτους.</string>
+    <key>The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt</key>
+    <string>Η διεύθυνση URL ή το όνομα του αποθηκευμένου αρχείου πρέπει να έχει την κατάληξη .pdb, .prc, .fb2, .htm, .html, .text, ή .txt</string>
+    <key>Error Invalid URL</key>
+    <string>Σφάλμα άκυρης διεύθυνσης URL</string>
+    <key>Invalid URL %@</key>
+    <string>Άκυρη διεύθυνση URL %@</string>
+    <key>Downloading ...</key>
+    <string>Λήψη αρχείου ...</string>
+    <key>Downloading from URL %@</key>
+    <string>Λήψη αρχείου από διεύθυνση URL %@</string>
+    <key>Save As:</key>
+    <string>Αποθήκευση ως:</string>
+    <key>Download File Now</key>
+    <string>Λήψη αρχείου τώρα</string>
+    <key>Enter the complete URL of the Text or PalmDoc file you want to download</key>
+    <string>Εισάγετε την ολοκληρωμένη διεύθυνση URL του αρχείου Text ή PalmDoc που θέλετε να κατεβάσετε</string>
+    <key>and the Name you want it saved as locally.</key>
+    <string>και το όνομα με το οποίο θέλετε να το αποθηκεύσετε στη συσκευή.</string>
+    <key>If you leave name blank</key>
+    <string>Εάν αφήσετε κενό το πεδίο του ονόματος</string>
+    <key>will try to figure out the name and extension based on the URL.</key>
+    <string>θα προσπαθήσει να προσδιορίσει το όνομα και την κατάληξη με βάση την διεύθυνση URL.</string>
+    <key>Filename</key>
+    <string>Όνομα αρχείου</string>
+    <key>The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ...</key>
+    <string>Η μορφή του \"%@\" είναι \"%@\".\n%@ έχει τη δυνατότητα να ανοίγει μόνο αποκρυπτογραφημένα αρχεία Mobipocket, Plucker, και Palm Doc PDB.\nΛυπάμαι ...</string>
+    <key>Unable to Open PDB File!</key>
+    <string>Αδυναμία ανοίγματος αρχείου PDB!</string>
+    <key>Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding.</key>
+    <string>Αδυναμία ανοίγματος αρχείου \"%@\" στην τοποθεσία \"%@\".\nΠαρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν, έχουν δοθεί οι απαραίτητες άδειες για ανάγνωση του αρχείου (read permissions), και το αρχείο βρίσκεται στην πραγματικότητα σε %@ κωδικογράφηση.</string>
+    <key>Error opening file</key>
+    <string>Σφάλμα ανοίγματος αρχείου</string>
+    <key>Unable to create font %@</key>
+    <string>Αδυναμία δημιουργίας γραμματοσειράς %@</string>
+    <key>Error</key>
+    <string>Σφάλμα</string>
+    <key>Text Settings</key>
+    <string>Ρυθμίσεις κειμένου</string>
+    <key>Display Settings</key>
+    <string>Εμφάνιση ρυθμίσεων</string>
+    <key>Scroll Settings</key>
+    <string>Ανακύλιση ρυθμίσεων</string>
+    <key>Font</key>
+    <string>Γραμματοσειρά</string>
+    <key>Font Size</key>
+    <string>Μέγεθος γραμματοσειράς</string>
+    <key>Encoding</key>
+    <string>Κωδικογράφηση</string>
+    <key>Select Colors</key>
+    <string>Επιλογή χρωμάτων</string>
+    <key>Invert Screen</key>
+    <string>Αναστροφή χρωμάτων οθόνης</string>
+    <key>Pad Margins</key>
+    <string>Περιθώρια σελίδας</string>
+    <key>Ignore Single LF</key>
+    <string>Αγνόηση μονού "linefeed"</string>
+    <key>Reverse Tap Zones</key>
+    <string>Αναστροφή ζωνών κρούσεως</string>
+    <key>Smooth Scroll</key>
+    <string>Ομαλή ανακύλιση</string>
+    <key>Repeat Previous Line</key>
+    <string>Επανάληψη προηγούμενης γραμμής</string>
+    <key>version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader</key>
+    <string>έκδοση %@\nγράφτηκε από τον Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader</string>
+    <key>About %@</key>
+    <string>Περί %@</string>
+    <key>Loading ...</key>
+    <string>Φόρτωση ...</string>
+    <key>Colors</key>
+    <string>Χρώματα</string>
+    <key>Save</key>
+    <string>Αποθήκευση</string>
+    <key>Cancel</key>
+    <string>Ακύρωση</string>
+    <key>Download File via URL</key>
+    <string>Λήψη αρχείου μέσω της διεύθυνσης URL</string>
+    <key>Settings</key>
+    <string>Ρυθμίσεις</string>
+    <key>Back</key>
+    <string>Πίσω</string>
+    <key>Open Text File</key>
+    <string>Άνοιγμα αρχείου κειμένου</string>
+    <key>Unable to open file!</key>
+    <string>Αδυναμία ανοίγματος αρχείου!</string>
+    <key>Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set.</key>
+    <string>Αδυναμία διαγραφής αρχείου \"%@\" στην τοποθεσία \"%@\".\nΠαρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν και ότι έχουν δοθεί οι απαραίτητες άδειες εγγραφής (write permissions).</string>
+    <key>Error deleting file</key>
+    <string>Σφάλμα διαγραφής αρχείου</string>
+
+</dict>
+</plist>
