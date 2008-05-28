@@ -68,10 +68,10 @@
     <string>Download File Now</string>
     <key>Enter the complete URL of the Text or PalmDoc file you want to download</key>
     <string>Enter the complete URL of the Text or PalmDoc file you want to download</string>
-    <key>and the Name you want it saved as locally.\n\n</key>
-    <string>and the Name you want it saved as locally.\n\n</string>
-    <key>If you leave name blank </key>
-    <string>If you leave name blank </string>
+    <key>and the Name you want it saved as locally.</key>
+    <string>and the Name you want it saved as locally.</string>
+    <key>If you leave name blank</key>
+    <string>If you leave name blank</string>
     <key>will try to figure out the name and extension based on the URL.</key>
     <string>will try to figure out the name and extension based on the URL.</string>
     <key>Filename</key>
