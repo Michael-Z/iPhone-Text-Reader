@@ -460,8 +460,12 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             {
                 // [trApp lockUIOrientation];
                 NSString *Msg = [NSString stringWithFormat:
-                                          _T(@"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader"),
-                                          TEXTREADER_VERSION];
+                                          //_T(@"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader"),
+                                          //TEXTREADER_VERSION];
+                                          @"%@ %@\n%@\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
+                                          _T(@"Version"),
+                                          TEXTREADER_VERSION,
+                                          _T(@"Written by Jim Beesley")];
                 struct CGRect rect = [trApp getOrientedViewRect];
                 UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
                 NSString *aboutMsg = [NSString stringWithFormat:_T(@"About %@"), TEXTREADER_NAME];

@@ -2249,8 +2249,16 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         if (rc == 2)
         {
             NSString *errorMsg = [NSString stringWithFormat:
-                                           _T(@"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ..."), 
-                                           fullpath, type, TEXTREADER_NAME];
+                                           // _T(@"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ..."), 
+                                           // fullpath, type, TEXTREADER_NAME];
+                                           @"%@ \"%@\" %@ \"%@\".\n%@ %@\n%@", 
+                                           _T(@"The format of"), 
+                                           fullpath, 
+                                           _T(@"is"), 
+                                           type, TEXTREADER_NAME,
+                                           _T(@"is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files."), 
+                                           _T(@"Sorry ...")
+                                           ];
             CGRect rect = [[UIWindow keyWindow] bounds];
             UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
             [alertSheet setTitle:_T(@"Unable to Open PDB File!")];
@@ -2382,8 +2390,17 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     }
 
     NSString *errorMsg = [NSString stringWithFormat:
-                                   _T(@"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding."), 
-                                   name, path, [NSString localizedNameOfStringEncoding:encoding]];
+                                   // _T(@"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding."), 
+                                   // name, path, [NSString localizedNameOfStringEncoding:encoding]];
+                                   @"%@ \"%@\" %@ \"%@\"%@\n%@ %@ %@",
+                                   _T(@"Unable to open file"), 
+                                   name,
+                                   _T(@"in directory"), 
+                                   path,
+                                   _T(@".dir_suffix"), // Just a "." in most languages ...
+                                   _T(@"Please make sure the directory and file exist, the read permissions are set, and the file is really in"), 
+                                   [NSString localizedNameOfStringEncoding:encoding],
+                                   _T(@"encoding.")]; 
     CGRect rect = [[UIWindow keyWindow] bounds];
     UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
     [alertSheet setTitle:_T(@"Error opening file")];

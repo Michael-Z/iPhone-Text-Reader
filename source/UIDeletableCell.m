@@ -36,8 +36,15 @@
         if(![[NSFileManager defaultManager] removeFileAtPath:path handler:nil]) 
         {
             NSString *errorMsg = [NSString stringWithFormat:
-                                           _T(@"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set."), 
-                                           fileName, [table getPath]];
+                                           //_T(@"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set."), 
+                                           //fileName, [table getPath]];
+                                           @"%@ \"%@\" %@ \"%@\"%@\n%@",
+                                           _T(@"Unable to delete file"), 
+                                           fileName,
+                                           _T(@"in directory"), 
+                                           [table getPath],
+                                           _T(@".dir_suffix"), // Just a "." in most languages ...
+                                           _T(@"Please make sure both the directory and file exist and have write permissions set.")];
             CGRect rect = [[UIWindow keyWindow] bounds];
             UIAlertSheet * alertSheet = [[UIAlertSheet alloc] 
                                          initWithFrame:CGRectMake(0, rect.size.height-240, rect.size.width, 240)];
