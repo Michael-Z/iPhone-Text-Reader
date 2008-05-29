@@ -101,11 +101,15 @@ typedef unsigned int NSUInteger;
     [[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
     
     return [super initWithFrame:rect];
+    
 } // initWithFrame
 
 
 - (void) setTextReader:(textReader*)tr {
     trApp = tr;
+
+    isDrag = false;
+
 } // setTextReader
 
 
@@ -286,23 +290,47 @@ static bool isCRLF(unichar c)
 
 
 // Is this a character we can split on?
-static bool isSplitChar(unichar c)
+- (bool) isSplitChar:(int)at
 {
+    unichar c = [text characterAtIndex:at];
+    unichar nextc = 0x00;
+    unichar prevc = 0x00;
+
+    // Get the next character
+    if (at < (int)[text length] - 1)
+        nextc = [text characterAtIndex:at+1];
+    
+    // Get the previous character
+    if (at > 0)
+        prevc = [text characterAtIndex:at-1];
+    
+    // NOTE: CRLF, blanks, and tabs go with the next block of text
     // We always split on a CRLF
     if (isCRLF(c))
         return true;
         
     if (isBlank(c))
         return true;
-        
+
     // NOTE: We currently split on tabs ...
-    //       Maybe we should attach them to the char that follows?!?!?
+    //       This attaches them to the text that follows
     if (c == '\t')
        return true;
        
     // JIMB BUG BUG - should we split on '-' ?!?!?!?
     // We would really want to split on the char *after* it ... 
     
+//     // Split *after* period, comma, and dash, etc.
+//     // We want to keep these split characters with the current text
+//     // so we check for them after the fact
+//     if (prevc == ',' ||
+//         prevc == '.' ||
+//         prevc == '-' ||
+//         prevc == '=' ||
+//         prevc == ';' ||
+//         prevc == ':')
+//        return true;
+
     // Anything else gets chunk'd together
     return false;
     
@@ -332,12 +360,12 @@ static bool isSplitChar(unichar c)
         return true;
     }
     
-    // Tabs get returned by themselves just like CR/LF
-    if (c == '\t')
-    {
-        block->length++;;
-        return true;
-    }
+//     // Tabs get returned by themselves just like CR/LF
+//     if (c == '\t')
+//     {
+//         block->length++;;
+//         return true;
+//     }
     
     // Are we looking for a block of blanks?
     if (isBlank(c))
@@ -354,8 +382,11 @@ static bool isSplitChar(unichar c)
     // OK we know we have one or more "real" characters to display
     // Search for the end of the block
     
+    start++;
+    block->length++;
+    
     // Move forward until we hit a separator character
-    while (start < (int)[text length] && !isSplitChar([text characterAtIndex:start]))
+    while (start < (int)[text length] && ![self isSplitChar:start])
     {
         start++;
         block->length++;
@@ -428,45 +459,64 @@ static bool isSplitChar(unichar c)
                     start = block.location + block.length;
                     break; // while this line
                 }
-
+                
+                // ?????????
+                // If this is all blanks and the start of a line, ignore it
+                if (!layouts[line].length && isBlank(c))
+                {
+                    // Skip this ...
+                    start = block.location + block.length;
+                    continue;
+                }
+                // ?????????
+                
                 // Figure out how large this block is
-                NSString * x = [text substringWithRange:block];
-                CGSize blkused = [x sizeWithFont:gsFont];
+                NSRange linerange = {layouts[line].location, block.length + block.location - layouts[line].location};
+                NSString * x = [text substringWithRange:linerange];
+                lineused = [x sizeWithFont:gsFont];
 
                 // Does this block carry us over?
-                if (lineused.width + blkused.width > width)
+                if (lineused.width > width)
                 {
-                    // Split blocks *ALWAYS* start on their own line!
-                    // If something else is on this line, end this one and go to the next
-                    if (lineused.width)
-                        break; // while this line
+                    // ?????????
+                    // If this block would fit in it's own line, we'll end this line
+                    NSString * x = [text substringWithRange:block];
+                    CGSize blockused = [x sizeWithFont:gsFont];
+                    if (blockused.width <= width)
+                        break;
+                    // ?????????
+                
+                    // ?????????
+                    // // Split blocks *ALWAYS* start on their own line!
+                    // // If something else is on this line, end this one and go to the next
+                    // if (layouts[line].length)
+                    //     break; // while this line
+                    // ?????????
                     
-                    // Use all of this block that we can, and then save the rest for the 
-                    // next line (assuming there is a next line)
-                    for (layouts[line].location = start, layouts[line].length = 0;
-                         true;
-                         layouts[line].length++, start++)
+                    // Figure out how much of this block will fit on this line
+                    int maxlen = block.location + block.length - layouts[line].location;
+                    for (layouts[line].length = 0; 
+                         (int)layouts[line].length < maxlen;
+                         layouts[line].length++)
                     {
-                        block.location = start;
-                        block.length   = 1;
+                        NSRange linerange = {layouts[line].location, layouts[line].length+1};
+                        NSString * x = [text substringWithRange:linerange];
+                        lineused = [x sizeWithFont:gsFont];
                         
-                        NSString * x = [text substringWithRange:block];
-                        blkused = [x sizeWithFont:gsFont];
-                        
-                        if (lineused.width + blkused.width > width)
-                            break; // for characters in the too large block that fit on the line
+                        if (lineused.width > width)
+                            break;
                             
-                        // This character fits, so remember it and keep going
-                        lineused.width += blkused.width;
-                        
-                    } // for each character in a block being broken up
+                    } // for each proposed character in the line
+                    
+                    // Put the rest of the block on the next line ...
+                    start = layouts[line].location + layouts[line].length;
+                    
                     break; // while this line
                     
                 }
                 else
                 {
                     // Room for this and more ... add this and keep going
-                    lineused.width += blkused.width;
                     layouts[line].length = block.location + block.length - layouts[line].location;
                     start = block.location + block.length;
                     continue; // while this line
@@ -527,6 +577,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     return start;
     
 } // getRevStart
+
 
 // Inputs:
 // lines - # of lines to be laid out in layouts
@@ -638,7 +689,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
 
 // Fills in the layout array based on cStart
-- (void) doLayout:(int)deltaLine 
+- (void) doLayout:(int)deltaLine
 {
 
     if (!text || ![text length])
@@ -647,20 +698,18 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         cLayouts = 0;
         return;
     }
-
+    
     [screenLock lock];
     
-
     CGSize  viewSiz = [trApp getOrientedViewSize];
 
     int lineHeight  = [self getLineHeight];
     int lines       = ((int)viewSiz.height / lineHeight) + 2;
 
-    deltaLine -= lStart;
-
+    deltaLine -= lStart;   
+    
 // We want to start drawing deltaLine lines above (neg) or below (pos) the line
 // containing cStart.
-
 
     // First line to layout
     
@@ -674,7 +723,6 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
     // If first is in the valid layout array, copy the chunk so we 
     // only layout what we need
-    // if (cLayouts && first >= lStart && first < lStart+cLayouts && deltaLine >= lStart)
     if (cLayouts && first >= 0 && first < cLayouts && deltaLine >= 0)
     {
         foundLines = cLayouts - first;
@@ -828,7 +876,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     int lines = (int)viewSize.height / lineHeight;
 
     lStart = 0;
-    [self doLayout:repeatLine ? -(lines-1) : -lines];
+    [self doLayout:(repeatLine ? -(lines-1) : -lines)];
     // lStart = 0;
 
     // Reset the scroller to the center
@@ -851,7 +899,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     int lines = (int)viewSize.height / lineHeight;
 
     lStart = 0;
-    [self doLayout:repeatLine ? (lines-1) : lines];
+    [self doLayout:(repeatLine ? (lines-1) : lines)];
     // lStart = 0;
     
     // Reset the scroller to the center
@@ -864,15 +912,77 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 // --------------------------------------------------------------
 
 
-
-
-
-
-
-
 // Blech!!! Figure this properly!!!
 - (int) getLineHeight {
-    return fontSize * 1.25 + 1;
+    int size;
+    
+// JIMB BUG BUG - get proper font metrics!!!
+    // KLUDGE!!!
+    // We *should* be able to use some sort of function to get the actual
+    // max glyph height and descender ...
+    
+    // For now, hard code each one - Ugh!!!
+    switch (fontSize)
+    {
+        case 11:
+        case 12:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 13:
+        case 14:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 15:
+        case 16:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 17:
+        case 18:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 19:
+        case 20:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 21:
+        case 22:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 23:
+        case 24:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 25:
+        case 26:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 27:
+        case 28:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 29:
+        case 30:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 31:
+        case 32:
+        default:
+            size = fontSize * 1.25;
+            break;
+    }
+    
+    return size;
+    
 } // getLineHeight
 
 
@@ -915,8 +1025,10 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     
     for (line = 0; yStart <= yEnd; yStart += lineHeight, line++)
     {   
+        // This is where the line starts 
         lineRect = CGRectMake(0, yStart, viewSize.width, lineHeight);
-
+        
+        // Blank out the line so we can draw the new text
         [self fillBkgGroundRect:context rect:lineRect];
         
         // Nothing else to do if there is no text on this line
@@ -2561,7 +2673,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
     // Do layout for the new line
     // We moved current-start pixels from cStart
-    // [self doLayout:delta-lStart];
     [self doLayout:delta];
 
 } // scrollerDidScroll

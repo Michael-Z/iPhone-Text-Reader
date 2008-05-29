@@ -361,6 +361,7 @@
 
         [slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag
         [slider addTarget:self action:@selector(handleSlider:) forEvents:2]; // 2=up
+
         [slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
         [slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];   
     

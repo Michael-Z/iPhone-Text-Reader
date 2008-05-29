@@ -72,7 +72,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     NSStringEncoding  gb2312enc;
     NSString         *font;
     struct __GSFont  *gsFont;
-    float             fontSize;
+    int               fontSize;
 
     bool              invertColors;
 
@@ -135,7 +135,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 - (void) sizeScroller;
 
-- (void) doLayout:(int)newLine;
+//- (void) doLayout:(int)newLine redraw:(bool)redraw;
 
 - (void) pageUp;
 - (void) pageDown;
