@@ -85,7 +85,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             // Colors
             // Pad Margins
             // Removed -- > Ignore Single LF
-            return 3;
+            return 4;
             
         case(2):
             // Reverse Tap
@@ -281,8 +281,8 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     else if (switchid == invertScreen)
         [textView setInvertColors:[invertScreen value] ? true : false];
 
-//     else if (switchid == ignoreSingleLF)
-//         [textView setIgnoreSingleLF:[ignoreSingleLF value]  ? 1 : 0];
+    else if (switchid == ignoreSingleLF)
+        [textView setIgnoreSingleLF:[ignoreSingleLF value]  ? 1 : 0];
 
     else if (switchid == padMargins)
         [textView setPadMargins:[padMargins value] ? 1 : 0];
@@ -360,14 +360,14 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: padMargins ];
                     break;
-//                 case (3):
-//                     [ cell setTitle:_T(@"Ignore Single LF") ];
-//                     ignoreSingleLF = [ [ UISwitchControl alloc ]
-//                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-//                     [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
-//                     [ ignoreSingleLF addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-//                     [ cell setEnabled:YES ];
-//                     [ cell addSubview: ignoreSingleLF ];
+                case (3):
+                    [ cell setTitle:_T(@"Ignore Single LF") ];
+                    ignoreSingleLF = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
+                    [ ignoreSingleLF addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: ignoreSingleLF ];
                     break;
             }
             break;

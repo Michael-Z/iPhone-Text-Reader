@@ -42,7 +42,7 @@
 
 // These are the MAX values - preferencesTable controls the actual number
 #define NUM_GROUPS      4
-#define CELLS_PER_GROUP 3
+#define CELLS_PER_GROUP 4
 
 
 

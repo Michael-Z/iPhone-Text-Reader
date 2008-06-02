@@ -233,29 +233,6 @@ typedef unsigned int NSUInteger;
 
 // ------------------------------------------------------
 
-// IS this a blank character
-static bool isBlank(unichar c)
-{
-    if (c == ' ' ||
-        c == 0x0d)
-       return TRUE;
-    
-    return FALSE;
-    
-} // isBlank
-
-
-// IS this a CR/LF character
-static bool isCRLF(unichar c)
-{
-    // Treat 0x0d as a blank
-    if (c == 0x0a)
-       return TRUE;
-    
-    return FALSE;
-    
-} // isCRLF
-
 
 // Support ignoreSingleLF option:
 // Assuming the character at start is a LF 0x0a character,
@@ -266,7 +243,8 @@ static bool isCRLF(unichar c)
     
     // if this LF is the first or last char in the 
     // text, we should return it as is
-    if (start && start < (int)[text length]-1)
+    if (start && start < (int)[text length]-1 &&
+        [text characterAtIndex:start] == 0x0a)
     {
         // What is before and after it?
         unichar after  = [text characterAtIndex:start+1];
@@ -278,8 +256,8 @@ static bool isCRLF(unichar c)
             (start < 2 || [text characterAtIndex:start-2] == 0x0a))
            before = 0x0a;
 
-        // A following 0x0d means there will be a 0x0a after it 
-        // so consider that sufficient proof ths is not a single
+        // A 0x0d after this means there will be a 0x0a after the 0x0d
+        // so consider that sufficient proof this is not a single
         if (before != 0x0a && after != 0x0a && after != 0x0d)
             issingle = true;
     }
@@ -287,6 +265,49 @@ static bool isCRLF(unichar c)
     return issingle;
 
 } // issingleLF
+
+
+// IS this a blank character
+- (bool) isBlank:(int) start
+{
+    unichar c = [text characterAtIndex:start];
+    
+    // We treat 0x0d as an embedded blank ... not ideal,
+    // but it keeps us from having to parse the string
+    // to skip them ... luckily with proportional fonts
+    // 2 spaces look an awful lot like one ...
+    if (c == ' ' ||
+        c == 0x0d)
+       return TRUE;
+    
+    // *If* We have a single LF and are ignoring single LFs, it 
+    // should be treated as a blank/space rather than as a LF
+    if (c == 0x0a && ignoreSingleLF && [self isSingleLF:start])
+       return TRUE;
+    
+    return FALSE;
+    
+} // isBlank
+
+
+// IS this a CR/LF character
+- (bool) isCRLF:(int)start
+{
+    unichar c = [text characterAtIndex:start];
+    
+    // Treat 0x0d as a blank
+    if (c == 0x0a)
+    {
+       // Handle ignore single LF option
+       if (ignoreSingleLF && [self isSingleLF:start])
+          return FALSE;
+    
+       return TRUE;
+    }
+    
+    return FALSE;
+    
+} // isCRLF
 
 
 // Is this a character we can split on?
@@ -306,17 +327,18 @@ static bool isCRLF(unichar c)
     
     // NOTE: CRLF, blanks, and tabs go with the next block of text
     // We always split on a CRLF
-    if (isCRLF(c))
+    if ([self isCRLF:at])
         return true;
         
-    if (isBlank(c))
+    // We can always split on a blank ...
+    if ([self isBlank:at])
         return true;
 
     // NOTE: We currently split on tabs ...
     //       This attaches them to the text that follows
     if (c == '\t')
        return true;
-       
+           
     // JIMB BUG BUG - should we split on '-' ?!?!?!?
     // We would really want to split on the char *after* it ... 
     
@@ -349,12 +371,12 @@ static bool isCRLF(unichar c)
         return false;
 
     // Get first character to see what kind of block we want        
-    unichar c = [text characterAtIndex:start];
+    // unichar c = [text characterAtIndex:start];
 
     // JIMB BUG BUG - need to add support for ignoreSingleLF option!
 
     // A CR/LF is it's own block
-    if (isCRLF(c))
+    if ([self isCRLF:start])
     {
         block->length++;;
         return true;
@@ -368,10 +390,10 @@ static bool isCRLF(unichar c)
 //     }
     
     // Are we looking for a block of blanks?
-    if (isBlank(c))
+    if ([self isBlank:start])
     {
         // Get all following blanks
-        while (start < (int)[text length] && isBlank([text characterAtIndex:start]))
+        while (start < (int)[text length] && [self isBlank:start])
         {
             start++;
             block->length++;
@@ -423,7 +445,7 @@ static bool isCRLF(unichar c)
         NSRange block;
         
         // Strip leading blanks for the new line ...
-        while (start < (int)[text length] && isBlank([text characterAtIndex:start]))
+        while (start < (int)[text length] && [self isBlank:start])
             start++;
             
         // If we hit the end, nothing to lay out
@@ -446,11 +468,11 @@ static bool isCRLF(unichar c)
                     break; // while this line
                     
                 // We got here, so we know there is at least 1 character in the block
-                unichar c = ([text characterAtIndex:block.location]);
+                // unichar c = ([text characterAtIndex:block.location]);
                 
                 // Handle \n - end of the line so to speak
                 // (\n is always returned all by itself)
-                if (isCRLF(c))
+                if ([self isCRLF:block.location])
                 {
                     // This CR/LF ends the line
                     layouts[line].length = block.location + block.length - layouts[line].location;
@@ -462,7 +484,7 @@ static bool isCRLF(unichar c)
                 
                 // ?????????
                 // If this is all blanks and the start of a line, ignore it
-                if (!layouts[line].length && isBlank(c))
+                if (!layouts[line].length && [self isBlank:block.location])
                 {
                     // Skip this ...
                     start = block.location + block.length;
@@ -569,7 +591,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
     int start;
     for (start = end; 
-         start > 0 && !isCRLF([text characterAtIndex:start-1]); 
+         start > 0 && ![self isCRLF:start-1]; 
          start--);
     
     // JIMB BUG BUG - need to add support for ignoreSingleLF option!
