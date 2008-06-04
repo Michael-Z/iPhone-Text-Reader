@@ -48,7 +48,7 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8Beta4"
+#define TEXTREADER_VERSION          @"0.8Beta5"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -156,6 +156,7 @@ typedef enum _ScrollDir {
     MyTextView              *textView;
 
     UINavigationBar         *navBar;
+    UINavigationItem        *navItem;
     UINavBarButton          *settingsBtn;
     UINavBarButton          *lockBtn;
 

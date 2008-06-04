@@ -35,6 +35,22 @@
 
 static const int kUIControlEventMouseUpInside = 1 << 6;
 
+
+
+// **********************************************************************
+@implementation MySegControl
+- (void)mouseUp:(struct __GSEvent *)event;
+{
+    [trApp setVolScroll:[self selectedSegment]];
+}
+
+- (void) setTextReader:(textReader*)tr {
+    trApp = tr;
+} // setTextReader
+
+@end
+
+
 // **********************************************************************
 // Class for Preferences Page
 @implementation MyPreferencesTable
@@ -189,8 +205,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
     [textView setEncoding:[self encodingFromString:[encodingCell value]]];
 
-    [trApp setVolScroll:[volumeScroll selectedSegment]];
-        
 } // saveSettings
 
 
@@ -244,9 +258,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 [trApp showView:My_Color_View];
             }               
             break;
-
-        // Volume Key Scroll
-        
+       
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
             break;
@@ -418,8 +430,10 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             switch (row) {
                 case (0):
                     {    
-                        volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
-                        [volumeScroll insertSegment:0 withTitle:_T(@"Off") animated:NO];
+                        // volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
+                        volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
+                        [volumeScroll setTextReader:trApp];
+                        [volumeScroll insertSegment:0 withTitle:_T(@"Off")  animated:NO];
                         [volumeScroll insertSegment:1 withTitle:_T(@"Line") animated:NO];
                         [volumeScroll insertSegment:2 withTitle:_T(@"Page") animated:NO];
                         [volumeScroll selectSegment:[trApp getVolScroll]];

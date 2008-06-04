@@ -518,8 +518,9 @@
             pct = TEXTREADER_NAME;
         }
 
-        [navBar popNavigationItem];
-        [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:pct]];
+        // [navBar popNavigationItem];
+        // [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:pct]];
+        [navItem setTitle:pct];
     }
     
 } // showPercentage
@@ -969,7 +970,9 @@
     [navBar setBarStyle: 0];
     [navBar setDelegate: self];
     [navBar showButtonsWithLeft: _T(@"Open") right:nil leftBack: YES];
-    [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME]];
+    
+    navItem = [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME];
+    [navBar pushNavigationItem:navItem];
     [navBar setAutoresizingMask: kTopBarResizeMask];    
     [navBar setAlpha:0];
     [baseTextView addSubview:navBar];   
