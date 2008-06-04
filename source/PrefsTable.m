@@ -84,7 +84,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             // Invert
             // Colors
             // Pad Margins
-            // Removed -- > Ignore Single LF
+            // Ignore Single LF
             return 4;
             
         case(2):
@@ -94,9 +94,14 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             return 3;
         
         case(3):
+            // Volume Scroll
+            return 1;
+            
+        case(4):
+            // Blank line
             // Web Site
             // Email address
-            return 2;
+            return 3;
     }
     return 0;
 }
@@ -119,6 +124,9 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
          case (2):
              [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
              break;
+         case (3):
+             [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
+             break;
      }
      return groupcell[group];
 }
@@ -131,7 +139,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 {
     /* Return height for group titles */
     if (row == -1) {
-        if (group < 3)
+        if (group < 4)
             return 40; // JIMB BUG BUG
     }
 
@@ -142,7 +150,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 - (BOOL)preferencesTable:(UIPreferencesTable *)aTable
     isLabelGroup:(int)group
 {
-    if (group == 3)
+    if (group == 4)
         return YES;
         
     return NO;
@@ -181,6 +189,8 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
     [textView setEncoding:[self encodingFromString:[encodingCell value]]];
 
+    [trApp setVolScroll:[volumeScroll selectedSegment]];
+        
 } // saveSettings
 
 
@@ -235,6 +245,8 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             }               
             break;
 
+        // Volume Key Scroll
+        
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
             break;
@@ -405,9 +417,27 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (3):
             switch (row) {
                 case (0):
-                    [ cell setTitle: _T(@"http://code.google.com/p/iphonetextreader") ];
+                    {    
+                        volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
+                        [volumeScroll insertSegment:0 withTitle:_T(@"Off") animated:NO];
+                        [volumeScroll insertSegment:1 withTitle:_T(@"Line") animated:NO];
+                        [volumeScroll insertSegment:2 withTitle:_T(@"Page") animated:NO];
+                        [volumeScroll selectSegment:[trApp getVolScroll]];
+                        [cell addSubview: volumeScroll ];
+                        [cell setDrawsBackground:NO];
+                    }
+                    break;
+            }
+            break;
+        case (4):
+            switch (row) {
+                case (0):
+                    [ cell setTitle: _T(@" ") ];
                     break;
                 case (1):
+                    [ cell setTitle: _T(@"http://code.google.com/p/iphonetextreader") ];
+                    break;
+                case (2):
                     [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
                     break;
             }

@@ -63,9 +63,10 @@
     lockBtn             = nil;
     currentView         = My_No_View;
     mouseDown           = CGPointMake(-1,-1);
-    volChanged          = false;
     reverseTap          = false;
     swipeOK             = false;
+    volPressed          = 0;
+    volChanged          = false;    
     orientationInitialized = false;
 
     [super init];
@@ -81,6 +82,73 @@
 - (void) setSwipeOK:(bool)sw {
     swipeOK = sw;
 }
+
+
+// Turn on the volume hud
+// Called from a timer to prevent the hud from appearing when we turn on 
+// a volume setting ...
+- (void)enableVolumeHUD:(id)unused {  
+    [self setSystemVolumeHUDEnabled:YES];
+} // enableVolumeHUD
+
+
+// Make sure the current volume is within bounds
+- (void)setCurVolume:(id)unused {  
+
+    curVol = initVol;
+    
+    // There are 16 bars on the volume HUD
+    // 1/16 = 0.0625, but apparently that isn't quite enough - add 0.005
+    if (curVol == 1.0f) 
+        curVol = 1.0f - 0.063f;
+    if (curVol < 0.063f) 
+        curVol = 0.063f;
+        
+    AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+    [avsc setActiveCategoryVolumeTo:curVol];
+    
+} // setCurVolume
+
+
+- (void) setVolScroll:(int)vs {
+
+    // Turning on ...
+    if (vs != 0)
+    {
+        // Volume scrolling ...  
+        [self setSystemVolumeHUDEnabled:NO];
+
+        AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+        
+        NSString *name;
+        [avsc getActiveCategoryVolume:&initVol andName:&name];
+
+        // We need to set the current volume so it has some up and down room
+        // Can't do this here because the HUDEnabled:NO has not yet taken effect - use a timer
+        // [avsc setActiveCategoryVolumeTo:curVol];
+        [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(setCurVolume:) userInfo:nil repeats:NO];
+    }
+    
+    // Turning off ...
+    else if (volScroll != 0 && vs == 0)
+    {
+        // Restore original volume
+        AVSystemController *avsc = [AVSystemController sharedAVSystemController];
+        if (curVol != initVol)
+        {
+            // Wish there was a way to restore the vol w/o having the volume 
+            // HUD appear when we exit ?!?!?!?!?
+            curVol = initVol;
+            [avsc setActiveCategoryVolumeTo:initVol];
+        }
+        [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+
+    }
+    
+    // Remember the new setting
+    volScroll = vs;
+    
+} // setVolScroll
 
 
 - (void) showWait {
@@ -134,6 +202,8 @@
 
 - (bool) getSwipeOK { return swipeOK; }
 
+- (int) getVolScroll { return volScroll; }
+
 - (NSString*) getFileName {
     return [textView getFileName];
 }
@@ -180,6 +250,8 @@
     [defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
     
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
+    
+    [defaults setInteger:volScroll forKey:TEXTREADER_VOLSCROLL];
     
     [defaults setInteger:[textView getIgnoreSingleLF] forKey:TEXTREADER_IGNORELF];
 
@@ -241,7 +313,8 @@
     sbtnRect.size.width  = 43;
     sbtnRect.size.height = 30;
     sbtnRect.origin.x = viewSize.width - sbtnRect.size.width - 4;
-    sbtnRect.origin.y = ([UINavigationBar defaultSize].height - sbtnRect.size.height) / 2;
+    // sbtnRect.origin.y = navRect.size.height - 7;
+    sbtnRect.origin.y = 37;
     [settingsBtn setFrame:sbtnRect];
     
     // Handle lock image
@@ -270,7 +343,7 @@
     lbtnRect.size.width  = 45;
     lbtnRect.size.height = 30;
     lbtnRect.origin.x = sbtnRect.origin.x - lbtnRect.size.width;
-    lbtnRect.origin.y = ([UINavigationBar defaultSize].height - sbtnRect.size.height) / 2;
+    lbtnRect.origin.y = sbtnRect.origin.y;
     
     [lockBtn setFrame:lbtnRect];
     
@@ -285,6 +358,8 @@
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
+
+    [self setVolScroll:[defaults integerForKey:TEXTREADER_VOLSCROLL]];
 
     [textView setIgnoreSingleLF:[defaults integerForKey:TEXTREADER_IGNORELF]];
 
@@ -344,30 +419,42 @@
         [slider release];
         slider = nil;
     }
-    if ([textView getText] && currentView == My_Info_View)
+    
+    if (currentView == My_Info_View)
     {
         struct CGRect FSrect = [self getOrientedViewRect];
-        struct CGRect rect   = CGRectMake(0, 
-                                          FSrect.size.height-[UINavigationBar defaultSize].height, 
-                                          FSrect.size.width, 
-                                          [UINavigationBar defaultSize].height);    
-        // Create the slider ...    
-        slider = [[UISliderControl alloc] initWithFrame:rect];
-        float backParts[4] = {0, 0, 0, .5};
         CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        [slider setBackgroundColor: CGColorCreate(colorSpace, backParts)];
-        [slider setShowValue:NO];
-        [slider setMinValue:0];
+        
+        if ([textView getText])
+        {
+            struct CGRect rect   = CGRectMake(0, 
+                                              FSrect.size.height-[UINavigationBar defaultSize].height, 
+                                              FSrect.size.width, 
+                                              [UINavigationBar defaultSize].height);    
+            // Create the slider ...    
+            slider = [[UISliderControl alloc] initWithFrame:rect];
+            float backParts[4] = {0, 0, 0, .5};
+            [slider setBackgroundColor: CGColorCreate(colorSpace, backParts)];
+            [slider setShowValue:NO];
+            [slider setMinValue:0];
+            //[slider setMaxValue:[[textView getText] length]];
+            //[slider setValue:[textView getStart]];   
+            [slider setMaxValue:100];
+            [slider setValue:100.0*(double)[textView getStart]/(double)[[textView getText] length]];   
 
-        [slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag
-        [slider addTarget:self action:@selector(handleSlider:) forEvents:2]; // 2=up
+            [slider addTarget:self action:@selector(handleSlider:) forEvents:255];
 
-        [slider setMaxValue:[[textView getText] length]/TEXTREADER_SLIDERSCALE+1];
-        [slider setValue:[textView getStart]/TEXTREADER_SLIDERSCALE];   
-    
-        [baseTextView addSubview:slider];   
-    }
-    
+            [baseTextView addSubview:slider];   
+        }
+
+        // Create title label ...    
+        if ([textView getFileName])
+            [navBar setPrompt:[textView getFileName]];
+        else
+            [navBar setPrompt:TEXTREADER_NAME];
+        
+   }
+   
 } // recreateSlider
 
 
@@ -411,15 +498,38 @@
     currentView = My_File_View;
 
     [self redraw];
+    
 } // showFileTable
+
+
+- (void) showPercentage:(int)pos {
+
+    if (currentView == My_Info_View)
+    {
+        NSString * pct = nil;
+    
+        if ([textView getText])
+        {
+            pct = [NSString stringWithFormat:@"%4.2f%%", 
+                     100.0 * (double)pos / (double)[[textView getText] length]];
+        }
+        else
+        {
+            pct = TEXTREADER_NAME;
+        }
+
+        [navBar popNavigationItem];
+        [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:pct]];
+    }
+    
+} // showPercentage
 
 
 - (void) showView:(MyViewName)viewName
 {
     struct CGRect FSrect     = [self getOrientedViewRect];
-    struct CGSize navSize    = [UINavigationBar defaultSize];
     struct CGSize viewSize   = [self getOrientedViewSize];
-    
+        
     switch (viewName)
     {
         case My_No_View:
@@ -428,6 +538,10 @@
         case My_Color_View:
             if (currentView != My_Color_View)
             {           
+                // // Re-enable the volume hud
+                // [self setSystemVolumeHUDEnabled:NO];
+                [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+
                 // A view with a NavBar and Prefs Table
                 UIView * colorsView = [[UIView alloc ] initWithFrame:FSrect];;
                 [colorsView setAutoresizingMask: kMainAreaResizeMask];
@@ -467,6 +581,11 @@
         case My_Download_View:
             if (currentView != My_Download_View)
             {           
+                // // Re-enable the volume hud
+                // [self setSystemVolumeHUDEnabled:NO];
+                [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+
+                
                 // A view with a NavBar and Prefs Table
                 UIView * downloadView = [[UIView alloc ] initWithFrame:FSrect];;
                 [downloadView setAutoresizingMask: kMainAreaResizeMask];
@@ -505,6 +624,11 @@
         case My_Prefs_View:
             if (currentView != My_Prefs_View)
             {           
+                // // Disable HUD since user might change settings ...            
+                // [self setSystemVolumeHUDEnabled:NO];
+                [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+
+            
                 // A view with a NavBar and Prefs Table
                 UIView * prefsView = [[UIView alloc ] initWithFrame:FSrect];;
                 [prefsView setAutoresizingMask: kMainAreaResizeMask];
@@ -544,6 +668,10 @@
         case My_File_View:
             if (currentView != My_File_View)
             {           
+                // // Re-enable the volume hud
+                // [self setSystemVolumeHUDEnabled:NO];
+                [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+                
                 [self showFileTable:[textView getFilePath]];
             }
             break;
@@ -551,7 +679,12 @@
         case My_Info_View:
             if (currentView != My_Info_View)
             {               
-                struct CGRect navBarRect = CGRectMake(0, [UIHardware statusBarHeight], viewSize.width, navSize.height);
+                // Re-enable the volume hud
+                [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
+
+                // struct CGRect navBarRect = CGRectMake(0, [UIHardware statusBarHeight], viewSize.width, navSize.height);
+                struct CGRect navBarRect = [navBar frame];
+                navBarRect.size.width = viewSize.width;
 
                 [super hideStatus: false];
                 
@@ -567,6 +700,9 @@
                 // Update the slider
                 [self recreateSlider];
                 
+                // Display the file percentage in the nav bar ...
+                [self showPercentage:[textView getStart]];
+                
                 fileTable = nil;
                 prefsTable = nil;
                 downloadTable = nil;
@@ -578,12 +714,15 @@
         case My_Text_View:
             if (currentView != My_Text_View)
             {
-                struct CGRect navBarRect = CGRectMake(0, [UIHardware statusBarHeight], viewSize.width, navSize.height);
+                // Restore the current volume scrolling
+                [self setVolScroll:volScroll];
                 
                 // Rescale in case of rotation
                 [super hideStatus: true];
                 [baseTextView setBounds:[transView bounds]];
-                [navBar setFrame: navBarRect];
+                // [navBar setFrame: navBarRect];
+                
+                // Hide navbar and title
                 [navBar setAlpha:0];
                         
                 // Switch views
@@ -630,38 +769,81 @@
 }
 
 
-- (void) pageText:(bool)pgup
+- (void) pageText:(ScrollDir)dir
 {
     if (currentView == My_Text_View)
     {
-        if (pgup)
+        if (reverseTap)
         {
-            if (reverseTap)
-                // Move down one page 
-                [textView pageDown];
-            else
-                // Move up one page 
-                [textView pageUp];
+            switch (dir)
+            {
+                case Page_Up:
+                    dir = Page_Down;
+                    break;
+                case Page_Down:
+                    dir = Page_Up;
+                    break;
+                case Line_Up:
+                    dir = Line_Down;
+                    break;
+                case Line_Down:
+                    dir = Line_Up;
+                    break;
+            }
         }
-        else
-        {
-            if (reverseTap)
-                // Move down one page 
-                [textView pageUp];
-            else
-                // Move up one page 
-                [textView pageDown];
-        }
+        [textView scrollPage:dir];
     }
+    
 } // pageText
+
+
+
+// This is used to detect when the user has pressed vol up/down
+// since the timer was started ...
+- (void)clearVolumeChanged:(id)unused {
+
+    // If user pressed vol up/down since the timer started
+    // we should keep accepting up/down presses w/o debouncing
+    if (volChanged)
+    {
+        // Restart the timer so we can detect when scrolling stops
+        [NSTimer scheduledTimerWithTimeInterval:0.1f target:self 
+                 selector:@selector(clearVolumeChanged:) userInfo:nil repeats:NO];
+    }
+    else
+        // We are done with this round of vol presses,
+        // so reset the flag - the next press will get debounced
+        volPressed = 0;
+    
+    // Reset vol changed flag so we can tell if user presses it 
+    // before timer pops again ...
+    volChanged = false;
+    
+    return;
+    
+} // clearVolumeChanged
 
 
 // This is used to "de-bounce" the volume buttons
 // We start a timer to call this func to reset the changed flag
 // Until the timer fires we won't accept another vol change
-- (void)clearVolumeChanged:(id)unused {  
-    volChanged = false;
-} // clearVolumeChanged
+- (void)clearVolumeDebounce:(id)unused {
+
+    if (volChanged)
+    {
+        // Clear debounce flag
+        if (volPressed == 1)
+            volPressed = 2;
+
+        [self clearVolumeChanged:nil];
+    }
+    else
+    {
+        // All done ...
+        volPressed = 0;
+    }
+    
+} // clearVolumeDebounce
 
 
 // This gets called every time the vol keys get pressed
@@ -670,56 +852,74 @@
     float newVol;
     NSString * name;
             
+    // Nothing to do if volume scrolling is disabled
+    if (volScroll == 0 || currentView != My_Text_View)
+        return;
+            
     AVSystemController *avsc = [AVSystemController sharedAVSystemController];
     
     [avsc getActiveCategoryVolume:&newVol andName:&name];
+    
+    // No vol change, nothing to do ...
+    if (newVol == curVol)
+        return;
 
+    // Is this up or down?
     if (newVol < curVol) 
     {
         // Scroll down
-        if (!volChanged)
+        // volPressed==1 means debounce the first press
+        if (volPressed != 1)
         {
+            volPressed++;
             volChanged = true;
-            [self pageText:false];
-            [NSTimer scheduledTimerWithTimeInterval:0.4f target:self 
-                     selector:@selector(clearVolumeChanged:) userInfo:nil repeats:NO];
+            
+            if (volScroll == 1)
+                [self pageText:Line_Down];
+            else
+                [self pageText:Page_Down];
+                
+            // Set timer to reset debounce
+            if (volPressed == 1)
+            {
+                volChanged = false;
+                [NSTimer scheduledTimerWithTimeInterval:0.3 target:self 
+                         selector:@selector(clearVolumeDebounce:) userInfo:nil repeats:NO];
+            }
         }
+        else
+            volChanged = true;
     }
     else if (newVol > curVol)
     {
         // Scroll up
-        if (!volChanged)
+        // volPressed==1 means debounce the first press
+        if (volPressed != 1)
         {
+            volPressed++;            
             volChanged = true;
-            [self pageText:true];
-            [NSTimer scheduledTimerWithTimeInterval:0.4f target:self 
-                     selector:@selector(clearVolumeChanged:) userInfo:nil repeats:NO];
+            
+            if (volScroll == 1)
+                [self pageText:Line_Up];
+            else
+                [self pageText:Page_Up];
+
+            // Set timer to reset debounce
+            if (volPressed == 1)
+            {
+                volChanged = false;
+                [NSTimer scheduledTimerWithTimeInterval:0.3 target:self 
+                         selector:@selector(clearVolumeDebounce:) userInfo:nil repeats:NO];
+            }
         }
+        else
+            volChanged = true;
     }
-    
-    if (newVol != curVol)
-        [avsc setActiveCategoryVolumeTo:curVol];
- 
-    // Restore our initial volume
+
+    // Restore the previous vol setting
+    [avsc setActiveCategoryVolumeTo:curVol];
  
 } // volumeChanged
-
-
-// Make sure the current volume is within bounds
-- (void)setCurVolume:(id)unused {  
-
-    curVol = initVol;
-    
-    // There are 16 bars on the volume HUD
-    // 1/16 = 0.0625, but apparently that isn't quite enough - add 0.005
-    if (curVol == 1.0f) 
-        curVol = 1.0f - 0.063f;
-    if (curVol < 0.063f) 
-        curVol = 0.063f;
-        
-    AVSystemController *avsc = [AVSystemController sharedAVSystemController];
-    [avsc setActiveCategoryVolumeTo:curVol];
-}
 
 
 // This is called when everything is ready to go/initialized
@@ -764,6 +964,7 @@
     struct CGSize viewSize   = [self getOrientedViewSize];
     struct CGRect navBarRect = CGRectMake(0, [UIHardware statusBarHeight], viewSize.width, navSize.height);
 
+    // Create nav bar for info view
     navBar  = [[[UINavigationBar alloc] initWithFrame: navBarRect] retain];
     [navBar setBarStyle: 0];
     [navBar setDelegate: self];
@@ -799,9 +1000,6 @@
     [navBar addSubview:lockBtn];
 
     [self fixButtons];
-
-    // // Volume scrolling ...  
-    [self setSystemVolumeHUDEnabled:NO];
     
     AVSystemController *avsc = [AVSystemController sharedAVSystemController];
 
@@ -809,15 +1007,7 @@
         selector:@selector(volumeChanged:) 
         name:@"AVSystemController_SystemVolumeDidChangeNotification" 
         object:avsc];
-
-    NSString *name;
-    [avsc getActiveCategoryVolume:&initVol andName:&name];
-
-    // We need to set the current volume so it has some up and down room
-    // Can't do this here because the HUDEnabled:NO has not yet taken effect - use a timer
-    // [avsc setActiveCategoryVolumeTo:curVol];
-    [NSTimer scheduledTimerWithTimeInterval:0.1f target:self selector:@selector(setCurVolume:) userInfo:nil repeats:NO];
-    
+        
     [super setInitialized: true];   
     
     [self loadDefaults];
@@ -830,10 +1020,15 @@
 {
     //[textView setStart:[slider value]];
 
-    int pos = MIN([[textView getText] length]-1, [slider value]*TEXTREADER_SLIDERSCALE);
-       
-    [textView setStart:pos];
-    
+    if (whatever == slider)
+    {
+         int pos = [slider value] * (double)[[textView getText] length] / 100.0;
+
+         [self showPercentage:pos];
+
+         [textView setStart:pos];
+    }
+         
 } // handleSlider
 
 
@@ -888,7 +1083,7 @@
     
     // Resize the navbar as well
     rect   = [navBar frame];
-    rect.origin.y = [UIHardware statusBarHeight];
+    // rect.origin.y = [UIHardware statusBarHeight];
     rect.size.width = FSrect.size.width;
     [navBar setFrame:rect];
 
@@ -911,7 +1106,6 @@
     
     // We need to redo the layout since the width has changed
     [textView sizeScroller];
-    
 
     // Force a screen update
     [self redraw];
@@ -988,10 +1182,10 @@
                 {
                   if (reverseTap)
                       // Move down one page 
-                      [textView pageDown];
+                      [textView scrollPage:Page_Down];
                   else
                       // Move up one page 
-                      [textView pageUp];
+                      [textView scrollPage:Page_Up];
                 }
 
                 // Both lower  = page forward
@@ -999,10 +1193,10 @@
                 {
                   if (reverseTap)
                       // Move down one page 
-                      [textView pageUp];
+                      [textView scrollPage:Page_Up];
                   else
                       // Move up one page 
-                      [textView pageDown];
+                      [textView scrollPage:Page_Down];
                 }
 
                 // Both middle = show/hide navBar
@@ -1073,10 +1267,12 @@
     if (openname && [textView openFile:openname path:openpath])
     {
         [self showView:My_Text_View];
-        [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:openname]];
+        // [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:openname]];
     }
     else
+    {
         [self showView:My_Info_View];
+    }
 
     [self hideWait];
 }

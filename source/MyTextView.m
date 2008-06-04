@@ -587,15 +587,19 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 // Right now this is when we find a 0x0a LF
 // It could also be when we find a looong block of text w/o
 // blanks, CR/LF, etc.
+#define MAX_REV 2048
 - (int) getRevStart:(int)end {
 
+    int i;
     int start;
-    for (start = end; 
-         start > 0 && ![self isCRLF:start-1]; 
-         start--);
-    
-    // JIMB BUG BUG - need to add support for ignoreSingleLF option!
-    
+
+    // NOTE: This can get VERY expensive if we don't find an LF ...
+    // Put in a kludge to stop it if things bog down
+    for (start = end, i = 0; 
+         start > 0 && ![self isCRLF:start-1] &&
+         i < MAX_REV;
+         start--, i++);
+         
     return start;
     
 } // getRevStart
@@ -886,49 +890,37 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 
 
 
-
-- (void) pageUp {    
-
+- (void) scrollPage:(ScrollDir)dir
+{
     isDrag = false;
-  
-
+    
     CGSize  viewSize = [trApp getOrientedViewSize];
     int lineHeight   = [self getLineHeight];
 
     int lines = (int)viewSize.height / lineHeight;
 
     lStart = 0;
-    [self doLayout:(repeatLine ? -(lines-1) : -lines)];
-    // lStart = 0;
 
-    // Reset the scroller to the center
-    [self centerScrollerOffset];
-    
-} // pageUp
-
-
-
-
-
-- (void) pageDown {
-
-    isDrag = false;
-
-
-    CGSize  viewSize = [trApp getOrientedViewSize];
-    int lineHeight   = [self getLineHeight];
-
-    int lines = (int)viewSize.height / lineHeight;
-
-    lStart = 0;
-    [self doLayout:(repeatLine ? (lines-1) : lines)];
-    // lStart = 0;
+    switch (dir)
+    {
+        case Page_Up:
+            [self doLayout:(repeatLine ? -(lines-1) : -lines)];
+            break;
+        case Page_Down:
+            [self doLayout:(repeatLine ? (lines-1) : lines)];
+            break;
+        case Line_Up:
+            [self doLayout:-1];
+            break;
+        case Line_Down:
+            [self doLayout:1];
+            break;
+    }
     
     // Reset the scroller to the center
     [self centerScrollerOffset];
-
-} // pageDown
-
+    
+} // scrollPage
 
 
 // --------------------------------------------------------------

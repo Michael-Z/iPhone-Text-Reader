@@ -41,7 +41,7 @@
 
 
 // These are the MAX values - preferencesTable controls the actual number
-#define NUM_GROUPS      4
+#define NUM_GROUPS      5
 #define CELLS_PER_GROUP 4
 
 
@@ -104,6 +104,8 @@ typedef enum _PickerType {
     UIPreferencesTableCell *fontSizeCell;
     UIPreferencesTableCell *encodingCell;
     UIPreferencesTableCell *colorsCell;
+
+    UISegmentedControl     *volumeScroll;
 
 } // MyPreferencesTable
 

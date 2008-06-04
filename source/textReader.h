@@ -48,7 +48,7 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8Beta2"
+#define TEXTREADER_VERSION          @"0.8Beta4"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -67,6 +67,8 @@
 #define TEXTREADER_REPEATLINE       @"repeatLine"
 #define TEXTREADER_REVERSETAP       @"reverseTap"
 #define TEXTREADER_SWIPE            @"swipeOK"
+
+#define TEXTREADER_VOLSCROLL        @"volScroll"
 
 #define TEXTREADER_OLOCKED          @"oLocked"
 #define TEXTREADER_OCODE            @"oCode"
@@ -137,6 +139,13 @@ typedef enum _MyViewName {
     My_Download_View
 } MyViewName;
 
+typedef enum _ScrollDir {
+    Page_Up,
+    Page_Down,
+    Line_Up,
+    Line_Down
+} ScrollDir;
+
 
 @interface textReader : UIOrientingApplication {
 
@@ -171,10 +180,19 @@ typedef enum _MyViewName {
 
     bool                     reverseTap;
     bool                     swipeOK;
+    int                      volScroll;
 
+    // Initial volume - we'll try to restore this level if possible
     float                    initVol;
+
+    // Current volume - we return to this when we scroll up/down
     float                    curVol;
+
+    // Has the user pressed vol up/down since the timer started?
     bool                     volChanged;
+
+    // Count of volume presses - we debounce the first one
+    int                      volPressed;
 
     // KLUDGE to try to get wait HUD working
     NSString                *openname;
@@ -197,6 +215,9 @@ typedef enum _MyViewName {
 
 - (void) setSwipeOK:(bool)sw;
 - (bool) getSwipeOK;
+
+- (void) setVolScroll:(int)vs;
+- (int) getVolScroll;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;

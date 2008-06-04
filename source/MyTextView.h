@@ -135,10 +135,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 - (void) sizeScroller;
 
-//- (void) doLayout:(int)newLine redraw:(bool)redraw;
-
-- (void) pageUp;
-- (void) pageDown;
+- (void) scrollPage:(ScrollDir)dir;
 
 - (void) setTextColors:(MyColors*)newcolors;
 - (MyColors) getTextColors;
