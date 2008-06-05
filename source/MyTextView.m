@@ -1145,8 +1145,8 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     // sizeScroller will do a new layout and force a needsDisplay redraw
     
 } // newText
-            
-    
+          
+          
 // Convert an NSData with "invalid" GB2312 data into a UTF16 string
 static NSMutableString * convertGB2312Data(NSData * data) {
     int                   i;
@@ -1156,37 +1156,28 @@ static NSMutableString * convertGB2312Data(NSData * data) {
     
     // Add characters to the mutable string in 8K chunks to speed up the transcoding
     NSMutableString * newText = [[NSMutableString alloc] initWithCapacity:[data length]/2];
-    
+
     for (i = 0; i < [data length]; i++, p++)
     {
-        if (*p < 0xA1)
-            c[cL++] = *p;
+        if (p[0] < 0xA1)
+            c[cL++] = p[0];
         else if (i+1==[data length])
             c[cL++] = 0x00; // Encoding error! - last byte (or more) got chopped off!
-        else if (*p > 0xF7)
-        {
-            // Encoding error!
-            // What to do?!?!? Skip next character ...
-            // JIMB BUG BUG - should we treat as an ASCII char instead ?!?!?
-            c[cL++] = 0x00;
-            p++; i++;
-        }
         else
         {
-            c[cL++] = gb2312map[(p[0]-0xA1)*0x60 + p[1]-0xA1];
+            c[cL++] = gb2312map[(p[0]*0x100+p[1])-0xa100];
             p++; i++;
         }
         if (cL == sizeof(c)/sizeof(*c))
         {
-            [newText appendFormat:@"%*S", cL, c];
+            [newText appendFormat:@"%.*S", cL, c];
             cL = 0;
         }
     }
-    
     // Add any remaining characters
     if (cL)
     {
-        [newText appendFormat:@"%*S", cL, c];
+        [newText appendFormat:@"%.*S", cL, c];
         cL = 0;
     }
     
