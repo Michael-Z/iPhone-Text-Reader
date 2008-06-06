@@ -82,8 +82,8 @@ typedef enum _PickerType {
 
 // **********************************************************************
 
-@// Class for seg control
-interface MySegControl : UISegmentedControl
+// Class for seg control
+@interface MySegControl : UISegmentedControl
 {
     textReader         *trApp;
 }

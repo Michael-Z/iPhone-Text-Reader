@@ -510,14 +510,11 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                                           _T(@"Version"),
                                           TEXTREADER_VERSION,
                                           _T(@"Written by Jim Beesley")];
-                struct CGRect rect = [trApp getOrientedViewRect];
-                UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
                 NSString *aboutMsg = [NSString stringWithFormat:_T(@"About %@"), TEXTREADER_NAME];
-                [alertSheet setTitle:aboutMsg];
-                [alertSheet setBodyText:Msg];
-                [alertSheet addButtonWithTitle:_T(@"OK")];
-                [alertSheet setDelegate:self];
-                [alertSheet popupAlertAnimated:YES];
+                [trApp showDialog:aboutMsg
+                                msg:Msg
+                             button:_T(@"OK")
+                           delegate:trApp];
             }
             break;
 
@@ -528,15 +525,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     } // switch
     
 } // navigationBar
-
-
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
 
 
 - (void) setFont:(NSString*)font {

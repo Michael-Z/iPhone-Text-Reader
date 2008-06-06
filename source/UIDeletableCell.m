@@ -45,14 +45,10 @@
                                            [table getPath],
                                            _T(@".dir_suffix"), // Just a "." in most languages ...
                                            _T(@"Please make sure both the directory and file exist and have write permissions set.")];
-            CGRect rect = [[UIWindow keyWindow] bounds];
-            UIAlertSheet * alertSheet = [[UIAlertSheet alloc] 
-                                         initWithFrame:CGRectMake(0, rect.size.height-240, rect.size.width, 240)];
-            [alertSheet setTitle:_T(@"Error deleting file")];
-            [alertSheet setBodyText:errorMsg];
-            [alertSheet addButtonWithTitle:_T(@"OK")];
-            [alertSheet setDelegate:table];
-            [alertSheet popupAlertAnimated:true];
+            [trApp showDialog:_T(@"Error deleting file")
+                            msg:errorMsg
+                         button:_T(@"OK")
+                       delegate:trApp];
         }
         else
         {
@@ -89,6 +85,11 @@
 - (void)setTable:(FileTable *)_table {
     table = _table;
 } // setTable
+
+- (void)setTextReader:(textReader *)trapp {
+    trApp = trapp;
+} // setTextReader
+
 
 
 @end

@@ -48,7 +48,7 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8Beta6"
+#define TEXTREADER_VERSION          @"0.8Beta7"
 
 #define TEXTREADER_CACHE_EXT        @"text"
 
@@ -128,6 +128,7 @@ typedef enum _TextFileType {
 @class MyDownloadTable;
 
 
+
 // *****************************************************************************
 typedef enum _MyViewName {
     My_No_View,
@@ -199,6 +200,8 @@ typedef enum _ScrollDir {
     NSString                *openname;
     NSString                *openpath;
 
+    UIAlertSheet            *okDialog;
+
     NSUserDefaults          *defaults;
 }
 
@@ -242,6 +245,10 @@ typedef enum _ScrollDir {
 - (void) showFileTable:(NSString*)path;
 
 - (void) redraw;
+
+- (void) releaseDialog;
+- (UIAlertSheet*) showDialog:(NSString*)title msg:(NSString*)msg button:(NSString*)button delegate:(id)delegate;
+- (UIAlertSheet*) getDialog;
 
 @end  // textReader : UIOrientingApplication
 

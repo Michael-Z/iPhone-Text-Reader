@@ -340,16 +340,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 } // navigationBar
 
 
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  //[trApp unlockUIOrientation];
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
-
-
 - (void)dealloc {
   [super dealloc];
 } // dealloc

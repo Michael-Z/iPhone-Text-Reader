@@ -121,57 +121,41 @@
 
 // Quickie thread helper funcs
 - (void) threadShowSaving {
-    [wait setTitle:_T(@"Saving ...")];
-    [wait setBodyText:[NSString stringWithFormat:_T(@"Saving to %@"), fullPath]];
+    [[trApp getDialog] setTitle:_T(@"Saving ...")];
+    [[trApp getDialog] setBodyText:[NSString stringWithFormat:_T(@"Saving to %@"), fullPath]];
 } // threadShowSaving
 
 - (void) threadReleaseWait {
-    if (wait)
-    {
-        //[trApp unlockUIOrientation];
-        [wait dismissAnimated:YES];
-        [wait release];
-        wait = nil;
-    }
+
+    if ([trApp getDialog])
+        [trApp releaseDialog];
+        
 } // threadShowSaving
 
 - (void) threadShowSaved {
-    //[trApp lockUIOrientation];
-    struct CGRect  rect     = [trApp getOrientedViewRect];
-    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:_T(@"Finished")];
-    [alertSheet setBodyText:_T(@"Save complete!")];
-    [alertSheet addButtonWithTitle:_T(@"OK")];
-    [alertSheet setDelegate:trApp];
-    [alertSheet popupAlertAnimated:YES];
+
+    [trApp showDialog:_T(@"Finished") 
+                  msg:_T(@"Save complete!") 
+               button:_T(@"OK")
+             delegate:trApp];
     
     [trApp showView:My_File_View];
 }
 
 - (void) threadShowSaveErr {
-    //[trApp lockUIOrientation];
-    struct CGRect  rect     = [trApp getOrientedViewRect];
-    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:_T(@"Error Saving File")];
-    [alertSheet setBodyText:[NSString stringWithFormat:
-                              _T(@"Unable to save file as %@"),
-                              fullPath]];
-    [alertSheet addButtonWithTitle:_T(@"OK")];
-    [alertSheet setDelegate:trApp];
-    [alertSheet popupAlertAnimated:YES];
+
+    [trApp showDialog:_T(@"Error Saving File") 
+                  msg:[NSString stringWithFormat:_T(@"Unable to save file as %@"), fullPath] 
+               button:_T(@"OK")
+             delegate:trApp];
 }
 
 - (void) threadShowURLErr {
-    //[trApp lockUIOrientation];
-    struct CGRect  rect     = [trApp getOrientedViewRect];
-    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-    [alertSheet setTitle:_T(@"Error Loading From URL")];
-    [alertSheet setBodyText:[NSString stringWithFormat:
-                              _T(@"Unable to load file from URL %@"),
-                              urlAddress]];
-    [alertSheet addButtonWithTitle:_T(@"OK")];
-    [alertSheet setDelegate:trApp];
-    [alertSheet popupAlertAnimated:YES];
+
+    [trApp showDialog:_T(@"Error Loading From URL")
+                  msg:[NSString stringWithFormat:_T(@"Unable to load file from URL %@"), urlAddress]
+               button:_T(@"OK")
+             delegate:trApp];
 } // threadShowSaving
 
 
@@ -240,8 +224,6 @@
 
 - (void)tableRowSelected:(NSNotification *)notification 
 {
-    struct CGRect rect = [trApp getOrientedViewRect];
-    
     switch ([self selectedRow])
     {
         case 4: // Do the download!!            
@@ -255,13 +237,10 @@
             // Name can not have embedded slashes
             if (toFileName && [toFileName rangeOfString:@"/"].location != NSNotFound)
             {
-                //[trApp lockUIOrientation];
-                UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:_T(@"Error Invalid Save As File Name")];
-                [alertSheet setBodyText:_T(@"The Save As file name can not contain slashes.")];
-                [alertSheet addButtonWithTitle:_T(@"OK")];
-                [alertSheet setDelegate:trApp];
-                [alertSheet popupAlertAnimated:YES];
+                [trApp showDialog:_T(@"Error Invalid Save As File Name")
+                              msg:_T(@"The Save As file name can not contain slashes.")
+                           button:_T(@"OK")
+                         delegate:trApp];
                 return;
             }
             
@@ -271,13 +250,10 @@
             
             if (!urlType && !saveAsType)
             {
-                //[trApp lockUIOrientation];
-                UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:_T(@"Error Invalid Save As File Name")];
-                [alertSheet setBodyText:_T(@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt")];
-                [alertSheet addButtonWithTitle:_T(@"OK")];
-                [alertSheet setDelegate:trApp];
-                [alertSheet popupAlertAnimated:YES];
+                [trApp showDialog:_T(@"Error Invalid Save As File Name")
+                              msg:_T(@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt")
+                           button:_T(@"OK")
+                         delegate:trApp];
                 return;
             }
             
@@ -298,28 +274,22 @@
             theURL =[[NSURL alloc] initWithString:urlAddress];
             if (!theURL)
             {
-                //[trApp lockUIOrientation];
-                UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:rect];
-                [alertSheet setTitle:_T(@"Error Invalid URL")];
-                [alertSheet setBodyText:[NSString stringWithFormat:
-                                          _T(@"Invalid URL %@"),
-                                          urlAddress]];
-                [alertSheet addButtonWithTitle:_T(@"OK")];
-                [alertSheet setDelegate:trApp];
-                [alertSheet popupAlertAnimated:YES];
+                [trApp showDialog:_T(@"Error Invalid URL")
+                              msg:[NSString stringWithFormat:
+                                   _T(@"Invalid URL %@"),
+                                   urlAddress]
+                           button:_T(@"OK")
+                         delegate:trApp];
                 return;
             }
             
             // Show the loading message box         
-            //[trApp lockUIOrientation];
-            wait = [[UIAlertSheet alloc] initWithFrame:rect];
-            [wait setTitle:_T(@"Downloading ...")];
-            [wait setBodyText:[NSString stringWithFormat:
-                                      _T(@"Downloading from URL %@"),
-                                      urlAddress]];
-            [wait setDelegate:trApp];
-            //[wait addButtonWithTitle:_T(@"OK")];
-            [wait popupAlertAnimated:YES];
+            [trApp showDialog:_T(@"Downloading ...")
+                            msg:[NSString stringWithFormat:
+                                 _T(@"Downloading from URL %@"),
+                                 urlAddress]
+                         button:nil
+                       delegate:trApp];
 
             // Start the load thread
             [NSThread detachNewThreadSelector:@selector(downLoadFile:)
@@ -354,8 +324,6 @@
                     [ cell setTitle:@"URL:" ];
                     [ cell setValue:@"http://" ];
                     
-//[ cell setValue:@"http://www.gutenberg.org/files/15772/15772-8.txt" ];
-                    
                     [ cell setShowDisclosure:YES];
                     urlCell = cell;
                     
@@ -372,8 +340,6 @@
                     cell = [ [ UIPreferencesTextTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Save As:") ];
                     [ cell setValue:@"" ];
-
-//[ cell setValue:@"Aza test.txt" ];
 
                     [ cell setShowDisclosure:YES];
                     saveAsCell = cell;
@@ -448,16 +414,6 @@
     } // switch
     
 } // navigationBar
-
-
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  //[trApp unlockUIOrientation];
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
 
 
 - (void)dealloc {

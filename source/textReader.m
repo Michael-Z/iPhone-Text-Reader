@@ -61,6 +61,7 @@
     slider              = nil;
     settingsBtn         = nil;
     lockBtn             = nil;
+    okDialog            = nil;
     currentView         = My_No_View;
     mouseDown           = CGPointMake(-1,-1);
     reverseTap          = false;
@@ -1065,6 +1066,11 @@
 
 // Here's the recommended method for doing custom stuff when the screen's rotation has changed... 
 - (void) setUIOrientation: (int) o_code {
+
+    // Don't rotate while we have an OK dialog up ...
+    if (okDialog)
+        return;
+
     [super setUIOrientation: o_code];
     
     if ([self orientationLocked])
@@ -1072,7 +1078,7 @@
     
     if (![super isInitialized] || ([super getOrientation] == currentOrientation))
         return;
-    
+            
     currentOrientation = [super getOrientation];
 
     struct CGRect FSrect = [self getOrientedViewRect];
@@ -1091,7 +1097,8 @@
     [navBar setFrame:rect];
 
     // Set the locked orientation
-    // Can't do this during finishedLaunchine because UIOrientation is set up at that point
+    // Can't do this during finishedLaunchine because UIOrientation is 
+    // not yet set up at that point
     if (!orientationInitialized)
     {
         orientationInitialized = TRUE;
@@ -1112,7 +1119,7 @@
 
     // Force a screen update
     [self redraw];
-    
+        
 } // setUIOrientation
 
 
@@ -1355,13 +1362,50 @@
 } // getFileType
 
 
+- (void) releaseDialog {
+
+  if (okDialog)
+  {
+      [okDialog dismissAnimated:YES];
+      [okDialog release];
+      okDialog = nil;
+  }
+  
+} // releaseDialog
+
+
+- (UIAlertSheet*) getDialog {
+    return okDialog;
+} // getDialog
+
+
+- (UIAlertSheet*) showDialog:(NSString*)title  msg:(NSString*)msg  button:(NSString*)button  delegate:(id)delegate
+{
+        CGRect rect = [[UIWindow keyWindow] bounds];
+        
+        if (!okDialog)
+        {
+            okDialog = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
+            if (button)
+                [okDialog addButtonWithTitle:button];
+            [okDialog setTitle:title];
+            [okDialog setBodyText:msg];
+            [okDialog setDelegate:delegate];
+            [okDialog popupAlertAnimated:YES];
+        }    
+
+        return okDialog;
+        
+} // showOKDialog
+
+
 // This view's alert sheets are just informational ...
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
-  //[self unlockUIOrientation];
-  [sheet dismissAnimated:YES];
-  [sheet release];
+
+  [self releaseDialog];
+
 } // alertSheet
 
 

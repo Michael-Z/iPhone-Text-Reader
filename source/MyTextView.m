@@ -2376,13 +2376,10 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                            _T(@"is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files."), 
                                            _T(@"Sorry ...")
                                            ];
-            CGRect rect = [[UIWindow keyWindow] bounds];
-            UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-            [alertSheet setTitle:_T(@"Unable to Open PDB File!")];
-            [alertSheet setBodyText:errorMsg];
-            [alertSheet addButtonWithTitle:_T(@"OK")];
-            [alertSheet setDelegate:self];
-            [alertSheet popupAlertAnimated:YES];
+            [trApp showDialog:_T(@"Unable to Open PDB File!")
+                            msg:errorMsg
+                         button:_T(@"OK")
+                       delegate:trApp];
 
             return false;
         }
@@ -2518,26 +2515,14 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                    _T(@"Please make sure the directory and file exist, the read permissions are set, and the file is really in"), 
                                    [NSString localizedNameOfStringEncoding:encoding],
                                    _T(@"encoding.")]; 
-    CGRect rect = [[UIWindow keyWindow] bounds];
-    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-    [alertSheet setTitle:_T(@"Error opening file")];
-    [alertSheet setBodyText:errorMsg];
-    [alertSheet addButtonWithTitle:_T(@"OK")];
-    [alertSheet setDelegate:self];
-    [alertSheet popupAlertAnimated:YES];
+    [trApp showDialog:_T(@"Error opening file")
+                    msg:errorMsg
+                 button:_T(@"OK")
+               delegate:trApp];
 
     return false;
     
 } // openFile
-
-
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
 
 
 - (NSStringEncoding)getEncoding {
@@ -2592,13 +2577,10 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         return true;
     }
     
-    CGRect rect = [[UIWindow keyWindow] bounds];
-    UIAlertSheet * alertSheet = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-    [alertSheet setTitle:_T(@"Error")];
-    [alertSheet setBodyText:[NSString stringWithFormat:_T(@"Unable to create font %@"), font]];
-    [alertSheet addButtonWithTitle:_T(@"OK")];
-    [alertSheet setDelegate:self];
-    [alertSheet popupAlertAnimated:YES];
+    [trApp showDialog:_T(@"Error")
+                    msg:[NSString stringWithFormat:_T(@"Unable to create font %@"), font]
+                 button:_T(@"OK")
+               delegate:trApp];
 
     return false;
     

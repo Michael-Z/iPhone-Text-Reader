@@ -65,7 +65,7 @@
     NSString     * toFileName;
     NSURL        * theURL;
     NSString     * fullPath;
-    UIAlertSheet * wait;
+    // UIAlertSheet * wait;
 
 
 

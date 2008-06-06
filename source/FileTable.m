@@ -195,6 +195,7 @@
         
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
+        [ cell setTextReader: trApp ];
 
         // Set the icon for this row
         if (row == 0) 
@@ -411,13 +412,6 @@
 } // resize
 
 
-// This view's alert sheets are just informational ...
-// Dismiss them without doing anything special
-- (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
-{
-  [sheet dismissAnimated:YES];
-  [sheet release];
-} // alertSheet
 
 @end
 

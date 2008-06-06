@@ -2,10 +2,12 @@
 
 @interface UIDeletableCell : UIImageAndTextTableCell
 {
-    FileTable *table;
+    FileTable  *table;
+    textReader *trApp;
 }
 
 - (void)setTable:(FileTable *)_table;
+- (void)setTextReader:(textReader *)trapp;
 
 @end
 
