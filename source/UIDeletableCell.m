@@ -52,7 +52,16 @@
         }
         else
         {
+          // We removed a file, so remove it's saved current position
           [[table getTextReader] removeDefaults:fileName];
+          
+          // Is this the currently open file?  If so, we need to blank out the name
+          // since it is no longer available to reload
+          // JIMB BUG BUG - close the currently open eBook?!?!?
+          if ([trApp getFileName] && [trApp getFilePath] &&
+              ![fileName compare:[trApp getFileName]] &&
+              ![[table getPath] compare:[trApp getFilePath]])
+              [trApp  closeCurrentFile];
           
           // Kludge ... For some reason, removing the last entry from the fileList causes
           // an exception .. evrything else is OK
@@ -71,6 +80,8 @@
             [ self setEnabled:NO ];
             [[table getFileList] replaceObjectAtIndex:row withObject:@""];
           }
+          
+          // [table reloadData];
           
         } // if !deleted/else
         

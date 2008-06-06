@@ -48,9 +48,9 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8Beta7"
+#define TEXTREADER_VERSION          @"0.8Beta8"
 
-#define TEXTREADER_CACHE_EXT        @"text"
+#define TEXTREADER_CACHE_EXT        @"trCache"
 
 #define TEXTREADER_DEF_PATH         @"/var/mobile/Media/textReader/"
 #define TEXTREADER_PARENT_DIR       @".."
@@ -92,9 +92,8 @@
 
 #define TEXTREADER_SLIDERSCALE      256
 
-
-//#define TEXTREADER_GB2312         -2312
-//#define TEXTREADER_GB2312_NAME    @"Simplified Chinese (GB2312)"
+#define TEXTREADER_GB2312         -2312
+#define TEXTREADER_GB2312_NAME    @"GBK/GB2312/CP936 (Simplified Chinese)"
 
 
 typedef struct _MyColors {
@@ -114,10 +113,11 @@ typedef struct _MyColors {
 
 typedef enum _TextFileType {
     kTextFileTypeUnknown = 0,
-    kTextFileTypeTXT  = 1,
-    kTextFileTypePDB  = 2,
-    kTextFileTypeHTML = 3,
-    kTextFileTypeFB2  = 4
+    kTextFileTypeTXT     = 1,
+    kTextFileTypePDB     = 2,
+    kTextFileTypeHTML    = 3,
+    kTextFileTypeFB2     = 4,
+    kTextFileTypeTRCache = 5
 } TextFileType;
 
 
@@ -209,6 +209,7 @@ typedef enum _ScrollDir {
 - (id)   init;
 - (void) applicationWillSuspend;
 - (void) loadDefaults;
+- (void) closeCurrentFile;
 - (void) openFile:(NSString *)name path:(NSString *)path;
 - (int)  getDefaultStart:(NSString*)name;
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
@@ -249,6 +250,10 @@ typedef enum _ScrollDir {
 - (void) releaseDialog;
 - (UIAlertSheet*) showDialog:(NSString*)title msg:(NSString*)msg button:(NSString*)button delegate:(id)delegate;
 - (UIAlertSheet*) getDialog;
+
+- (NSString *)stringFromEncoding:(NSStringEncoding)enc;
+- (NSStringEncoding)encodingFromString:(NSString *)string;
+
 
 @end  // textReader : UIOrientingApplication
 

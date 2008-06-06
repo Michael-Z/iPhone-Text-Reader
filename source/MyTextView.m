@@ -77,17 +77,6 @@ typedef unsigned int NSUInteger;
     
     encoding = TEXTREADER_DFLT_ENCODING;
 
-    // Kind of a kludge, but we need to get the gb2312 encoding somehow ...
-    const NSStringEncoding * enc = [NSString availableStringEncodings];
-    while (enc && *enc)
-    {
-        NSString * gb2312name = @"Simplified Chinese (EUC)";
-        if ([gb2312name compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
-           break;
-        enc++;
-    }
-    gb2312enc = (enc && *enc) ? *enc : 0;
-    
     cStart = 0;
     yDelta = 0;
     cLayouts = 0;
@@ -1009,19 +998,23 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 - (void)drawRect:(struct CGRect)rect
 {
+    CGSize       viewSize   = [trApp getOrientedViewSize];
+    CGContextRef context    = UICurrentContext();
+    int          lineHeight = [self getLineHeight]; 
     CGRect lineRect;
-
+    
     // No text means nothing to do ...
     if (!text || ![text length] || !trApp || !gsFont)
+    {
+       // Blank screen ...
+       lineRect = CGRectMake(0, 0, viewSize.width, viewSize.height);
+       [self fillBkgGroundRect:context rect:lineRect];
+        
        return [super drawRect:rect];
+    }
        
     [screenLock lock];
     
-    CGSize viewSize = [trApp getOrientedViewSize];
-
-    CGContextRef context = UICurrentContext();
-
-    int lineHeight = [self getLineHeight]; 
 
 // JIMB BUG BUG - Figure out how to only redraw the invalid portion !!!
 
@@ -1159,13 +1152,30 @@ static NSMutableString * convertGB2312Data(NSData * data) {
 
     for (i = 0; i < [data length]; i++, p++)
     {
-        if (p[0] < 0xA1)
+        if (p[0] < 0x81)
             c[cL++] = p[0];
-        else if (i+1==[data length])
+        else if (i+1 == [data length])
             c[cL++] = 0x00; // Encoding error! - last byte (or more) got chopped off!
+            // c[cL++] = '?';
+        else if (p[1] < 0x40)
+        {
+            c[cL++] = 0x00; // Encoding error! - 2nd byte should always be >= 0x40!
+            // c[cL++] = '?';
+            
+            // Go ahead and assume it was a double byte char, although anything we 
+            // do after an error is probably wrong ...
+            // JIMB BUG BUG - report encoding problem ?!?!?!
+            p++; i++;
+        }
         else
         {
-            c[cL++] = gb2312map[(p[0]*0x100+p[1])-0xa100];
+            c[cL++] = gb2312map[(p[0]-0x81)*0xBF + (p[1] - 0x40)];
+            
+            // 0x00 would be an encoding error - we don't have the 
+            // mapping in our table ...
+            // if (c[cL] == 0x00)
+            //     c[cL] = '?';
+            
             p++; i++;
         }
         if (cL == sizeof(c)/sizeof(*c))
@@ -1288,24 +1298,25 @@ static unichar patchEntity(unichar entity)
     // Quick patch job for a couple of entities
     if (entity == 0x00)
         entity = '?';   // Need to pick a better character here ...
-    else if (entity == 0x2003)
-        entity = ' '; // entity = 0x2003;
-    else if (entity == 0x2002)
-        entity = ' '; //entity = 0x2002;
-    else if (entity == 0x00A0)
-        entity = ' '; //entity = 0x00A0;
-    else if (entity == 0x00B4)
-        entity = '\''; //entity = 0x00B4;
-    else if (entity == 0x2018)
-        entity = '\''; //entity = 0x2018;
-    else if (entity == 0x2014)
-        entity = '-'; //entity = 0x2014;
-    else if (entity == 0x2013)
-        entity = '-'; //entity = 0x2013;
-    else if (entity == 0x201D)
-        entity = '"'; //entity = 0x201D;
-    else if (entity == 0x2019)
-        entity = '\''; //entity = 0x2019;
+        
+//     else if (entity == 0x2003)
+//         entity = ' '; // entity = 0x2003;
+//     else if (entity == 0x2002)
+//         entity = ' '; //entity = 0x2002;
+//     else if (entity == 0x00A0)
+//         entity = ' '; //entity = 0x00A0;
+//     else if (entity == 0x00B4)
+//         entity = '\''; //entity = 0x00B4;
+//     else if (entity == 0x2018)
+//         entity = '\''; //entity = 0x2018;
+//     else if (entity == 0x2014)
+//         entity = '-'; //entity = 0x2014;
+//     else if (entity == 0x2013)
+//         entity = '-'; //entity = 0x2013;
+//     else if (entity == 0x201D)
+//         entity = '"'; //entity = 0x201D;
+//     else if (entity == 0x2019)
+//         entity = '\''; //entity = 0x2019;
         
     return entity;
     
@@ -2234,20 +2245,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                         [dest appendString:@"\n\n"];    
                     break;
  
-                // default: // debug only
-                //  [dest appendString:@"[[["];
-                //  [dest appendString:[src substringWithRange:rtag]];
-                //  [dest appendString:@"]]]"];
-                //  break;
             }
             break;
 
-        // default: // debug only
-        //  [dest appendString:@"[[["];
-        //  [dest appendString:[src substringWithRange:rtag]];
-        //  [dest appendString:@"]]]"];
-        //  break;
-                
     } // switch on first char of tag
     
 } // addHTMLTag
@@ -2333,7 +2333,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     //       Don't pop a dialog since that will annoy people even more
     NSString *fullpath = [[filePath stringByAppendingPathComponent:fileName] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
     
-    if ([newText writeToFile:fullpath atomically:NO encoding:encoding error:NULL])
+    // Cache files are always written out as Unicode strings to prevent
+    // transcoding problems ... we always load them the same way ...
+    if ([newText writeToFile:fullpath atomically:NO encoding:NSUnicodeStringEncoding error:NULL])
     {
         // If we cached it, change the file name so we will reload it automatically
         NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
@@ -2386,11 +2388,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     }
     else
     {
-        newText = [[NSMutableString alloc] initWithData:data encoding:encoding];
-
-        // Double clutch for GB2312
-        if (!newText && encoding == gb2312enc)
-            newText = convertGB2312Data(data);  
+        // We use our own code for gb2312
+        if (encoding == TEXTREADER_GB2312)
+            newText = convertGB2312Data(data);
+        else
+            newText = [[NSMutableString alloc] initWithData:data encoding:encoding];              
     }
 
     if (data)
@@ -2415,19 +2417,48 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     NSMutableString * newText = nil;
 
     // Read in the text file - let NSMutableString do the work
-    newText = [[NSMutableString 
-                stringWithContentsOfFile:fullpath
-                encoding:encoding
-                error:nil] retain];
-
-    // Double clutch for GB2312
-    if (!newText && encoding == gb2312enc)
+    if (encoding == TEXTREADER_GB2312)
         newText = loadGB2312(fullpath);
-        
+    else
+        newText = [[NSMutableString 
+                    stringWithContentsOfFile:fullpath
+                    encoding:encoding
+                    error:nil] retain];
+
     return newText;
     
 } // opentextFile
 
+
+- (NSMutableString*) openCacheFile:(NSString*)fullpath type:(TextFileType*)ftype {
+
+    NSMutableString * newText = nil;
+
+    // Cache files always use default Unicode encoding ...
+    newText = [[NSMutableString 
+                stringWithContentsOfFile:fullpath
+                encoding:NSUnicodeStringEncoding
+                error:nil] retain];
+
+    // From here on, treate cache files as text files ...
+    *ftype = kTextFileTypeTXT;
+    
+    return newText;
+    
+} // opentextFile
+
+
+- (void) closeCurrentFile {
+
+    if (fileName)
+        [fileName release];
+    fileName = nil;
+    
+    [self setText:nil];
+    
+    [self setNeedsDisplay];
+    
+} // closeCurrentFile
 
 
 // Open specified file and display
@@ -2449,6 +2480,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
         switch (ftype)
         {            
+            // Cache files are always UTF16BE encoding ...
+            case kTextFileTypeTRCache:
+                newText = [self openCacheFile:fullpath type:&ftype];
+                break;
+                
             case kTextFileTypePDB:
                 // Open a PDB file
                 newText = [self openPDBFile:fullpath type:&ftype];
@@ -2503,6 +2539,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         }
     }
 
+    // We had an error if we got here ...
     NSString *errorMsg = [NSString stringWithFormat:
                                    // _T(@"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding."), 
                                    // name, path, [NSString localizedNameOfStringEncoding:encoding]];
@@ -2513,7 +2550,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                    path,
                                    _T(@".dir_suffix"), // Just a "." in most languages ...
                                    _T(@"Please make sure the directory and file exist, the read permissions are set, and the file is really in"), 
-                                   [NSString localizedNameOfStringEncoding:encoding],
+                                   [trApp stringFromEncoding:encoding],
                                    _T(@"encoding.")]; 
     [trApp showDialog:_T(@"Error opening file")
                     msg:errorMsg
@@ -2536,10 +2573,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         enc = kCGEncodingMacRoman;
         
     encoding = enc;
-    
-// JIMB BUG BUG reopen the book!!!!???!!!
-
-    // [self setNeedsDisplay];
     
     return true;
 } // setEncoding

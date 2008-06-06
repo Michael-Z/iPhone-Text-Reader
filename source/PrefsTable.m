@@ -173,20 +173,6 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 }
 
 
-- (NSStringEncoding)encodingFromString:(NSString *)string {
-    const NSStringEncoding * enc = [NSString availableStringEncodings];
-        
-    while (enc && *enc)
-    {
-        if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
-           break;
-        enc++;
-    }
-    
-    return (enc && *enc) ? *enc : kCGEncodingMacRoman;
-} // encodingFromString
-
-
 // Called when we leave this view
 -(void)saveSettings {
 
@@ -203,7 +189,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
     [textView setFont:font size:size];
 
-    [textView setEncoding:[self encodingFromString:[encodingCell value]]];
+    [textView setEncoding:[trApp encodingFromString:[encodingCell value]]];
 
 } // saveSettings
 
@@ -353,7 +339,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Encoding") ];
-                    [ cell setValue:[NSString localizedNameOfStringEncoding:[textView getEncoding]] ];
+                    [ cell setValue:[trApp stringFromEncoding:[textView getEncoding]] ];
                     [ cell setShowDisclosure:YES];
                     encodingCell = cell;
                     break;
@@ -632,6 +618,9 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
         case kPicker_Type_Encoding:
             {
+                // Special case GB2312
+                [dataArray addObject:TEXTREADER_GB2312_NAME];
+                
                 // Add a list of available encodings to the data array
                 const NSStringEncoding *enc = [NSString availableStringEncodings];
 

@@ -509,14 +509,15 @@
     {
         NSString * pct = nil;
     
-        if ([textView getText])
+        if ([textView getText] && [[textView getText] length])
         {
             pct = [NSString stringWithFormat:@"%4.2f%%", 
                      100.0 * (double)pos / (double)[[textView getText] length]];
         }
         else
         {
-            pct = TEXTREADER_NAME;
+            // pct = TEXTREADER_NAME;
+            pct = @"";
         }
 
         // [navBar popNavigationItem];
@@ -541,7 +542,6 @@
             if (currentView != My_Color_View)
             {           
                 // // Re-enable the volume hud
-                // [self setSystemVolumeHUDEnabled:NO];
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
 
                 // A view with a NavBar and Prefs Table
@@ -583,8 +583,7 @@
         case My_Download_View:
             if (currentView != My_Download_View)
             {           
-                // // Re-enable the volume hud
-                // [self setSystemVolumeHUDEnabled:NO];
+                // Re-enable the volume hud
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
 
                 
@@ -627,7 +626,6 @@
             if (currentView != My_Prefs_View)
             {           
                 // // Disable HUD since user might change settings ...            
-                // [self setSystemVolumeHUDEnabled:NO];
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
 
             
@@ -670,8 +668,7 @@
         case My_File_View:
             if (currentView != My_File_View)
             {           
-                // // Re-enable the volume hud
-                // [self setSystemVolumeHUDEnabled:NO];
+                // Re-enable the volume hud
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
                 
                 [self showFileTable:[textView getFilePath]];
@@ -684,7 +681,6 @@
                 // Re-enable the volume hud
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
 
-                // struct CGRect navBarRect = CGRectMake(0, [UIHardware statusBarHeight], viewSize.width, navSize.height);
                 struct CGRect navBarRect = [navBar frame];
                 navBarRect.size.width = viewSize.width;
 
@@ -722,7 +718,6 @@
                 // Rescale in case of rotation
                 [super hideStatus: true];
                 [baseTextView setBounds:[transView bounds]];
-                // [navBar setFrame: navBarRect];
                 
                 // Hide navbar and title
                 [navBar setAlpha:0];
@@ -1266,6 +1261,7 @@
         [downloadTable resize];
     else if (currentView == My_Color_View)
         [colorTable resize];
+        
 } // redraw
 
 
@@ -1285,7 +1281,8 @@
     }
 
     [self hideWait];
-}
+    
+} // openFile2
 
 
 // Only purpose is a wrapper for openFile2 - we have to do it on the main thread
@@ -1294,7 +1291,18 @@
 {   
     [self performSelectorOnMainThread:@selector(openFile2) 
                             withObject:nil waitUntilDone:YES];
-}
+} // thrdOpenFile
+
+
+// Close currently open file
+- (void) closeCurrentFile {
+    
+   openname = nil;
+   [textView closeCurrentFile];
+   
+   [self redraw];
+    
+} // closeCurrentFile
 
 
 // NOTE: We use a thread because otherwise the loading hud won't show up
@@ -1357,6 +1365,16 @@
             type = kTextFileTypePDB;
     }
 
+    if (type == kTextFileTypeUnknown &&
+        [fileName length] > ([TEXTREADER_CACHE_EXT length]+1) && 
+        [fileName characterAtIndex:[fileName length]-([TEXTREADER_CACHE_EXT length]+1)] == '.')
+    {
+        NSString * ext = [fileName substringFromIndex:[fileName length]-[TEXTREADER_CACHE_EXT length]];
+        
+        if (![ext compare:TEXTREADER_CACHE_EXT options:kCFCompareCaseInsensitive ])
+            type = kTextFileTypeTRCache;
+    }
+    
     return type;
     
 } // getFileType
@@ -1407,6 +1425,36 @@
   [self releaseDialog];
 
 } // alertSheet
+
+
+- (NSString *)stringFromEncoding:(NSStringEncoding)enc {
+    // Special case GB2312
+    if (enc == TEXTREADER_GB2312)
+        return TEXTREADER_GB2312_NAME;
+        
+    return [NSString localizedNameOfStringEncoding:enc];
+    
+} // stringFromEncoding
+
+
+- (NSStringEncoding)encodingFromString:(NSString *)string {
+    
+    // Special case gb2312
+    if ([string compare:TEXTREADER_GB2312_NAME] == NSOrderedSame)
+        return TEXTREADER_GB2312;
+        
+    const NSStringEncoding * enc = [NSString availableStringEncodings];
+    
+    while (enc && *enc)
+    {
+        if ([string compare:[NSString localizedNameOfStringEncoding:*enc]] == NSOrderedSame)
+           break;
+        enc++;
+    }
+    
+    return (enc && *enc) ? *enc : kCGEncodingMacRoman;
+} // encodingFromString
+
 
 
 @end // @implementation textReader

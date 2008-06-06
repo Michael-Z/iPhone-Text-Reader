@@ -152,7 +152,7 @@
             
             // Show all text files
             // Only show FB2, PDB and HTML files that do not have a cached text version
-            if (ftype == kTextFileTypeTXT || 
+            if (ftype == kTextFileTypeTXT || ftype == kTextFileTypeTRCache || 
                 ![[NSFileManager defaultManager] fileExistsAtPath:[[path stringByAppendingPathComponent:file] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])         
             {
                 [fileList addObject:file];
@@ -275,10 +275,22 @@
         
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeFB2)
         {
-            // JIMB BUG BUG - need fb2 icon!!!
             UIImageView *image = [ [ UIImage alloc ] 
                   initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/html.png", 
+                  initWithFormat: @"/Applications/%@.app/fb2.png", 
+                                  TEXTREADER_NAME ] ];
+            [ cell setImage: image ];
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+        
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
+        {
+            UIImageView *image = [ [ UIImage alloc ] 
+                  initWithContentsOfFile: [ [ NSString alloc ] 
+                  initWithFormat: @"/Applications/%@.app/cache.png", 
                                   TEXTREADER_NAME ] ];
             [ cell setImage: image ];
             [ cell setTitle: [ [ fileList objectAtIndex: row ]

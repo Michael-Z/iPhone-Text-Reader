@@ -69,7 +69,6 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     NSMutableString  *text;
 
     NSStringEncoding  encoding;
-    NSStringEncoding  gb2312enc;
     NSString         *font;
     struct __GSFont  *gsFont;
     int               fontSize;
@@ -115,6 +114,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (void) setRepeatLine:(bool)repeat;
 - (bool) getRepeatLine;
 
+- (void) closeCurrentFile;
 - (bool)              openFile:(NSString *)name path:(NSString *)path;
 - (NSMutableString *) getText;
 - (void)              setStart:(int)newStart;
