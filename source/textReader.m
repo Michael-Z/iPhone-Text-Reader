@@ -61,6 +61,10 @@
     slider              = nil;
     settingsBtn         = nil;
     lockBtn             = nil;
+    searchBtn           = nil;
+    searchBox           = nil;
+    lastSearch          = nil;
+    bookmarkBtn         = nil;
     okDialog            = nil;
     currentView         = My_No_View;
     mouseDown           = CGPointMake(-1,-1);
@@ -269,12 +273,14 @@
     [defaults setFloat:[textView getTextColors].text_red   forKey:TEXTREADER_TEXTRED];
     [defaults setFloat:[textView getTextColors].text_green forKey:TEXTREADER_TEXTGREEN];
     [defaults setFloat:[textView getTextColors].text_blue  forKey:TEXTREADER_TEXTBLUE];
-//     [defaults setFloat:[textView getTextColors].text_alpha forKey:TEXTREADER_TEXTALPHA];
 
     [defaults setFloat:[textView getTextColors].bkg_red   forKey:TEXTREADER_BKGRED];
     [defaults setFloat:[textView getTextColors].bkg_green forKey:TEXTREADER_BKGGREEN];
     [defaults setFloat:[textView getTextColors].bkg_blue  forKey:TEXTREADER_BKGBLUE];
-//     [defaults setFloat:[textView getTextColors].bkg_alpha forKey:TEXTREADER_BKGALPHA];
+    
+    // Save lastSearch if we have one ...
+    if (lastSearch)
+        [defaults setObject:lastSearch forKey:TEXTREADER_LASTSEARCH];
 
     // Save currently open book so we can reopen it later
     NSString * fileName = [textView getFileName];
@@ -304,17 +310,16 @@
 } // setDefaultStart
 
 
+
 - (void)fixButtons {
 
     struct CGSize viewSize   = [self getOrientedViewSize];
     struct CGRect sbtnRect, lbtnRect;
     
     // Position settings button 
-    // btnRect.size.width = btnRect.size.height = [UINavigationBar defaultSize].height *0.8;
     sbtnRect.size.width  = 43;
     sbtnRect.size.height = 30;
-    sbtnRect.origin.x = viewSize.width - sbtnRect.size.width - 4;
-    // sbtnRect.origin.y = navRect.size.height - 7;
+    sbtnRect.origin.x = viewSize.width - sbtnRect.size.width - 8;
     sbtnRect.origin.y = 37;
     [settingsBtn setFrame:sbtnRect];
     
@@ -339,15 +344,33 @@
         [lockBtn setImage:imgLock forState:1];
     }
                             
-    // Position lock button
-    // btnRect.origin.x -= btnRect.size.width - 4;
+    // Position bookmark button
     lbtnRect.size.width  = 45;
     lbtnRect.size.height = 30;
     lbtnRect.origin.x = sbtnRect.origin.x - lbtnRect.size.width;
-    lbtnRect.origin.y = sbtnRect.origin.y;
+    lbtnRect.origin.y = sbtnRect.origin.y;    
+    [bookmarkBtn setFrame:lbtnRect];
     
+    // Position search button
+    // lbtnRect.size.width  = 45;
+    // lbtnRect.size.height = 30;
+    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
+    // lbtnRect.origin.y = sbtnRect.origin.y;    
+    [searchBtn setFrame:lbtnRect];
+    
+    // Position lock button
+    // lbtnRect.size.width  = 45;
+    // lbtnRect.size.height = 30;
+    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
+    // lbtnRect.origin.y = sbtnRect.origin.y;    
     [lockBtn setFrame:lbtnRect];
     
+    // Position "percent" label
+    lbtnRect.size.width  = 70;
+    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
+    // lbtnRect.origin.y = sbtnRect.origin.y;    
+    [percent setFrame:lbtnRect];
+       
 } // fixButtons
 
 
@@ -393,7 +416,9 @@
 
     [textView setTextColors:&txtcolors];
 
-
+    // Get the last search string requested ...
+    lastSearch = [defaults stringForKey:TEXTREADER_LASTSEARCH];
+    
     // Open last opened file at last position
     NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
     NSString * name = [defaults stringForKey:TEXTREADER_OPENFILE];
@@ -410,6 +435,18 @@
     }
         
 } // loadDefaults
+
+
+// Set the filename as the navbar title
+- (void) setNavTitle {
+
+    // Create title label ...    
+    if ([textView getFileName])
+        [navBar setPrompt:[textView getFileName]];
+    else
+        [navBar setPrompt:TEXTREADER_NAME];
+        
+} // setNavTitle
 
 
 - (void) recreateSlider {
@@ -448,12 +485,8 @@
             [baseTextView addSubview:slider];   
         }
 
-        // Create title label ...    
-        if ([textView getFileName])
-            [navBar setPrompt:[textView getFileName]];
-        else
-            [navBar setPrompt:TEXTREADER_NAME];
-        
+        // Make sure the navbar title is the filename ...
+        [self setNavTitle];        
    }
    
 } // recreateSlider
@@ -511,6 +544,8 @@
     
         if ([textView getText] && [[textView getText] length])
         {
+            // The blanks are a simple way to force it to the left
+            // so it doesn't overlap the buttons
             pct = [NSString stringWithFormat:@"%4.2f%%", 
                      100.0 * (double)pos / (double)[[textView getText] length]];
         }
@@ -522,17 +557,44 @@
 
         // [navBar popNavigationItem];
         // [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:pct]];
-        [navItem setTitle:pct];
+        // [navItem setTitle:pct];
+        [percent setText:pct];
     }
     
 } // showPercentage
+
+
+// Gets rid of the search box ...
+- (void) endSearch {
+
+    // Kill the search box
+    if (searchBox)
+    {
+        [searchBox removeFromSuperview];
+        [searchBox release];
+    }
+    if (keyboard)
+    {
+        [keyboard removeFromSuperview];
+        [keyboard release];
+    }
+    searchBox = nil;
+    keyboard  = nil;
+    
+    // Restore the nav title ...
+    [self setNavTitle];
+    
+} // endSearch
 
 
 - (void) showView:(MyViewName)viewName
 {
     struct CGRect FSrect     = [self getOrientedViewRect];
     struct CGSize viewSize   = [self getOrientedViewSize];
-        
+          
+    // Get rid of the search stuff
+    [self endSearch];
+    
     switch (viewName)
     {
         case My_No_View:
@@ -745,11 +807,111 @@
 } // showView
 
 
+// Show the settings page
 - (void)showSettings:(UINavBarButton *)btn
 {
     if (![btn isPressed])
         [self showView:My_Prefs_View];
 }
+
+
+// Handle the search button
+- (void)showSearch:(UINavBarButton *)btn
+{
+    CGRect FSrect = [self getOrientedViewRect];
+    CGRect searchRect = CGRectMake(1., 36., FSrect.size.width-2., [UISearchField defaultHeight]);
+    
+    // Only search if we are not already searching, and there is text to search through
+    if (![btn isPressed] && !searchBox &&
+        [textView getText] && [[textView getText] length])
+    {
+        // Make a search box on the nav bar - have it cover the buttons
+        searchBox = [[UISearchField alloc] initWithFrame:searchRect];
+        [[searchBox textTraits] setEditingDelegate:self];    
+        [searchBox setDisplayEnabled: YES ];
+        [searchBox setFont: [NSClassFromString(@"WebFontCache") createFontWithFamily:@"Helvetica" traits:2 size:16]];
+        //[searchBox setPaddingTop: 6]; 
+        [searchBox setPaddingLeft: 3]; 
+        [[searchBox textTraits] setReturnKeyType:6]; // Search
+        [[searchBox textTraits] setEditingDelegate:self];
+        if (lastSearch)
+            [searchBox setText:lastSearch];
+        
+        [searchBox setClearButtonStyle:2]; 
+        [searchBox setTextCentersVertically:YES]; 
+        [searchBox setPlaceholder:_T(@"Enter your search text ...")];
+        [navBar addSubview:searchBox];         
+        
+        // Set focus to search 
+        [searchBox becomeFirstResponder];
+        
+        // Create a keyboard ... at the bottom of the page
+        keyboard = [[UIKeyboard alloc] initWithDefaultSize];
+        CGRect kbdRect = [keyboard frame];
+        kbdRect.origin.x = 0;
+        kbdRect.origin.y = FSrect.size.height-kbdRect.size.height;
+        [keyboard setFrame:kbdRect];
+        [baseTextView addSubview:keyboard];
+    }
+
+    
+} // showSearch
+
+
+// The keyboard is used for searching ...
+-(BOOL) keyboardInput:(id)k shouldInsertText:(id)i isMarkedText:(int)b {
+
+    if ([i length] == 1 && [i characterAtIndex:0] == 0xA)
+    {
+        // Save the new search string
+        if (lastSearch)
+            [lastSearch release];
+        
+        // Get the new search text
+        lastSearch = [[searchBox text] copy];
+        
+        // OK - try to find it in the current text starting at the current position ...
+        NSRange cur = {MIN((int)[textView getStart]+1, 
+                           (int)[[textView getText] length]-1), 
+                       MAX(0, 
+                           (int)[[textView getText] length] - ((int)[textView getStart] + 1))};
+                           
+        // lastSearch = [[NSString stringWithFormat:@"l=%d l=%d s=%d max=%d", cur.location, cur.length, [textView getStart], [[textView getText] length]] copy];
+        NSRange found = [[textView getText] rangeOfString:lastSearch 
+                                                  options:NSCaseInsensitiveSearch 
+                                                    range:cur];
+
+        if (found.location == NSNotFound)
+        {
+            // Set text to not found
+            [navBar setPrompt:_T(@"Search text not found ...")];
+        }
+        else
+        {
+            // Set new start position
+            [textView setStart:found.location];
+            
+            // Get rid of the search stuff
+            [self endSearch];
+            
+            // Show the user where we found the text
+            [self showView:My_Text_View];
+        }
+                    
+       return NO;
+    }
+
+    return YES;
+} // keyboardInput
+
+
+// Handle the bookmarks
+- (void)showBookmark:(UINavBarButton *)btn
+{
+    if (![btn isPressed])
+    {
+    }
+} // showBookmark
 
 
 - (void)toggleLock:(UINavBarButton *)btn
@@ -967,7 +1129,7 @@
     [navBar setDelegate: self];
     [navBar showButtonsWithLeft: _T(@"Open") right:nil leftBack: YES];
     
-    navItem = [[UINavigationItem alloc] initWithTitle:TEXTREADER_NAME];
+    navItem = [[UINavigationItem alloc] initWithTitle:nil];
     [navBar pushNavigationItem:navItem];
     [navBar setAutoresizingMask: kTopBarResizeMask];    
     [navBar setAlpha:0];
@@ -991,12 +1153,53 @@
     [settingsBtn addTarget:self action:@selector(showSettings:) forEvents: (255)];
     [navBar addSubview:settingsBtn];
 
+    // Add bookmarks button
+    bookmarkBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
+    [bookmarkBtn setAutosizesToFit:NO];
+    image = [ [ UIImage alloc ] 
+          initWithContentsOfFile: [ [ NSString alloc ] 
+          initWithFormat: @"/Applications/%@.app/bookmark_up.png", 
+                          TEXTREADER_NAME ] ];
+    [bookmarkBtn setImage:image forState:0];
+    image = [ [ UIImage alloc ] 
+          initWithContentsOfFile: [ [ NSString alloc ] 
+          initWithFormat: @"/Applications/%@.app/bookmark_dn.png", 
+                          TEXTREADER_NAME ] ];
+    [bookmarkBtn setImage:image forState:1];
+    [bookmarkBtn setDrawContentsCentered:YES];
+    [bookmarkBtn addTarget:self action:@selector(showBookmark:) forEvents: (255)];
+    [navBar addSubview:bookmarkBtn];
+
+    // Add search button
+    searchBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
+    [searchBtn setAutosizesToFit:NO];
+    image = [ [ UIImage alloc ] 
+          initWithContentsOfFile: [ [ NSString alloc ] 
+          initWithFormat: @"/Applications/%@.app/search_up.png", 
+                          TEXTREADER_NAME ] ];
+    [searchBtn setImage:image forState:0];
+    image = [ [ UIImage alloc ] 
+          initWithContentsOfFile: [ [ NSString alloc ] 
+          initWithFormat: @"/Applications/%@.app/search_dn.png", 
+                          TEXTREADER_NAME ] ];
+    [searchBtn setImage:image forState:1];
+    [searchBtn setDrawContentsCentered:YES];
+    [searchBtn addTarget:self action:@selector(showSearch:) forEvents: (255)];
+    [navBar addSubview:searchBtn];
+
     // Add lock button
     lockBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
     [lockBtn setAutosizesToFit:NO];
     [lockBtn setDrawContentsCentered:YES];
     [lockBtn addTarget:self action:@selector(toggleLock:) forEvents: (255)];
     [navBar addSubview:lockBtn];
+
+    // Add "percent" label w/ transparent background
+    percent = [[UITextLabel alloc] initWithFrame:navBarRect];
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    float backParts[4] = {0, 0, 0, 0};
+    [percent setBackgroundColor: CGColorCreate(colorSpace, backParts)];
+    [navBar addSubview:percent];
 
     [self fixButtons];
     
@@ -1063,7 +1266,7 @@
 - (void) setUIOrientation: (int) o_code {
 
     // Don't rotate while we have an OK dialog up ...
-    if (okDialog)
+    if (okDialog || searchBox)
         return;
 
     [super setUIOrientation: o_code];
@@ -1453,6 +1656,7 @@
     }
     
     return (enc && *enc) ? *enc : kCGEncodingMacRoman;
+    
 } // encodingFromString
 
 

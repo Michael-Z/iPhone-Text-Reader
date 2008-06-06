@@ -80,6 +80,8 @@
 #define TEXTREADER_OPENFILE         @"OpenFileName"
 #define TEXTREADER_OPENPATH         @"OpenFilePath"
 
+#define TEXTREADER_LASTSEARCH       @"lastSearch"
+
 #define TEXTREADER_TEXTRED          @"textRed"
 #define TEXTREADER_TEXTGREEN        @"textGreen"
 #define TEXTREADER_TEXTBLUE         @"textBlue"
@@ -160,6 +162,13 @@ typedef enum _ScrollDir {
     UINavigationItem        *navItem;
     UINavBarButton          *settingsBtn;
     UINavBarButton          *lockBtn;
+    UINavBarButton          *searchBtn;
+    UINavBarButton          *bookmarkBtn;
+    UITextLabel             *percent;
+
+    UISearchField           *searchBox;
+    UIKeyboard              *keyboard;
+    NSString                *lastSearch;
 
     UISliderControl         *slider;
 
