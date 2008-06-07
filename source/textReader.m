@@ -64,7 +64,7 @@
     searchBtn           = nil;
     searchBox           = nil;
     lastSearch          = nil;
-    bookmarkBtn         = nil;
+    // bookmarkBtn         = nil;
     okDialog            = nil;
     currentView         = My_No_View;
     mouseDown           = CGPointMake(-1,-1);
@@ -349,12 +349,12 @@
     lbtnRect.size.height = 30;
     lbtnRect.origin.x = sbtnRect.origin.x - lbtnRect.size.width;
     lbtnRect.origin.y = sbtnRect.origin.y;    
-    [bookmarkBtn setFrame:lbtnRect];
+//     [bookmarkBtn setFrame:lbtnRect];
     
     // Position search button
     // lbtnRect.size.width  = 45;
     // lbtnRect.size.height = 30;
-    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
+//     lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
     // lbtnRect.origin.y = sbtnRect.origin.y;    
     [searchBtn setFrame:lbtnRect];
     
@@ -1153,22 +1153,22 @@
     [settingsBtn addTarget:self action:@selector(showSettings:) forEvents: (255)];
     [navBar addSubview:settingsBtn];
 
-    // Add bookmarks button
-    bookmarkBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
-    [bookmarkBtn setAutosizesToFit:NO];
-    image = [ [ UIImage alloc ] 
-          initWithContentsOfFile: [ [ NSString alloc ] 
-          initWithFormat: @"/Applications/%@.app/bookmark_up.png", 
-                          TEXTREADER_NAME ] ];
-    [bookmarkBtn setImage:image forState:0];
-    image = [ [ UIImage alloc ] 
-          initWithContentsOfFile: [ [ NSString alloc ] 
-          initWithFormat: @"/Applications/%@.app/bookmark_dn.png", 
-                          TEXTREADER_NAME ] ];
-    [bookmarkBtn setImage:image forState:1];
-    [bookmarkBtn setDrawContentsCentered:YES];
-    [bookmarkBtn addTarget:self action:@selector(showBookmark:) forEvents: (255)];
-    [navBar addSubview:bookmarkBtn];
+//     // Add bookmarks button
+//     bookmarkBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
+//     [bookmarkBtn setAutosizesToFit:NO];
+//     image = [ [ UIImage alloc ] 
+//           initWithContentsOfFile: [ [ NSString alloc ] 
+//           initWithFormat: @"/Applications/%@.app/bookmark_up.png", 
+//                           TEXTREADER_NAME ] ];
+//     [bookmarkBtn setImage:image forState:0];
+//     image = [ [ UIImage alloc ] 
+//           initWithContentsOfFile: [ [ NSString alloc ] 
+//           initWithFormat: @"/Applications/%@.app/bookmark_dn.png", 
+//                           TEXTREADER_NAME ] ];
+//     [bookmarkBtn setImage:image forState:1];
+//     [bookmarkBtn setDrawContentsCentered:YES];
+//     [bookmarkBtn addTarget:self action:@selector(showBookmark:) forEvents: (255)];
+//     [navBar addSubview:bookmarkBtn];
 
     // Add search button
     searchBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];

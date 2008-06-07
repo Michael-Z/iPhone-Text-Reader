@@ -48,7 +48,7 @@
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8Beta8"
+#define TEXTREADER_VERSION          @"0.8"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
