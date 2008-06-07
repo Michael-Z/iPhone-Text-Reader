@@ -76,7 +76,6 @@
 	<string>则将尝试使用URL中的文件名及扩展名</string>
 	<key>Filename</key>
 	<string>文件名</string>
-
     <key>The format of</key>
     <string> </string>
     <key>is</key>
@@ -85,10 +84,8 @@
     <string>只能打开未加密的Mobipocket, Plucker, Palm Doc PDB 文件</string>
     <key>Sorry ...</key>
     <string>抱歉 ...</string>
-
 	<key>Unable to Open PDB File!</key>
 	<string>不能找开 PDB 文件!</string>
-
     <key>Unable to open file</key>
     <string>不能打开</string>
     <key>in directory</key>
@@ -99,7 +96,6 @@
     <string>请确认目录及文件是否存在,读取权限是否开放及文件不否确实为</string>
     <key>encoding.</key>
     <string>编码</string>
-
 	<key>Error opening file</key>
 	<string>打开文件时出错</string>
 	<key>Unable to create font %@</key>
@@ -132,12 +128,10 @@
 	<string>平滑滚动</string>
 	<key>Repeat Previous Line</key>
 	<string>重复前一行</string>
-
     <key>Version</key>
     <string>版本</string>
     <key>Written by Jim Beesley</key>
     <string>由Jim Beesley所创作</string>
-
 	<key>About %@</key>
 	<string>关于 %@</string>
 	<key>Loading ...</key>
@@ -158,14 +152,31 @@
 	<string>打开文本文件</string>
 	<key>Unable to open file!</key>
 	<string>不能打开文件</string>
-
     <key>Unable to delete file</key>
     <string>不能删除文件</string>
     <key>Please make sure both the directory and file exist and have write permissions set.</key>
     <string>请确认文件及目录是否存在及擦写权限是否设置.</string>
-
 	<key>Error deleting file</key>
 	<string>删除文件出错</string>	
+
+
+
+	<key>Volume Button Scroll</key>
+	<string>Volume Button Scroll</string>
+	<key>Line</key>
+	<string>Line</string>
+	<key>Off</key>
+	<string>Off</string>
+	<key>Page</key>
+	<string>Page</string>
+
+
+	<key>Enter your search text ...</key>
+	<string>Enter your search text ...</string>	
+	<key>Search text not found ...</key>
+	<string>Search text not found ...</string>
+
+
 
 </dict>
 </plist>
