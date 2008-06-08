@@ -121,13 +121,13 @@
     <key>Pad Margins</key>
     <string>Отступы</string>
     <key>Ignore Single LF</key>
-    <string>Игнорировать одиночный параграф</string>
+    <string>Игнорировать ВК</string>
     <key>Reverse Tap Zones</key>
     <string>Обратные Тап Зоны</string>
     <key>Smooth Scroll</key>
     <string>Мягкая прокрутка</string>
     <key>Repeat Previous Line</key>
-    <string>Повтор последн. линии</string>
+    <string>Повтор строки</string>
     <key>Version</key>
     <string>Версия</string>
     <key>Written by Jim Beesley</key>
@@ -157,24 +157,24 @@
     <key>Please make sure both the directory and file exist and have write permissions set.</key>
     <string>Пожалуйста убедитесь что каталог и файл существуют и атрибуты файла на запись установленны.</string>
     <key>Error deleting file</key>
-    <string>Нихрена не удаляется :(</string>
+    <string>Нихрена не удаляется</string>
 
 
 
 	<key>Volume Button Scroll</key>
-	<string>Volume Button Scroll</string>
+	<string>Прокрутка кнопкой громкости</string>
 	<key>Line</key>
-	<string>Line</string>
+	<string>Строка</string>
 	<key>Off</key>
-	<string>Off</string>
+	<string>Выкл</string>
 	<key>Page</key>
-	<string>Page</string>
+	<string>Страница</string>
 
 
 	<key>Enter your search text ...</key>
-	<string>Enter your search text ...</string>	
+	<string>Введите слово для поиска ...</string>	
 	<key>Search text not found ...</key>
-	<string>Search text not found ...</string>
+	<string>Search А вот и нету! ...</string>
 
 
 
