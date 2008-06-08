@@ -416,8 +416,8 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             switch (row) {
                 case (0):
                     {    
-                        // volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
-                        volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
+                        // volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
+                        volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
                         [volumeScroll setTextReader:trApp];
                         [volumeScroll insertSegment:0 withTitle:_T(@"Off")  animated:NO];
                         [volumeScroll insertSegment:1 withTitle:_T(@"Line") animated:NO];

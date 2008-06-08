@@ -284,16 +284,16 @@
 
     // Save currently open book so we can reopen it later
     NSString * fileName = [textView getFileName];
-    if (fileName)
-    {
-        NSString * filePath = [textView getFilePath];
-        if (!filePath)
-            filePath = TEXTREADER_DEF_PATH;
-            
-        [defaults setObject:fileName forKey:TEXTREADER_OPENFILE];
-        [defaults setObject:filePath forKey:TEXTREADER_OPENPATH];
-        [self setDefaultStart:fileName start:[textView getStart]];
-    }
+    if (!fileName)
+        fileName = @"";
+
+    NSString * filePath = [textView getFilePath];
+    if (!filePath)
+        filePath = TEXTREADER_DEF_PATH;
+
+    [defaults setObject:fileName forKey:TEXTREADER_OPENFILE];
+    [defaults setObject:filePath forKey:TEXTREADER_OPENPATH];
+    [self setDefaultStart:fileName start:[textView getStart]];
         
 } // applicationWillSuspend
 
@@ -422,7 +422,7 @@
     // Open last opened file at last position
     NSString * path = [defaults stringForKey:TEXTREADER_OPENPATH];
     NSString * name = [defaults stringForKey:TEXTREADER_OPENFILE];
-    if (name)
+    if (name && [name length])
         [self openFile:name path:path];
         // Leave wait up - openfile will clear it when done
     else
