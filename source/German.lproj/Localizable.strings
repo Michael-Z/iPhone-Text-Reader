@@ -81,7 +81,7 @@
     <key>is</key>
     <string>is</string>
     <key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
-    <string>kann nur unverschlüsselte Mobipocket, Plucker, und Palm Doc PDB Dateien öffnen.</string>
+    <string>kann nur unverschlüsselte Mobipocket-, Plucker-, und Palm Doc PDB-Dateien öffnen.</string>
     <key>Sorry ...</key>
     <string>Sorry ...</string>
     <key>Unable to Open PDB File!</key>
@@ -158,25 +158,19 @@
     <string>Bitte stellen Sie sicher, dass sowohl das Verzeichnis als auch die Datei Schreibrechte haben.</string>
     <key>Error deleting file</key>
     <string>Fehler beim Löschen der Datei</string>
-
-
-
-	<key>Volume Button Scroll</key>
-	<string>Volume Button Scroll</string>
-	<key>Line</key>
-	<string>Line</string>
-	<key>Off</key>
-	<string>Off</string>
-	<key>Page</key>
-	<string>Page</string>
-
-
-	<key>Enter your search text ...</key>
-	<string>Enter your search text ...</string>	
-	<key>Search text not found ...</key>
-	<string>Search text not found ...</string>
-
-
-
+    
+    <key>Volume Button Scroll</key>
+    <string>Lautstärkeknopf Vorschub</string>
+    <key>Line</key>
+    <string>Zeile</string>
+    <key>Off</key>
+    <string>Aus</string>
+    <key>Page</key>
+    <string>Seite</string>
+    
+    <key>Enter your search text ...</key>
+    <string>Suchtext eingeben ...</string>	
+    <key>Search text not found ...</key>
+    <string>Suchtext nicht gefunden ...</string>
 </dict>
 </plist>
