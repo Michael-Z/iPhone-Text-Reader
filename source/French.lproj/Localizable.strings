@@ -93,7 +93,7 @@
     <key>.dir_suffix</key>
     <string>.</string>
     <key>Please make sure the directory and file exist, the read permissions are set, and the file is really in</key>
-    <string>Assurez-vous que le dossier et le fichier existent, que les permissions en lectures soient positionnées, et que le fichier qoit encodé en</string>
+    <string>Assurez-vous que le dossier et le fichier existent, que les permissions en lectures sont positionnées, et que le fichier est vraiment en</string>
     <key>encoding.</key>
     <string>.</string>
     <key>Error opening file</key>
@@ -131,7 +131,7 @@
     <key>Version</key>
     <string>Version</string>
     <key>Written by Jim Beesley</key>
-    <string>Nécrit par Jim Beesley</string>
+    <string>Écrit par Jim Beesley</string>
     <key>About %@</key>
     <string>A propos de %@</string>
     <key>Loading ...</key>
@@ -162,19 +162,19 @@
 
 
 	<key>Volume Button Scroll</key>
-	<string>Volume Button Scroll</string>
+	<string>Tourner les pages avec le volume</string>
 	<key>Line</key>
-	<string>Line</string>
+	<string>Ligne</string>
 	<key>Off</key>
-	<string>Off</string>
+	<string>Eteint</string>
 	<key>Page</key>
 	<string>Page</string>
 
 
 	<key>Enter your search text ...</key>
-	<string>Enter your search text ...</string>	
+	<string>Entrez le texte recherché ...</string>	
 	<key>Search text not found ...</key>
-	<string>Search text not found ...</string>
+	<string>Texte recherché non trouvé ...</string>
 
 
 
