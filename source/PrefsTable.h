@@ -42,7 +42,7 @@
 
 // These are the MAX values - preferencesTable controls the actual number
 #define NUM_GROUPS      5
-#define CELLS_PER_GROUP 4
+#define CELLS_PER_GROUP 5
 
 
 
@@ -52,10 +52,11 @@
 
 
 typedef enum _PickerType {
-    kPicker_Type_None     = 0,
-    kPicker_Type_Font     = 1,
-    kPicker_Type_FontSize = 2,
-    kPicker_Type_Encoding = 3
+    kPicker_Type_None           = 0,
+    kPicker_Type_Font           = 1,
+    kPicker_Type_FontSize       = 2,
+    kPicker_Type_Encoding       = 3,
+    kPicker_Type_TextAlignment  = 4
 } PickerType;
 
 // **********************************************************************
@@ -94,7 +95,6 @@ typedef enum _PickerType {
 
 
 
-
 // **********************************************************************
 // Class for Preferences Page
 @interface MyPreferencesTable : UIPreferencesTable
@@ -118,6 +118,7 @@ typedef enum _PickerType {
     UIPreferencesTableCell *fontSizeCell;
     UIPreferencesTableCell *encodingCell;
     UIPreferencesTableCell *colorsCell;
+    UIPreferencesTableCell *textAlignmentCell;
 
     MySegControl           *volumeScroll;
 

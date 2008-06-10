@@ -264,6 +264,8 @@
 
     [defaults setInteger:[textView getRepeatLine] forKey:TEXTREADER_REPEATLINE];
 
+    [defaults setInteger:[textView getTextAlignment] forKey:TEXTREADER_TEXTALIGNMENT];
+
     [defaults setObject:[textView getFont] forKey:TEXTREADER_FONT];
 
     [defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
@@ -390,6 +392,8 @@
     [textView setPadMargins:[defaults integerForKey:TEXTREADER_PADMARGINS]];
 
     [textView setRepeatLine:[defaults integerForKey:TEXTREADER_REPEATLINE]];
+
+    [textView setTextAlignment:[defaults integerForKey:TEXTREADER_TEXTALIGNMENT]];
 
     // Restore font prefs
     int fontSize = [defaults integerForKey:TEXTREADER_FONTSIZE];

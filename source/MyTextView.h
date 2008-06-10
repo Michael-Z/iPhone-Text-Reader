@@ -43,6 +43,7 @@
 int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 
+
 // This is the number of scroll positions above and below the "current" location on the slider
 // We have to use an arbitrary value because we don't know how many lines are in a file,
 // and it can change due to formatting, font changes, screen rotations, etc.
@@ -56,6 +57,25 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 #define TEXTREADER_MPAD             10
 
 #define MAX_LAYOUTS                128
+
+
+// This represents information about the layout of a single line
+typedef struct _TextLayout {
+    // Range of characters in "text" for this line
+    NSRange range;
+
+    // Used for center and right aligned text
+    // Width of the line when drawn with the current font
+    int     width;
+
+    // Used for Justified aligned text
+    // number of pixels for each blank block
+    int blank_per_block;
+
+    // Number of "extra" blank pixels that need to be consumed
+    int blank_slop;
+
+} TextLayout;
 
 
 @class textReader;
@@ -78,14 +98,14 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
     bool              ignoreSingleLF;
     bool              padMargins;
     bool              repeatLine;
+    AlignText         textAlignment;
 
     NSString         *filePath;
     NSString         *fileName;
 
 
     // Used while drawing text
-    NSRange          *layout;               // Character start/len for current lines
-    NSRange           layoutbuf[MAX_LAYOUTS];  // Buffer for layout
+    TextLayout        layout[MAX_LAYOUTS];
     int               cLayouts;             // Number of lines laid out in layout
     int               cDisplay;             // Max number of lines to actually display
                                             // (should always be <= cLayouts)
@@ -113,6 +133,8 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 - (bool) getPadMargins;
 - (void) setRepeatLine:(bool)repeat;
 - (bool) getRepeatLine;
+- (void) setTextAlignment:(AlignText)ta;
+- (AlignText) getTextAlignment;
 
 - (void) closeCurrentFile;
 - (bool)              openFile:(NSString *)name path:(NSString *)path;

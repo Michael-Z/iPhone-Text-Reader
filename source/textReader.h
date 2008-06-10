@@ -42,13 +42,20 @@
 #import <UIkit/UIProgressIndicator.h>
 #import <Celestial/AVSystemController.h>
 
+// Missing Prototypes ...
+struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float ptsize);
+// bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
+// extern CGFontRef CGContextGetFont(CGContextRef);
+// extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
+
+
 
 #import "UIOrientingApplication.h"
 
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.8"
+#define TEXTREADER_VERSION          @"0.9Beta1"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -67,6 +74,7 @@
 #define TEXTREADER_REPEATLINE       @"repeatLine"
 #define TEXTREADER_REVERSETAP       @"reverseTap"
 #define TEXTREADER_SWIPE            @"swipeOK"
+#define TEXTREADER_TEXTALIGNMENT    @"textAlignment"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -148,6 +156,13 @@ typedef enum _ScrollDir {
     Line_Up,
     Line_Down
 } ScrollDir;
+
+typedef enum _AlignText {
+    Align_Left      = 0,
+    Align_Center    = 1,
+    Align_Right     = 2,
+    Align_Justified = 3
+} AlignText;
 
 
 @interface textReader : UIOrientingApplication {

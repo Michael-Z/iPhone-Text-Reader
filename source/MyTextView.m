@@ -31,6 +31,8 @@
 #import "MyTextView.h"
 
 #import <UIKit/UIKit.h>
+//#import <UIKit/UIStringDrawing.h>
+
 
 // NOTE: This adds about 16K to the program!
 // JIMB BUG BUG - look into a better way to "band" the conversion data
@@ -55,9 +57,7 @@ typedef unsigned int NSUInteger;
 };
 
 -(id) initWithFrame:(CGRect)rect {
-    
-    layout = &layoutbuf[16];
-    
+       
     text       = nil;
     
     screenLock = [[NSLock alloc] init];
@@ -66,6 +66,7 @@ typedef unsigned int NSUInteger;
     ignoreSingleLF = false;
     padMargins     = false;
     repeatLine     = false;
+    textAlignment  = Align_Left;
     
     [self setTextColors:nil];
     
@@ -131,6 +132,20 @@ typedef unsigned int NSUInteger;
 - (NSMutableString *) getText  { return text; }
 - (NSString*) getFileName { return fileName; }
 - (NSString*) getFilePath { return filePath; }
+
+
+- (void) setTextAlignment:(AlignText)ta
+{
+    textAlignment = ta;
+    [self setNeedsDisplay];
+} // setTextAlignment
+
+
+- (AlignText) getTextAlignment
+{
+    return textAlignment;
+} // getTextAlignment
+
 
 
 - (int) getStart { 
@@ -408,6 +423,19 @@ typedef unsigned int NSUInteger;
 } // getFwdBlock
 
 
+static void initLayout(TextLayout * txtLayout, int start, int length)
+{
+    memset(txtLayout, 0x00, sizeof(*txtLayout));
+    
+    txtLayout->range.location = start;
+    txtLayout->range.length   = length;
+
+    txtLayout->width = -1;
+    txtLayout->blank_per_block = -1;
+    txtLayout->blank_slop = -1;
+    
+} // initLayout
+
 
 // Inputs:
 // lines - # of lines to be laid out in layouts
@@ -416,7 +444,7 @@ typedef unsigned int NSUInteger;
 // Returns:
 // Number of lines laid out
 // This routine lays out each line going forward begining at start
-- (int) doFwdLayout:(int)lines layouts:(NSRange *)layouts start:(int)start
+- (int) doFwdLayout:(int)lines layouts:(TextLayout *)layouts start:(int)start
 {
     int found = 0;
     
@@ -442,8 +470,7 @@ typedef unsigned int NSUInteger;
             break; // for each line
         
         // Remember the starting point for this line
-        layouts[line].location = start;
-        layouts[line].length   = 0;
+        initLayout(&layouts[line], start, 0);
         
         // Gather up the chunks that make up this line
         // NOTE: This could probably just be while(true) ?!?!?!?
@@ -464,53 +491,45 @@ typedef unsigned int NSUInteger;
                 if ([self isCRLF:block.location])
                 {
                     // This CR/LF ends the line
-                    layouts[line].length = block.location + block.length - layouts[line].location;
+                    layouts[line].range.length = block.location + block.length 
+                                                 - layouts[line].range.location;
                     
                     // Move the start past the CR/LF
                     start = block.location + block.length;
                     break; // while this line
                 }
                 
-                // ?????????
                 // If this is all blanks and the start of a line, ignore it
-                if (!layouts[line].length && [self isBlank:block.location])
+                if (!layouts[line].range.length && [self isBlank:block.location])
                 {
                     // Skip this ...
                     start = block.location + block.length;
                     continue;
                 }
-                // ?????????
                 
                 // Figure out how large this block is
-                NSRange linerange = {layouts[line].location, block.length + block.location - layouts[line].location};
+                NSRange linerange = {layouts[line].range.location, 
+                                     block.length + block.location - layouts[line].range.location};
                 NSString * x = [text substringWithRange:linerange];
                 lineused = [x sizeWithFont:gsFont];
 
                 // Does this block carry us over?
                 if (lineused.width > width)
                 {
-                    // ?????????
                     // If this block would fit in it's own line, we'll end this line
                     NSString * x = [text substringWithRange:block];
                     CGSize blockused = [x sizeWithFont:gsFont];
                     if (blockused.width <= width)
                         break;
-                    // ?????????
                 
-                    // ?????????
-                    // // Split blocks *ALWAYS* start on their own line!
-                    // // If something else is on this line, end this one and go to the next
-                    // if (layouts[line].length)
-                    //     break; // while this line
-                    // ?????????
-                    
                     // Figure out how much of this block will fit on this line
-                    int maxlen = block.location + block.length - layouts[line].location;
-                    for (layouts[line].length = 0; 
-                         (int)layouts[line].length < maxlen;
-                         layouts[line].length++)
+                    int maxlen = block.location + block.length - layouts[line].range.location;
+                    for (layouts[line].range.length = 0; 
+                         (int)layouts[line].range.length < maxlen;
+                         layouts[line].range.length++)
                     {
-                        NSRange linerange = {layouts[line].location, layouts[line].length+1};
+                        NSRange linerange = {layouts[line].range.location, 
+                                             layouts[line].range.length+1};
                         NSString * x = [text substringWithRange:linerange];
                         lineused = [x sizeWithFont:gsFont];
                         
@@ -520,15 +539,15 @@ typedef unsigned int NSUInteger;
                     } // for each proposed character in the line
                     
                     // Put the rest of the block on the next line ...
-                    start = layouts[line].location + layouts[line].length;
-                    
+                    start = layouts[line].range.location + layouts[line].range.length;
                     break; // while this line
                     
                 }
                 else
                 {
                     // Room for this and more ... add this and keep going
-                    layouts[line].length = block.location + block.length - layouts[line].location;
+                    layouts[line].range.length = block.location + block.length 
+                                                 - layouts[line].range.location;
                     start = block.location + block.length;
                     continue; // while this line
                 }
@@ -549,20 +568,28 @@ typedef unsigned int NSUInteger;
 
 // Makes sure the subblock of layout is sync'd with "end"
 // i.e. none of the lines in layout extend past end or include it
-int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
+int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 {
     int line;
     
     // Tidy up the lines - make sure that they end before "end"
     for (line = 0; line < foundLines; line++)
     {
-        if (end < (int)layoutTop[line].location)
+        if (end < (int)layoutTop[line].range.location)
             break;
                        
         // Make sure an individual line doesn't include "end"
-        if (end < (int)layoutTop[line].location + (int)layoutTop[line].length - 1)
+        if (end < (int)layoutTop[line].range.location + 
+                  (int)layoutTop[line].range.length - 1)
         {
-             layoutTop[line].length = MAX(0, (end - (int)layoutTop[line].location) + 1);
+             layoutTop[line].range.length = MAX(0, (end - (int)layoutTop[line].range.location) + 1);
+             
+            // If we adjust a layout we need to set it's width to -1 
+            // so we know we need to recalculate it
+            layoutTop[line].width = -1;
+            initLayout(&layoutTop[line], 
+                       layoutTop[line].range.location, 
+                       layoutTop[line].range.length);
         }
                 
     } // for tidy up lines
@@ -606,9 +633,8 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 // We do this by finding a candidate point to begin a line, and then
 // we lay out the line - repeating as needed
 // 
-- (int) doRevLayout:(int)lines layouts:(NSRange *)layouts end:(int)end
+- (int) doRevLayout:(int)lines layouts:(TextLayout *)layouts end:(int)end
 {
-
     // Can't do layout before the start of the text ...
     if (!lines || end < 0 || ![text length])
         return 0;
@@ -618,7 +644,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         end = (int)[text length]-1;
         
     // OK - we need to lay out some lines ...
-    NSRange * layoutTop = layouts - (lines - 1);
+    TextLayout * layoutTop = layouts - (lines - 1);
 
     // Find a candidate begin point
     // A CR/LF will end the previous line, so stop before it
@@ -648,15 +674,17 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         // If it is past end we are done
         // Otherwise, move the layout "up" one to make room, copy the new one into the bottom,
         // and try again until we get the line just before "end"
-        while ((int)layouts[0].location + (int)layouts[0].length < (int)[text length] && // JIMB BUG BUG - not really needed!!!
-               (int)layouts[0].location + (int)layouts[0].length + 1 < end)
+        while ((int)layouts[0].range.location + (int)layouts[0].range.length < (int)[text length] && // JIMB BUG BUG - not really needed!!!
+               (int)layouts[0].range.location + (int)layouts[0].range.length + 1 < end)
         {
-            NSRange nextLayout = {0};
+            TextLayout nextLayout;
+            
+            initLayout(&nextLayout, 0, 0); // not calculated yet!
             
             foundLines  = [self 
                            doFwdLayout:1          // lines needed
                              layouts:&nextLayout  // where to put new lines
-                               start:layouts[0].location + layouts[0].length];
+                               start:layouts[0].range.location + layouts[0].range.length];
                                
             // Tidy up the lines - make sure that they end before "end"
             foundLines = tidyRevLayout(&nextLayout, foundLines, end);
@@ -700,7 +728,6 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     return 0;
 
 } // doRevLayout
-
 
 
 // Fills in the layout array based on cStart
@@ -748,8 +775,8 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         foundLines += [self 
                        doFwdLayout:lines-foundLines    // lines needed
                          layouts:&layout[foundLines]   // where to put new lines
-                           start:(int)layout[foundLines-1].location +  // character to start new layout
-                                 (int)layout[foundLines-1].length];
+                           start:(int)layout[foundLines-1].range.location +  // character to start new layout
+                                 (int)layout[foundLines-1].range.length];
     }
         
     // Maybe we are going up, and a piece of the tail end of what we want is 
@@ -764,7 +791,7 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
         foundLines += [self 
                        doRevLayout:lines-foundLines      // lines needed
                            layouts:&layout[lines-(foundLines+1)]   // where to put new lines (reverse order!!!)
-                               end:(int)layout[lines-foundLines].location-1];  // character to start new layout
+                               end:(int)layout[lines-foundLines].range.location-1];  // character to start new layout
                                    
         if (foundLines < lines)
         {
@@ -776,8 +803,8 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
             foundLines += [self 
                            doFwdLayout:lines-foundLines    // lines needed
                              layouts:&layout[foundLines]   // where to put new lines
-                               start:(int)layout[foundLines-1].location +  // character to start new layout
-                                     (int)layout[foundLines-1].length];
+                               start:(int)layout[foundLines-1].range.location +  // character to start new layout
+                                     (int)layout[foundLines-1].range.length];
         }
     }
     
@@ -800,8 +827,8 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
             memmove(&layout[0], &layout[lines-foundLines], sizeof(*layout)*foundLines);
     
             if (foundLines)
-                start = (int)layout[foundLines-1].location +
-                        (int)layout[foundLines-1].length;
+                start = (int)layout[foundLines-1].range.location +
+                        (int)layout[foundLines-1].range.length;
             else
                 start = cStart;
 
@@ -832,15 +859,15 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
     cDisplay = cLayouts;
 
     if (cLayouts)
-        cStart = MAX(0, MIN((int)layout[0].location, (int)[text length]-1));
+        cStart = MAX(0, MIN((int)layout[0].range.location, (int)[text length]-1));
     
     lStart += deltaLine;
 
     
     // Eliminate delta if we are at the top or bottom ...
     if (!cLayouts ||
-        layout[0].location == 0 ||
-        (int)layout[0].location+(int)layout[0].length >= (int)[text length]-1)
+        layout[0].range.location == 0 ||
+        (int)layout[0].range.location + (int)layout[0].range.length >= (int)[text length]-1)
         yDelta = 0;
         
     // Special case page scroll - align text at the top 
@@ -989,11 +1016,141 @@ int tidyRevLayout(NSRange * layoutTop, int foundLines, int end)
 } // getLineHeight
 
 
-// Missing Prototypes ...
-struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float ptsize);
-// bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
-// extern CGFontRef CGContextGetFont(CGContextRef);
-// extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
+// Figure out how wide this line of text actually is ...
+- (int) calcWidth:(NSString *)x {
+
+    CGSize lineused = [x sizeWithFont:gsFont];
+    
+    return lineused.width;
+    
+} // calcWidth
+
+
+// Draw string x justified starting at pt with layout 
+- (void) drawJustified:(TextLayout *)txtLayout at:(CGPoint)pt
+{
+    CGSize  viewSize   = [trApp getOrientedViewSize];
+
+    // Strip leading and trailing blanks
+    while (txtLayout->range.length && [self isBlank:txtLayout->range.location])
+    {
+        txtLayout->range.location++;
+        txtLayout->range.length--;
+    }
+    while (txtLayout->range.length && 
+           [self isBlank:txtLayout->range.location+txtLayout->range.length-1])
+        txtLayout->range.length--;
+    
+    NSString * x = [text substringWithRange:txtLayout->range];
+    
+    NSRange block;
+    
+    if (txtLayout->width < 0)
+        txtLayout->width = [self calcWidth:x];
+
+    // Nothing to do for completely blank lines ...
+    if (!txtLayout->range.length)
+        return;
+    
+    // If this line ends with a 0x0a, left align it
+    if ([self isCRLF:txtLayout->range.location + txtLayout->range.length - 1])
+    {   
+        [x drawAtPoint:pt withFont:gsFont];
+        return;
+    }
+
+    // OK - we have to do it the hard way ...
+    
+    // Loop through the blocks in the text twice
+    
+    // The first time we count the number of blank blocks, and
+    // add up the width of all of the non-blank blocks
+    // (ignore CRLF blocks!)
+    
+    // NOTE: only do this once, and then cache the results ...
+    if (txtLayout->blank_per_block < 0)
+    {
+        int txt_width = 0;
+        int blank_blocks = 0;
+        for (block = txtLayout->range;         
+             block.location < txtLayout->range.location + txtLayout->range.length &&
+             [self getFwdBlock:&block from:block.location];
+             block.location = block.location + block.length)
+        {
+            // Ignore CRLF characters
+            if (![self isCRLF:block.location]) 
+            {
+                if ([self isBlank:block.location])
+                    blank_blocks++;
+                else
+                {
+                    NSString * x = [text substringWithRange:block];
+                    CGSize used = [x sizeWithFont:gsFont];
+                    txt_width += used.width;
+                }
+            }
+
+        } // for each block in txtLayout
+
+        // If no text found, all done
+        if (!txt_width)
+            return;
+
+        // If no blanks were found, we will do a left justify
+        if (!blank_blocks)
+        {
+            [x drawAtPoint:pt withFont:gsFont];
+            return;
+        }
+
+        // Calc the blank offset for each blank block
+        // (remember to keep track of partial blank pixels
+        int blank_width = viewSize.width - (padMargins ? TEXTREADER_MPAD * 2 : 0);
+        blank_width -= txt_width;
+        
+        if (blank_width < 0)
+            blank_width = 0;
+            
+        txtLayout->blank_per_block = blank_width / blank_blocks;
+        txtLayout->blank_slop = blank_width % blank_blocks;   
+    }
+    
+    // Make local copy of blank_slop so we can modify it as we consume blank space
+    int blank_slop = txtLayout->blank_slop;
+    
+   
+    // Loop through the blocks again and draw the text
+    for (block = txtLayout->range;
+         block.location < txtLayout->range.location + txtLayout->range.length &&
+         [self getFwdBlock:&block from:block.location];
+         block.location = block.location + block.length)
+    {
+        // Ignore CRLF characters
+        if (![self isCRLF:block.location]) 
+        {
+            if ([self isBlank:block.location])
+            {
+                // Move the offset for blank space ...
+                pt.x += txtLayout->blank_per_block;
+                if (blank_slop)
+                {
+                    pt.x++;
+                    blank_slop--;
+                }
+            }
+            else
+            {
+                // Draw this block of text at the indicated spot
+                NSString * x = [text substringWithRange:block];
+                CGSize used = [x drawAtPoint:pt withFont:gsFont];
+                pt.x += used.width;
+            }
+        }
+        
+    } // for each block in txtLayout
+
+} // drawJustified
+
 
 
 - (void)drawRect:(struct CGRect)rect
@@ -1001,7 +1158,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     CGSize       viewSize   = [trApp getOrientedViewSize];
     CGContextRef context    = UICurrentContext();
     int          lineHeight = [self getLineHeight]; 
-    CGRect lineRect;
+    CGRect       lineRect;
     
     // No text means nothing to do ...
     if (!text || ![text length] || !trApp || !gsFont)
@@ -1022,8 +1179,8 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
     lineRect = CGRectMake(0, rect.origin.y, viewSize.width, lineHeight);
     [self fillBkgGroundRect:context rect:lineRect];
 
-    // // Figure out where we draw the text
-    // // This allows us to scroll partial lines
+    // Figure out where we draw the text
+    // This allows us to scroll partial lines
         
     int yStart = rect.origin.y - yDelta;
     int yEnd   = yStart + rect.size.height;
@@ -1039,15 +1196,54 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
         [self fillBkgGroundRect:context rect:lineRect];
         
         // Nothing else to do if there is no text on this line
-        if (line >= cDisplay || layout[line].location >= [text length])
+        if (line >= cDisplay || layout[line].range.location >= [text length])
            continue;
-
+           
+        // Figure out what we need to do to align this text ...
         // Get the substring for this "chunk" of text
-        NSString * x     = [text substringWithRange:layout[line]];
-        CGPoint    pt    = CGPointMake(padMargins ? TEXTREADER_MPAD : 0, lineRect.origin.y);
-        [x drawAtPoint:pt withFont:gsFont];
-    }
+        NSString * x = [text substringWithRange:layout[line].range];
+        
+        CGPoint    pt;
+        pt.y = lineRect.origin.y;
+        
+        // pt.x depends on the justification
+        switch (textAlignment)
+        {
+            case Align_Center:    
+                if (layout[line].width < 0)
+                    layout[line].width = [self calcWidth:x];
+                pt.x = (viewSize.width - layout[line].width) / 2;
+                [x drawAtPoint:pt withFont:gsFont];
+                break;
 
+            case Align_Right:    
+                if (layout[line].width < 0)
+                    layout[line].width = [self calcWidth:x];
+                pt.x = viewSize.width - layout[line].width;
+                if (padMargins)
+                    pt.x -= TEXTREADER_MPAD;
+                [x drawAtPoint:pt withFont:gsFont];
+                break;
+
+            case Align_Justified:    
+                // Apply margin padding
+                pt.x = padMargins ? TEXTREADER_MPAD : 0;
+                
+                // Draw it in chunks
+                [self drawJustified:&layout[line] at:pt];
+                break;
+                
+            case Align_Left:    
+            default:
+                pt.x = padMargins ? TEXTREADER_MPAD : 0;
+                [x drawAtPoint:pt withFont:gsFont];
+                break;
+        } // switch on alignment
+
+        // Draw the text at the point
+
+    } // for each line of text we need to draw ...
+    
     // Wipe any remaining text ...
     lineRect = CGRectMake(0, yStart, viewSize.width, lineHeight);
     [self fillBkgGroundRect:context rect:lineRect];
@@ -1327,7 +1523,8 @@ static unichar patchEntity(unichar entity)
 // Removes CR/LF
 // Converts &nbsp; &copy; &ndash; &mdash; &amp; &eacute; 
 // Adds other text "as-is"
-void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) {
+void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) 
+{
 
     NSRange addedBlanks = {[dest length], 1};
     NSRange added       = {[dest length], 1};

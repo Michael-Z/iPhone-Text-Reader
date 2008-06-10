@@ -35,7 +35,7 @@
 
 static const int kUIControlEventMouseUpInside = 1 << 6;
 
-
+NSString  *TextAlignmentNames[5];
 
 // **********************************************************************
 @implementation MySegControl
@@ -55,6 +55,21 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 // Class for Preferences Page
 @implementation MyPreferencesTable
 
+
+- (AlignText) alignmentFromString:(NSString *)str {
+    AlignText ta;
+    
+    for (ta = Align_Left; ta <= Align_Justified; ta++)
+    {
+        if (![str compare:TextAlignmentNames[ta] options:kCFCompareCaseInsensitive])
+            return ta;
+    }
+    
+    // Default to left alignment
+    return Align_Left;
+    
+} // alignmentFromString
+
 - (id)initWithFrame:(CGRect)rect {
     pickerView = nil;
     
@@ -67,6 +82,12 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         [ self setDataSource: self ];
         [ self setDelegate: self ];
     }
+    
+    TextAlignmentNames[0] = _T(@"Align Left");
+    TextAlignmentNames[1] = _T(@"Align Center");
+    TextAlignmentNames[2] = _T(@"Align Right");
+    TextAlignmentNames[3] = _T(@"Align Justified");
+    TextAlignmentNames[4] = nil;
     
     invertScreen = nil;
     ignoreSingleLF = nil;
@@ -100,8 +121,9 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             // Invert
             // Colors
             // Pad Margins
+            // Align Text
             // Ignore Single LF
-            return 4;
+            return 5;
             
         case(2):
             // Reverse Tap
@@ -179,6 +201,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     // If picker is active, just kill it
     if (pickerView)
     {
+        [pickerView removeFromSuperview];
         [pickerView release];
         pickerView = nil;
     }               
@@ -191,6 +214,8 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
     [textView setEncoding:[trApp encodingFromString:[encodingCell value]]];
 
+    [textView setTextAlignment:[self alignmentFromString:[textAlignmentCell value]]];
+    
 } // saveSettings
 
 
@@ -200,8 +225,11 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     struct CGRect rect = [trApp getOrientedViewRect];
     
     if (pickerView)
+    {
+        [pickerView removeFromSuperview];
         [pickerView release];
-    pickerView = nil;
+        pickerView = nil;
+    }
     
     switch (i)
     {
@@ -245,6 +273,17 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
             }               
             break;
        
+        case 8: // textAlignment
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_TextAlignment];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
+            
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
             break;
@@ -264,7 +303,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 //datasource methods
 - (int) pickerView:(UIPickerView*)picker numberOfRowsInColumn:(int)column{
     return [[pickerView getDataArray] count];
-}
+} // pickerView numberOfRowsInColumn
 
 
 - (UIPickerTableCell*) pickerView:(UIPickerView*)picker tableCellForRow:(int)row inColumn:(int)column{
@@ -275,8 +314,10 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
     [cell setSelectionStyle:0];
     [cell setShowSelection:YES];
     [[cell iconImageView] setFrame:CGRectMake(0,0,0,0)];
+    
     return cell;
-}
+} // pickerView tableCellForRow
+
 
 // We get this message when the switch is changed
 // Update the value the switch is associated with
@@ -371,6 +412,14 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                     [ cell addSubview: padMargins ];
                     break;
                 case (3):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:_T(@"Align Text") ];
+                    [ cell setValue:TextAlignmentNames[[textView getTextAlignment]] ];
+                    [ cell setShowDisclosure:YES];
+                    textAlignmentCell = cell;
+                    break;
+                case (4):
                     [ cell setTitle:_T(@"Ignore Single LF") ];
                     ignoreSingleLF = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
@@ -518,14 +567,19 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 } // setFont
 
 
-- (void) setEncoding:(NSString*)enc {
-    [ encodingCell setValue:enc ];    
-} // setFont
-
-
 - (void) setFontSize:(NSString*)fontSize {
     [ fontSizeCell setValue:fontSize ];
 } // setFontSize
+
+
+- (void) setEncoding:(NSString*)enc {
+    [ encodingCell setValue:enc ];    
+} // setEncoding
+
+
+- (void) setTextAlignment:(NSString*)ta {
+    [ textAlignmentCell setValue:ta ];
+} // setTextAlignment
 
 
 - (void)dealloc {
@@ -543,6 +597,7 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
 
 -(BOOL)table:(UIPickerTable*)table canSelectRow:(int)row {
+
     [self removeFromSuperview];
     
     // Do something based on the ROW!!!!
@@ -562,16 +617,25 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case kPicker_Type_FontSize:
             [ prefsTable setFontSize:[dataArray  objectAtIndex:row] ];
             break;
+            
+        case kPicker_Type_TextAlignment:
+            [ prefsTable setTextAlignment:[dataArray  objectAtIndex:row] ];
+            break;
     }
                 
     return YES;
+    
 } // canSelectRow
 
 
+// Remember what the picker is "picking"
 -(void) setType:(PickerType)theType {
 
     int i;
     
+    if (dataArray)
+        [dataArray release];
+        
     dataArray = [[NSMutableArray arrayWithCapacity:1] retain];
     
     type = theType;
@@ -589,31 +653,39 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
                 NSEnumerator * enumerator = [fontsFolderContents objectEnumerator];
                 NSString * font;
 
-                NSArray *badFonts = 
-                    [NSArray arrayWithObjects:
-                    @"AppleGothicRegular.ttf",
-                    @"DB_LCD_Temp-Black.ttf",
-                    @"HelveticaNeue.ttf",
-                    @"HelveticaNeueBold.ttf",
-                    @"PhonepadTwo.ttf",
-                    @"LockClock.ttf",
-                    // @"arialuni.ttf",
-                    @"Zapfino.ttf", nil];
+                // These don't look very good, so weed them out up front ...
+                NSArray *badFonts = [NSArray arrayWithObjects:
+                        @"AppleGothicRegular.ttf",
+                        @"DB_LCD_Temp-Black.ttf",
+                        @"HelveticaNeue.ttf",
+                        @"HelveticaNeueBold.ttf",
+                        @"PhonepadTwo.ttf",
+                        @"LockClock.ttf",
+                        // @"arialuni.ttf",
+                        @"Zapfino.ttf", 
+                        nil];
 
                 for (font = [enumerator nextObject]; font; font = [enumerator nextObject])
                 {
                     if ( [[font pathExtension] isEqualToString:@"ttf"] 
                          && ![badFonts containsObject:font] )
-                    {
                         [dataArray addObject:[font stringByDeletingPathExtension]];
-                    }
-                } // for
+                    
+                } // for each font
             }
             break;
             
         case kPicker_Type_FontSize:
             for(i=12; i<=32; i+=2)
                 [dataArray addObject:[NSString stringWithFormat:@"%i", i]];
+            break;
+
+        case kPicker_Type_TextAlignment:
+            {
+                AlignText ta;
+                for(ta=Align_Left; ta<=Align_Justified; ta++)
+                    [dataArray addObject:TextAlignmentNames[ta]];
+            }
             break;
 
         case kPicker_Type_Encoding:
