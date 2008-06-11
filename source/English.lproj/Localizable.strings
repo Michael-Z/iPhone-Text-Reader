@@ -158,9 +158,6 @@
   <string>Please make sure both the directory and file exist and have write permissions set.</string>
   <key>Error deleting file</key>
   <string>Error deleting file</string>
-
-
-
 	<key>Volume Button Scroll</key>
 	<string>Volume Button Scroll</string>
 	<key>Line</key>
@@ -169,13 +166,38 @@
 	<string>Off</string>
 	<key>Page</key>
 	<string>Page</string>
-
-
 	<key>Enter your search text ...</key>
 	<string>Enter your search text ...</string>	
 	<key>Search text not found ...</key>
 	<string>Search text not found ...</string>
 
+
+	<key>Strip Line Feeds</key>
+	<string>Strip Line Feeds</string>
+	<key>Single</key>
+	<string>Single</string>
+	<key>Format</key>
+	<string>Format</string>
+
+	<key>Align Text</key>
+	<string>Align Text</string>	
+	<key>Align Left</key>
+	<string>Align Left</string>	
+	<key>Align Center</key>
+	<string>Align Center</string>	
+	<key>Align Right</key>
+	<string>Align Right</string>	
+	<key>Word Justified</key>
+	<string>Word Justified</string>	
+	<key>Character Justified</key>
+	<string>Character Justified</string>	
+
+	<key>Show Status Bar</key>
+	<string>Show Status Bar</string>	
+	<key>Solid</key>
+	<string>Solid</string>	
+	<key>Clear</key>
+	<string>Clear</string>	
 
 
 </dict>
