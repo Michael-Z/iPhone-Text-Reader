@@ -92,7 +92,7 @@ typedef struct _TextLayout {
 
     bool              invertColors;
 
-    int               ignoreSingleLF;
+    IgnoreLF          ignoreSingleLF;
     bool              padMargins;
     bool              repeatLine;
     AlignText         textAlignment;
@@ -125,8 +125,8 @@ typedef struct _TextLayout {
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setInvertColors:(bool)newInvertColors;
 - (bool) getInvertColors;
-- (void) setIgnoreSingleLF:(int)ignore;
-- (int) getIgnoreSingleLF;
+- (void) setIgnoreSingleLF:(IgnoreLF)ignore;
+- (IgnoreLF) getIgnoreSingleLF;
 - (void) setPadMargins:(bool)pad;
 - (bool) getPadMargins;
 - (void) setRepeatLine:(bool)repeat;
@@ -159,6 +159,8 @@ typedef struct _TextLayout {
 
 - (void) setTextColors:(MyColors*)newcolors;
 - (MyColors) getTextColors;
+
+- (void) redoLayout;
 
 @end // MyTextView : UIView
 

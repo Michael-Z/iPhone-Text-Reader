@@ -20,15 +20,20 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
     initialized = false;
     id rVal = [super init];
     unsigned char i = 7;
-    while (i--) orientations[i] = defaultOrientations[i];
+    while (i--) 
+        orientations[i] = defaultOrientations[i];
     orientationLocked = NO;
     reorientationDuration = 0.35f;
     orientationDegrees = -1;
     orientation = 0;
     oCode = 1;
-    hideStatus = false;
+    curStatus = ShowStatus_Light;
     [self setUIOrientation: 1];
     return rVal;
+}
+
+- (ShowStatus) getShowStatusBar {
+    return curStatus;
 }
 
 - (void) setInitialized: (bool)b {
@@ -40,18 +45,24 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
     return initialized;
 }
 
-- (void) hideStatus: (bool) b {
-    if (b)
+- (void) showStatusBar:(ShowStatus)ss {
+
+    curStatus = ss;
+    switch (ss)
     {
-        [self setStatusBarMode:2 duration: 0.0f];
-        hideStatus = true;
+        case ShowStatus_Off:
+            [self setStatusBarMode:2 duration: 0.0f];
+            break;
+        case ShowStatus_Dark:
+            [self setStatusBarMode:1 duration: 0.0f];
+            break;
+        default:
+        case ShowStatus_Light:
+            [self setStatusBarMode:0 duration: 0.0f];
+            break;
     }
-    else
-    {
-        [self setStatusBarMode:0 duration: 0.0f];
-        hideStatus = false;
-    }   
-} // hideStatus
+    
+} // showStatus
 
 - (void) lockUIOrientation {
     orientationLocked = YES;
@@ -91,7 +102,7 @@ static const int defaultOrientations[7] = {-1, 0, -1, 90, -90, -1, -1};
     bool landscape = (degrees == 90 || degrees == -90);
     struct CGSize size = [UIHardware mainScreenSize];
 
-    float statusBar = hideStatus ? 0.0f : [UIHardware statusBarHeight];
+    float statusBar = (curStatus == ShowStatus_Off) ? 0.0f : [UIHardware statusBarHeight];
     
     statusBar = 0;
     

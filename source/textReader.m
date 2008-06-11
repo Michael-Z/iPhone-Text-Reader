@@ -72,6 +72,8 @@
     swipeOK             = false;
     volPressed          = 0;
     volChanged          = false;    
+    volScroll           = VolScroll_Off;
+    showStatus          = ShowStatus_Off;
     orientationInitialized = false;
 
     [super init];
@@ -81,12 +83,12 @@
 
 - (void) setReverseTap:(bool)rtap {
     reverseTap = rtap;
-}
+} // setReverseTap
 
 
 - (void) setSwipeOK:(bool)sw {
     swipeOK = sw;
-}
+} // setSwipeOK
 
 
 // Turn on the volume hud
@@ -115,10 +117,33 @@
 } // setCurVolume
 
 
-- (void) setVolScroll:(int)vs {
+- (ShowStatus) getShowStatus {
+    return showStatus;
+} // getShowStatus
+
+
+- (void) setShowStatus:(ShowStatus)ss {
+    
+//     if (showStatus != ss)
+//     {
+        showStatus = ss;
+//         [super showStatusBar:showStatus];
+//     
+//         // Invalidate the current layout ...
+//         if (textView && [textView getText] && [[textView getText] length])
+//         {
+//             [textView redoLayout];
+//             [self redraw];
+//         }
+//     }
+    
+} // setShowStatus
+
+
+- (void) setVolScroll:(VolScroll)vs {
 
     // Turning on ...
-    if (vs != 0)
+    if (vs != VolScroll_Off)
     {
         // Volume scrolling ...  
         [self setSystemVolumeHUDEnabled:NO];
@@ -135,7 +160,7 @@
     }
     
     // Turning off ...
-    else if (volScroll != 0 && vs == 0)
+    else if (volScroll != VolScroll_Off && vs == VolScroll_Off)
     {
         // Restore original volume
         AVSystemController *avsc = [AVSystemController sharedAVSystemController];
@@ -154,6 +179,26 @@
     volScroll = vs;
     
 } // setVolScroll
+
+
+// Get rect of rotated window
+- (struct CGRect) getOrientedViewRect {
+    struct CGRect FSrect;
+    
+    // 0==horizontal(portrait), 90/-90==vertical(landscape)
+    if ([super getOrientation])
+        FSrect = CGRectMake(0, 0, 480, 320);
+    else
+        FSrect = CGRectMake(0, 0, 320, 480);
+        
+    return FSrect;
+} // getOrientedViewRect
+
+
+// Get height and width in rotated window
+- (struct CGSize) getOrientedViewSize {
+    return [self getOrientedViewRect].size;
+} // getOrientedViewSize
 
 
 - (void) showWait {
@@ -207,7 +252,7 @@
 
 - (bool) getSwipeOK { return swipeOK; }
 
-- (int) getVolScroll { return volScroll; }
+- (VolScroll) getVolScroll { return volScroll; }
 
 - (NSString*) getFileName {
     return [textView getFileName];
@@ -255,6 +300,8 @@
     [defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
     
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
+    
+    [defaults setInteger:showStatus forKey:TEXTREADER_SHOWSTATUS];
     
     [defaults setInteger:volScroll forKey:TEXTREADER_VOLSCROLL];
     
@@ -384,6 +431,8 @@
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
+
+    [self setShowStatus:[defaults integerForKey:TEXTREADER_SHOWSTATUS]];
 
     [self setVolScroll:[defaults integerForKey:TEXTREADER_VOLSCROLL]];
 
@@ -529,7 +578,7 @@
     [fileView addSubview:fileBar];  
     [fileView addSubview:fileTable];
 
-    [super hideStatus: false];
+    [super showStatusBar:ShowStatus_Light];
 
     // Switch views
     [transView transition:1 toView:fileView];
@@ -636,7 +685,7 @@
                 [colorsView addSubview:colorsBar];  
                 [colorsView addSubview:colorTable];
 
-                [super hideStatus:false];
+                [super showStatusBar:ShowStatus_Light];
             
                 // Switch views
                 [transView transition:1 toView:colorsView];
@@ -678,7 +727,7 @@
                 [downloadView addSubview:downloadBar];  
                 [downloadView addSubview:downloadTable];
 
-                [super hideStatus: false];
+                [super showStatusBar:ShowStatus_Light];
             
                 // Switch views
                 [transView transition:1 toView:downloadView];
@@ -721,7 +770,7 @@
                 [prefsView addSubview:prefsBar];    
                 [prefsView addSubview:prefsTable];
 
-                [super hideStatus: false];
+                [super showStatusBar:ShowStatus_Light];
             
                 // Switch views
                 [transView transition:1 toView:prefsView];
@@ -750,7 +799,7 @@
                 struct CGRect navBarRect = [navBar frame];
                 navBarRect.size.width = viewSize.width;
 
-                [super hideStatus: false];
+                [super showStatusBar:ShowStatus_Light];
                 
                 // Rescale in case of rotation
                 [baseTextView setBounds:[transView bounds]];
@@ -782,7 +831,7 @@
                 [self setVolScroll:volScroll];
                 
                 // Rescale in case of rotation
-                [super hideStatus: true];
+                [super showStatusBar:showStatus];
                 [baseTextView setBounds:[transView bounds]];
                 
                 // Hide navbar and title
@@ -1016,7 +1065,7 @@
     NSString * name;
             
     // Nothing to do if volume scrolling is disabled
-    if (volScroll == 0 || currentView != My_Text_View)
+    if (volScroll == VolScroll_Off || currentView != My_Text_View)
         return;
             
     AVSystemController *avsc = [AVSystemController sharedAVSystemController];
@@ -1037,7 +1086,7 @@
             volPressed++;
             volChanged = true;
             
-            if (volScroll == 1)
+            if (volScroll == VolScroll_Line)
                 [self pageText:Line_Down];
             else
                 [self pageText:Page_Down];
@@ -1062,7 +1111,7 @@
             volPressed++;            
             volChanged = true;
             
-            if (volScroll == 1)
+            if (volScroll == VolScroll_Line)
                 [self pageText:Line_Up];
             else
                 [self pageText:Page_Up];
@@ -1238,26 +1287,6 @@
 } // handleSlider
 
 
-// Get rect of rotated window
-- (struct CGRect) getOrientedViewRect {
-    struct CGRect FSrect;
-    
-    // 0==horizontal(portrait), 90/-90==vertical(landscape)
-    if ([super getOrientation])
-        FSrect = CGRectMake(0, 0, 480, 320);
-    else
-        FSrect = CGRectMake(0, 0, 320, 480);
-        
-    return FSrect;
-} // getOrientedViewRect
-
-
-// Get height and width in rotated window
-- (struct CGSize) getOrientedViewSize {
-    return [self getOrientedViewRect].size;
-} // getOrientedViewSize
-
-
 // Handle changes in orientation
 - (void)deviceOrientationChanged:(GSEvent*)event {
 
@@ -1294,7 +1323,6 @@
     
     // Resize the navbar as well
     rect   = [navBar frame];
-    // rect.origin.y = [UIHardware statusBarHeight];
     rect.size.width = FSrect.size.width;
     [navBar setFrame:rect];
 

@@ -62,7 +62,7 @@ typedef unsigned int NSUInteger;
     screenLock = [[NSLock alloc] init];
 
     invertColors   = false;
-    ignoreSingleLF = 0;
+    ignoreSingleLF = IgnoreLF_Off;
     padMargins     = false;
     repeatLine     = false;
     textAlignment  = Align_Left;
@@ -94,6 +94,25 @@ typedef unsigned int NSUInteger;
 } // initWithFrame
 
 
+// Like the trApp version, but this one will apply th status bar offset
+// to the rect if the status bar is being displayed ...
+- (struct CGRect) getOrientedViewRect {
+    
+    CGRect FSrect = [trApp getOrientedViewRect];
+    
+    // Apply the status bar offset ...
+    if ([trApp getShowStatus] != ShowStatus_Off)
+    {
+        FSrect.origin.y    += [UIHardware statusBarHeight];
+        FSrect.size.height -= [UIHardware statusBarHeight];
+    }
+        
+    return FSrect;
+    
+} // getOrientedViewRect
+
+
+
 - (void) setTextReader:(textReader*)tr {
     trApp = tr;
 
@@ -116,7 +135,7 @@ typedef unsigned int NSUInteger;
 
 
 - (bool) getInvertColors { return invertColors; }
-- (int) getIgnoreSingleLF { return ignoreSingleLF; }
+- (IgnoreLF) getIgnoreSingleLF { return ignoreSingleLF; }
 - (bool) getPadMargins { return padMargins; }
 - (bool) getRepeatLine { return repeatLine; };
 - (NSMutableString *) getText  { return text; }
@@ -232,8 +251,8 @@ typedef unsigned int NSUInteger;
         [text characterAtIndex:start] != 0x0a)
        return FALSE;
        
-    // If ignoreLF is 0, return TRUE
-    if (ignoreSingleLF == 0)
+    // If ignoreLF is Off, return TRUE
+    if (ignoreSingleLF == IgnoreLF_Off)
         return TRUE;
        
     // If this LF is the first or last char in the 
@@ -256,8 +275,8 @@ typedef unsigned int NSUInteger;
     if (before == 0x0a || after == 0x0a || after == 0x0d)
         return TRUE;
         
-    // If ignoreSingleLF is 1, return FALSE
-    if (ignoreSingleLF == 1)
+    // If ignoreSingleLF is Single, return FALSE
+    if (ignoreSingleLF == IgnoreLF_Single)
         return FALSE;
        
     // If LF is followed by '-', Tab return TRUE
@@ -464,8 +483,8 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
     if (start < 0)
         start = 0;
         
-    CGSize  viewSiz = [trApp getOrientedViewSize];
-    int     width   = (int)viewSiz.width - (padMargins ? TEXTREADER_MPAD * 2 : 0);
+    CGRect  viewRect = [self getOrientedViewRect];
+    int     width   = (int)viewRect.size.width - (padMargins ? TEXTREADER_MPAD * 2 : 0);
     int     line;
     
     // fill in each line until we are done or run out of space
@@ -756,10 +775,10 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     
     [screenLock lock];
     
-    CGSize  viewSiz = [trApp getOrientedViewSize];
+    CGRect viewRect = [self getOrientedViewRect];
 
     int lineHeight  = [self getLineHeight];
-    int lines       = ((int)viewSiz.height / lineHeight) + 2;
+    int lines       = ((int)viewRect.size.height / lineHeight) + 2;
 
     deltaLine -= lStart;   
     
@@ -890,8 +909,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         yDelta = 0;
 
         // Strip out the partial line at the bottom???
-        if (cDisplay >= (int)viewSiz.height / lineHeight)
-            cDisplay = (int)viewSiz.height / lineHeight;
+        if (cDisplay >= (int)viewRect.size.height / lineHeight)
+            cDisplay = (int)viewRect.size.height / lineHeight;
     }
     
     [screenLock unlock];
@@ -900,6 +919,13 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     [self setNeedsDisplay];
     
 } // doLayout
+
+
+- (void) redoLayout {
+    cLayouts = 0;
+    cDisplay = 0;
+    [self doLayout:0];
+} // redoLayout
 
 
 - (void) setTextAlignment:(AlignText)ta
@@ -912,7 +938,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 } // setTextAlignment
 
 
-- (void) setIgnoreSingleLF:(int)ignore {
+- (void) setIgnoreSingleLF:(IgnoreLF)ignore {
     ignoreSingleLF = ignore;
 
     // Force a new layout with the new alignment at the current position
@@ -949,10 +975,10 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 {
     isDrag = false;
     
-    CGSize  viewSize = [trApp getOrientedViewSize];
+    CGRect  viewRect = [self getOrientedViewRect];
     int lineHeight   = [self getLineHeight];
 
-    int lines = (int)viewSize.height / lineHeight;
+    int lines = (int)viewRect.size.height / lineHeight;
 
     lStart = 0;
 
@@ -1068,7 +1094,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 // Draw string x justified starting at pt with layout 
 - (void) drawJustified:(TextLayout *)txtLayout at:(CGPoint)pt
 {
-    CGSize  viewSize   = [trApp getOrientedViewSize];
+    CGRect  viewRect = [self getOrientedViewRect];
     NSRange block;
 
     // Strip leading and trailing blanks
@@ -1130,8 +1156,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         else
         {
             for (block = txtLayout->range;         
-                 block.location < txtLayout->range.location + txtLayout->range.length &&
-                 [self getFwdBlock:&block from:block.location];
+                 [self getFwdBlock:&block from:block.location] &&
+                 block.location + block.length <= txtLayout->range.location + txtLayout->range.length;
                  block.location = block.location + block.length)
             {
                 // Ignore CRLF characters
@@ -1164,7 +1190,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         
         // Calc the blank offset for each blank block
         // (remember to keep track of partial blank pixels
-        float blank_width = viewSize.width - txt_width;
+        float blank_width = viewRect.size.width - txt_width;
         
         if (padMargins)
             blank_width -= TEXTREADER_MPAD * 2;
@@ -1198,9 +1224,9 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     else
     {
         // Loop through the blocks again and draw the text
-        for (block = txtLayout->range;
-             block.location < txtLayout->range.location + txtLayout->range.length &&
-             [self getFwdBlock:&block from:block.location];
+        for (block = txtLayout->range;         
+             [self getFwdBlock:&block from:block.location] &&
+             block.location + block.length <= txtLayout->range.location + txtLayout->range.length;
              block.location = block.location + block.length)
         {
             // Ignore CRLF characters
@@ -1228,7 +1254,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 
 - (void)drawRect:(struct CGRect)rect
 {
-    CGSize       viewSize   = [trApp getOrientedViewSize];
+    CGRect       viewRect   = [self getOrientedViewRect];
     CGContextRef context    = UICurrentContext();
     int          lineHeight = [self getLineHeight]; 
     CGRect       lineRect;
@@ -1237,7 +1263,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     if (!text || ![text length] || !trApp || !gsFont)
     {
        // Blank screen ...
-       lineRect = CGRectMake(0, 0, viewSize.width, viewSize.height);
+       lineRect = CGRectMake(0, 0, viewRect.size.width, viewRect.size.height+64);
        [self fillBkgGroundRect:context rect:lineRect];
         
        return [super drawRect:rect];
@@ -1248,14 +1274,21 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 
 // JIMB BUG BUG - Figure out how to only redraw the invalid portion !!!
 
-    // Always clear the first line ...
-    lineRect = CGRectMake(0, rect.origin.y, viewSize.width, lineHeight);
-    [self fillBkgGroundRect:context rect:lineRect];
-
     // Figure out where we draw the text
     // This allows us to scroll partial lines
         
     int yStart = rect.origin.y - yDelta;
+    
+    // Always clear the first line ...
+    lineRect = CGRectMake(0, rect.origin.y, viewRect.size.width, lineHeight);
+    [self fillBkgGroundRect:context rect:lineRect];
+
+    // Adjust start for status bar ...
+    if ([trApp getShowStatus] != ShowStatus_Off)
+    {
+        yStart += [UIHardware statusBarHeight];
+    }
+        
     int yEnd   = yStart + rect.size.height;
     
     int line;
@@ -1263,7 +1296,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     for (line = 0; yStart <= yEnd; yStart += lineHeight, line++)
     {   
         // This is where the line starts 
-        lineRect = CGRectMake(0, yStart, viewSize.width, lineHeight);
+        lineRect = CGRectMake(0, yStart, viewRect.size.width, lineHeight);
         
         // Blank out the line so we can draw the new text
         [self fillBkgGroundRect:context rect:lineRect];
@@ -1285,14 +1318,14 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             case Align_Center:    
                 if (layout[line].width < 0)
                     layout[line].width = [self calcWidth:x];
-                pt.x = (viewSize.width - layout[line].width) / 2;
+                pt.x = (viewRect.size.width - layout[line].width) / 2;
                 [x drawAtPoint:pt withFont:gsFont];
                 break;
 
             case Align_Right:    
                 if (layout[line].width < 0)
                     layout[line].width = [self calcWidth:x];
-                pt.x = viewSize.width - layout[line].width;
+                pt.x = viewRect.size.width - layout[line].width;
                 if (padMargins)
                     pt.x -= TEXTREADER_MPAD;
                 [x drawAtPoint:pt withFont:gsFont];
@@ -1315,11 +1348,20 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         } // switch on alignment
 
         // Draw the text at the point
+        
+        // Always blank the status bar field if being shown
+        if (line == 0 && [trApp getShowStatus] != ShowStatus_Off)
+        {
+            lineRect = CGRectMake(0, rect.origin.y, 
+                                  viewRect.size.width, 
+                                  [UIHardware statusBarHeight]);
+            [self fillBkgGroundRect:context rect:lineRect];
+        }
 
     } // for each line of text we need to draw ...
     
     // Wipe any remaining text ...
-    lineRect = CGRectMake(0, yStart, viewSize.width, lineHeight);
+    lineRect = CGRectMake(0, yStart, viewRect.size.width, lineHeight);
     [self fillBkgGroundRect:context rect:lineRect];
     
        
@@ -1336,7 +1378,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     if (!text || ![text length])
         return;
     
-    CGRect fsrect = [trApp getOrientedViewRect];
+    CGRect fsrect = [self getOrientedViewRect];
     
     // [self setScrollHysteresis: 20.f];
     

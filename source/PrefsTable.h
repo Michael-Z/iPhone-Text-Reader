@@ -41,7 +41,7 @@
 
 
 // These are the MAX values - preferencesTable controls the actual number
-#define NUM_GROUPS      6
+#define NUM_GROUPS      7
 #define CELLS_PER_GROUP 4
 
 
@@ -103,7 +103,6 @@ typedef enum _PickerType {
     UIPreferencesTableCell *groupcell[NUM_GROUPS];
 
     UISwitchControl    *invertScreen;
-//    UISwitchControl    *ignoreSingleLF;
     UISwitchControl    *padMargins;
     UISwitchControl    *reverseTap;
     UISwitchControl    *repeatLine;
@@ -120,8 +119,9 @@ typedef enum _PickerType {
     UIPreferencesTableCell *colorsCell;
     UIPreferencesTableCell *textAlignmentCell;
 
-    UISegmentedControl     *volumeScroll;
     UISegmentedControl     *ignoreSingleLF;
+    UISegmentedControl     *showStatus;
+    UISegmentedControl     *volumeScroll;
 
 } // MyPreferencesTable
 

@@ -110,7 +110,6 @@ NSString  *TextAlignmentNames[6];
             // Colors
             // Pad Margins
             // Align Text
-            // Moved! // Ignore Single LF
             return 4;
             
         case(2):
@@ -118,16 +117,20 @@ NSString  *TextAlignmentNames[6];
             return 1;
             
         case(3):
+            // Show Status Bar
+            return 1;
+            
+        case(4):
             // Reverse Tap
             // Repeat Line
             // Allow Swipe
             return 3;
         
-        case(4):
+        case(5):
             // Volume Scroll
             return 1;
             
-        case(5):
+        case(6):
             // Blank line
             // Web Site
             // Email address
@@ -155,9 +158,12 @@ NSString  *TextAlignmentNames[6];
              [ groupcell[group] setTitle: _T(@"Strip Line Feeds") ];
              break;
          case (3):
-             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
+             [ groupcell[group] setTitle: _T(@"Show Status Bar") ];
              break;
          case (4):
+             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
+             break;
+         case (5):
              [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
              break;
      }
@@ -421,9 +427,9 @@ NSString  *TextAlignmentNames[6];
                 case (0):
                     {    
                         ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [ignoreSingleLF insertSegment:0 withTitle:_T(@"Off")  animated:NO];
-                        [ignoreSingleLF insertSegment:1 withTitle:_T(@"Single") animated:NO];
-                        [ignoreSingleLF insertSegment:2 withTitle:_T(@"Format") animated:NO];
+                        [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
+                        [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
+                        [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
                         [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
                         [ignoreSingleLF setDelegate:self];
                         [cell addSubview: ignoreSingleLF ];
@@ -433,6 +439,22 @@ NSString  *TextAlignmentNames[6];
             }
             break;
         case (3):
+            switch (row) {
+                case (0):
+                    {    
+                        showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                        [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
+                        [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
+                        [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
+                        [showStatus selectSegment:[trApp getShowStatus]];
+                        [showStatus setDelegate:self];
+                        [cell addSubview: showStatus ];
+                        [cell setDrawsBackground:NO];
+                    }
+                    break;
+            }
+            break;
+        case (4):
             switch (row) {
                 case (0):
                     [ cell setTitle:_T(@"Reverse Tap Zones") ];
@@ -463,14 +485,14 @@ NSString  *TextAlignmentNames[6];
                     break;
             }
             break;
-        case (4):
+        case (5):
             switch (row) {
                 case (0):
                     {    
                         volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [volumeScroll insertSegment:0 withTitle:_T(@"Off")  animated:NO];
-                        [volumeScroll insertSegment:1 withTitle:_T(@"Line") animated:NO];
-                        [volumeScroll insertSegment:2 withTitle:_T(@"Page") animated:NO];
+                        [volumeScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
+                        [volumeScroll insertSegment:VolScroll_Line withTitle:_T(@"Line") animated:NO];
+                        [volumeScroll insertSegment:VolScroll_Page withTitle:_T(@"Page") animated:NO];
                         [volumeScroll selectSegment:[trApp getVolScroll]];
                         [volumeScroll setDelegate:self];
                         [cell addSubview: volumeScroll ];
@@ -479,7 +501,7 @@ NSString  *TextAlignmentNames[6];
                     break;
             }
             break;
-        case (5):
+        case (6):
             switch (row) {
                 case (0):
                     [ cell setTitle: _T(@" ") ];
@@ -496,7 +518,9 @@ NSString  *TextAlignmentNames[6];
 
     [ cell setShowSelection: NO ];
     cells[group][row] = cell;
+    
     return cell;
+    
 } // preferencesTable
 
 
@@ -509,6 +533,10 @@ NSString  *TextAlignmentNames[6];
     else if (segment == ignoreSingleLF)
     {
         [textView setIgnoreSingleLF:seg];
+    }
+    else if (segment == showStatus)
+    {
+        [trApp setShowStatus:seg];
     }
     
 } // selectedSegmentChanged

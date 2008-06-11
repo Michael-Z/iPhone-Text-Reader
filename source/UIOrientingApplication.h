@@ -24,6 +24,12 @@
 #define kBottomBarResizeMask (resize_SpringWidth | resize_SpringTop)
 
 
+typedef enum _ShowStatus {
+    ShowStatus_Off    = 0,
+    ShowStatus_Light  = 1,
+    ShowStatus_Dark   = 2,
+} ShowStatus;
+
 
 @interface UIOrientingApplication : UIApplication {
     CGRect FullKeyBounds;
@@ -34,7 +40,7 @@
     float reorientationDuration;
     int orientation;
     unsigned int oCode;
-    bool hideStatus;
+    ShowStatus curStatus;
     bool initialized;
 }
 
@@ -49,7 +55,8 @@
 - (void) setAngleForOrientation: (unsigned int)o_code toDegrees: (int)degrees;
 - (int)  getOrientation;
 - (unsigned int) getOrientCode;
-- (void) hideStatus: (bool)b;
+- (void) showStatusBar:(ShowStatus)ss;
+- (ShowStatus) getShowStatusBar;
 
 - (void) deviceOrientationChanged: (GSEvent*)event;
 - (CGRect) windowBounds;

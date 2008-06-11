@@ -55,7 +55,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.9Beta2"
+#define TEXTREADER_VERSION          @"0.9Beta3"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -74,6 +74,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_REPEATLINE       @"repeatLine"
 #define TEXTREADER_REVERSETAP       @"reverseTap"
 #define TEXTREADER_SWIPE            @"swipeOK"
+#define TEXTREADER_SHOWSTATUS       @"showStatus"
 #define TEXTREADER_TEXTALIGNMENT    @"textAlignment"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
@@ -165,6 +166,17 @@ typedef enum _AlignText {
     Align_Justified2 = 4
 } AlignText;
 
+typedef enum _VolScroll {
+    VolScroll_Off  = 0,
+    VolScroll_Line = 1,
+    VolScroll_Page = 2
+} VolScroll;
+
+typedef enum _IgnoreLF {
+    IgnoreLF_Off    = 0,
+    IgnoreLF_Single = 1,
+    IgnoreLF_Format = 2
+} IgnoreLF;
 
 
 @interface textReader : UIOrientingApplication {
@@ -208,7 +220,9 @@ typedef enum _AlignText {
 
     bool                     reverseTap;
     bool                     swipeOK;
-    int                      volScroll;
+    VolScroll                volScroll;
+    ShowStatus               showStatus;
+
 
     // Initial volume - we'll try to restore this level if possible
     float                    initVol;
@@ -247,8 +261,11 @@ typedef enum _AlignText {
 - (void) setSwipeOK:(bool)sw;
 - (bool) getSwipeOK;
 
-- (void) setVolScroll:(int)vs;
-- (int) getVolScroll;
+- (void) setVolScroll:(VolScroll)vs;
+- (VolScroll) getVolScroll;
+
+- (void) setShowStatus:(ShowStatus)ss;
+- (ShowStatus) getShowStatus;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
@@ -259,7 +276,7 @@ typedef enum _AlignText {
 - (void) showView:(MyViewName)viewName;
 - (MyViewName) getCurrentView;
 
-- (struct CGSize) getOrientedViewSize;
+// - (struct CGSize) getOrientedViewSize;
 - (struct CGRect) getOrientedViewRect;
 - (CGPoint)getOrientedPoint:(CGPoint)loc;
 
