@@ -66,7 +66,7 @@
 	<string>保存为:</string>
 	<key>Download File Now</key>
 	<string>开始下载文件</string>
-	<key>Enter the complete URL of the Text or PalmDoc file you want to download </key>
+	<key>Enter the complete URL of the Text or PalmDoc file you want to download</key>
 	<string>输入你需要下载的文本文件或PalmDoc文件的完整URL</string>
 	<key>and the Name you want it saved as locally.</key>
 	<string>及你想保存在本地的名称.</string>
@@ -158,9 +158,6 @@
     <string>请确认文件及目录是否存在及擦写权限是否设置.</string>
 	<key>Error deleting file</key>
 	<string>删除文件出错</string>	
-
-
-
 	<key>Volume Button Scroll</key>
 	<string>音量键滚屏</string>
 	<key>Line</key>
@@ -169,13 +166,38 @@
 	<string>关闭</string>
 	<key>Page</key>
 	<string>页</string>
-
-
 	<key>Enter your search text ...</key>
 	<string>请输入需要查找的文本 ...</string>	
 	<key>Search text not found ...</key>
 	<string>未发现查找的文本 ...</string>
 
+
+	<key>Strip Line Feeds</key>
+	<string>去除多余换行</string>
+	<key>Single</key>
+	<string>单个换行</string>
+	<key>Format</key>
+	<string>格式化</string>
+
+	<key>Align Text</key>
+	<string>页边调整</string>	
+	<key>Align Left</key>
+	<string>左靠齐</string>	
+	<key>Align Center</key>
+	<string>居中</string>	
+	<key>Align Right</key>
+	<string>右靠齐</string>	
+	<key>Word Justified</key>
+	<string>两端对齐_短语</string>	
+	<key>Character Justified</key>
+	<string>两端对齐_单词</string>	
+
+	<key>Show Status Bar</key>
+	<string>Show Status Bar</string>	
+	<key>Solid</key>
+	<string>Solid</string>	
+	<key>Clear</key>
+	<string>Clear</string>	
 
 
 </dict>
