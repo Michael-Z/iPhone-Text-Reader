@@ -70,10 +70,7 @@ typedef struct _TextLayout {
 
     // Used for Justified aligned text
     // number of pixels for each blank block
-    int blank_per_block;
-
-    // Number of "extra" blank pixels that need to be consumed
-    int blank_slop;
+    float blank_pixels_per_block;
 
 } TextLayout;
 
@@ -95,7 +92,7 @@ typedef struct _TextLayout {
 
     bool              invertColors;
 
-    bool              ignoreSingleLF;
+    int               ignoreSingleLF;
     bool              padMargins;
     bool              repeatLine;
     AlignText         textAlignment;
@@ -117,7 +114,8 @@ typedef struct _TextLayout {
     bool              isDrag;
 
     MyColors          txtcolors;
-}
+
+} // MyTextView
 
 - (void) setTextReader:(textReader*)tr;
 
@@ -127,8 +125,8 @@ typedef struct _TextLayout {
 - (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setInvertColors:(bool)newInvertColors;
 - (bool) getInvertColors;
-- (void) setIgnoreSingleLF:(bool)ignore;
-- (bool) getIgnoreSingleLF;
+- (void) setIgnoreSingleLF:(int)ignore;
+- (int) getIgnoreSingleLF;
 - (void) setPadMargins:(bool)pad;
 - (bool) getPadMargins;
 - (void) setRepeatLine:(bool)repeat;

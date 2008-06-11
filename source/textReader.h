@@ -55,7 +55,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.9Beta1"
+#define TEXTREADER_VERSION          @"0.9Beta2"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -158,11 +158,13 @@ typedef enum _ScrollDir {
 } ScrollDir;
 
 typedef enum _AlignText {
-    Align_Left      = 0,
-    Align_Center    = 1,
-    Align_Right     = 2,
-    Align_Justified = 3
+    Align_Left       = 0,
+    Align_Center     = 1,
+    Align_Right      = 2,
+    Align_Justified  = 3,
+    Align_Justified2 = 4
 } AlignText;
+
 
 
 @interface textReader : UIOrientingApplication {

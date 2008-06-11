@@ -35,20 +35,7 @@
 
 static const int kUIControlEventMouseUpInside = 1 << 6;
 
-NSString  *TextAlignmentNames[5];
-
-// **********************************************************************
-@implementation MySegControl
-- (void)mouseUp:(struct __GSEvent *)event;
-{
-    [trApp setVolScroll:[self selectedSegment]];
-}
-
-- (void) setTextReader:(textReader*)tr {
-    trApp = tr;
-} // setTextReader
-
-@end
+NSString  *TextAlignmentNames[6];
 
 
 // **********************************************************************
@@ -59,7 +46,7 @@ NSString  *TextAlignmentNames[5];
 - (AlignText) alignmentFromString:(NSString *)str {
     AlignText ta;
     
-    for (ta = Align_Left; ta <= Align_Justified; ta++)
+    for (ta = Align_Left; ta <= Align_Justified2; ta++)
     {
         if (![str compare:TextAlignmentNames[ta] options:kCFCompareCaseInsensitive])
             return ta;
@@ -86,8 +73,9 @@ NSString  *TextAlignmentNames[5];
     TextAlignmentNames[0] = _T(@"Align Left");
     TextAlignmentNames[1] = _T(@"Align Center");
     TextAlignmentNames[2] = _T(@"Align Right");
-    TextAlignmentNames[3] = _T(@"Align Justified");
-    TextAlignmentNames[4] = nil;
+    TextAlignmentNames[3] = _T(@"Word Justified");
+    TextAlignmentNames[4] = _T(@"Character Justified");
+    TextAlignmentNames[5] = nil;
     
     invertScreen = nil;
     ignoreSingleLF = nil;
@@ -122,20 +110,24 @@ NSString  *TextAlignmentNames[5];
             // Colors
             // Pad Margins
             // Align Text
-            // Ignore Single LF
-            return 5;
+            // Moved! // Ignore Single LF
+            return 4;
             
         case(2):
+            // Strip Line Feeds
+            return 1;
+            
+        case(3):
             // Reverse Tap
             // Repeat Line
             // Allow Swipe
             return 3;
         
-        case(3):
+        case(4):
             // Volume Scroll
             return 1;
             
-        case(4):
+        case(5):
             // Blank line
             // Web Site
             // Email address
@@ -160,9 +152,12 @@ NSString  *TextAlignmentNames[5];
              [ groupcell[group] setTitle: _T(@"Display Settings") ];
              break;
          case (2):
-             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
+             [ groupcell[group] setTitle: _T(@"Strip Line Feeds") ];
              break;
          case (3):
+             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
+             break;
+         case (4):
              [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
              break;
      }
@@ -177,8 +172,8 @@ NSString  *TextAlignmentNames[5];
 {
     /* Return height for group titles */
     if (row == -1) {
-        if (group < 4)
-            return 40; // JIMB BUG BUG
+        if (group < NUM_GROUPS-1)
+            return 40;
     }
 
     return proposed;
@@ -188,7 +183,7 @@ NSString  *TextAlignmentNames[5];
 - (BOOL)preferencesTable:(UIPreferencesTable *)aTable
     isLabelGroup:(int)group
 {
-    if (group == 4)
+    if (group == NUM_GROUPS-1)
         return YES;
         
     return NO;
@@ -286,9 +281,12 @@ NSString  *TextAlignmentNames[5];
             
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
-            break;
+            return;
             
     } // switch
+    
+    // Scroll to top so picker is visible
+    [self scrollAndCenterTableCell:fontCell animated:YES];
     
 } // tableRowSelected
 
@@ -331,9 +329,6 @@ NSString  *TextAlignmentNames[5];
 
     else if (switchid == invertScreen)
         [textView setInvertColors:[invertScreen value] ? true : false];
-
-    else if (switchid == ignoreSingleLF)
-        [textView setIgnoreSingleLF:[ignoreSingleLF value]  ? 1 : 0];
 
     else if (switchid == padMargins)
         [textView setPadMargins:[padMargins value] ? 1 : 0];
@@ -419,18 +414,25 @@ NSString  *TextAlignmentNames[5];
                     [ cell setShowDisclosure:YES];
                     textAlignmentCell = cell;
                     break;
-                case (4):
-                    [ cell setTitle:_T(@"Ignore Single LF") ];
-                    ignoreSingleLF = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ ignoreSingleLF setValue: [textView getIgnoreSingleLF] ? 1 : 0 ];
-                    [ ignoreSingleLF addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: ignoreSingleLF ];
-                    break;
             }
             break;
         case (2):
+            switch (row) {
+                case (0):
+                    {    
+                        ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                        [ignoreSingleLF insertSegment:0 withTitle:_T(@"Off")  animated:NO];
+                        [ignoreSingleLF insertSegment:1 withTitle:_T(@"Single") animated:NO];
+                        [ignoreSingleLF insertSegment:2 withTitle:_T(@"Format") animated:NO];
+                        [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
+                        [ignoreSingleLF setDelegate:self];
+                        [cell addSubview: ignoreSingleLF ];
+                        [cell setDrawsBackground:NO];
+                    }
+                    break;
+            }
+            break;
+        case (3):
             switch (row) {
                 case (0):
                     [ cell setTitle:_T(@"Reverse Tap Zones") ];
@@ -461,24 +463,23 @@ NSString  *TextAlignmentNames[5];
                     break;
             }
             break;
-        case (3):
+        case (4):
             switch (row) {
                 case (0):
                     {    
-                        // volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(20.0f, 3.0f, 280.0f, 55.0f)] autorelease];
-                        volumeScroll = [[[MySegControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [volumeScroll setTextReader:trApp];
+                        volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
                         [volumeScroll insertSegment:0 withTitle:_T(@"Off")  animated:NO];
                         [volumeScroll insertSegment:1 withTitle:_T(@"Line") animated:NO];
                         [volumeScroll insertSegment:2 withTitle:_T(@"Page") animated:NO];
                         [volumeScroll selectSegment:[trApp getVolScroll]];
+                        [volumeScroll setDelegate:self];
                         [cell addSubview: volumeScroll ];
                         [cell setDrawsBackground:NO];
                     }
                     break;
             }
             break;
-        case (4):
+        case (5):
             switch (row) {
                 case (0):
                     [ cell setTitle: _T(@" ") ];
@@ -496,7 +497,21 @@ NSString  *TextAlignmentNames[5];
     [ cell setShowSelection: NO ];
     cells[group][row] = cell;
     return cell;
-}
+} // preferencesTable
+
+
+- (void) segmentedControl: (UISegmentedControl *)segment selectedSegmentChanged:(int)seg
+{
+    if (segment == volumeScroll)
+    {
+        [trApp setVolScroll:seg];
+    }
+    else if (segment == ignoreSingleLF)
+    {
+        [textView setIgnoreSingleLF:seg];
+    }
+    
+} // selectedSegmentChanged
 
 
 - (void) setTextReader:(textReader*)tr {
@@ -676,14 +691,14 @@ NSString  *TextAlignmentNames[5];
             break;
             
         case kPicker_Type_FontSize:
-            for(i=12; i<=32; i+=2)
+            for(i=10; i<=34; i++)
                 [dataArray addObject:[NSString stringWithFormat:@"%i", i]];
             break;
 
         case kPicker_Type_TextAlignment:
             {
                 AlignText ta;
-                for(ta=Align_Left; ta<=Align_Justified; ta++)
+                for(ta=Align_Left; ta<=Align_Justified2; ta++)
                     [dataArray addObject:TextAlignmentNames[ta]];
             }
             break;

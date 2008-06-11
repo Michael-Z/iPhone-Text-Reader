@@ -31,7 +31,6 @@
 #import "MyTextView.h"
 
 #import <UIKit/UIKit.h>
-//#import <UIKit/UIStringDrawing.h>
 
 
 // NOTE: This adds about 16K to the program!
@@ -63,7 +62,7 @@ typedef unsigned int NSUInteger;
     screenLock = [[NSLock alloc] init];
 
     invertColors   = false;
-    ignoreSingleLF = false;
+    ignoreSingleLF = 0;
     padMargins     = false;
     repeatLine     = false;
     textAlignment  = Align_Left;
@@ -111,47 +110,25 @@ typedef unsigned int NSUInteger;
 } // setInvertColors
 
 
-- (void) setIgnoreSingleLF:(bool)ignore {
-    ignoreSingleLF = ignore;
-    [self setNeedsDisplay];
-}
-
-- (void) setPadMargins:(bool)pad {
-    padMargins = pad;
-    [self setNeedsDisplay];
-}
-
 - (void) setRepeatLine:(bool)repeat {
     repeatLine = repeat;
 } // setRepeastLine
 
+
 - (bool) getInvertColors { return invertColors; }
-- (bool) getIgnoreSingleLF { return ignoreSingleLF; }
+- (int) getIgnoreSingleLF { return ignoreSingleLF; }
 - (bool) getPadMargins { return padMargins; }
 - (bool) getRepeatLine { return repeatLine; };
 - (NSMutableString *) getText  { return text; }
 - (NSString*) getFileName { return fileName; }
 - (NSString*) getFilePath { return filePath; }
-
-
-- (void) setTextAlignment:(AlignText)ta
-{
-    textAlignment = ta;
-    [self setNeedsDisplay];
-} // setTextAlignment
-
-
-- (AlignText) getTextAlignment
-{
-    return textAlignment;
-} // getTextAlignment
+- (AlignText) getTextAlignment { return textAlignment; }
 
 
 
 - (int) getStart { 
     return cStart;
 }
-
 
 
 // Fill in background with proper color, and then set the text colors
@@ -238,37 +215,84 @@ typedef unsigned int NSUInteger;
 // ------------------------------------------------------
 
 
+
 // Support ignoreSingleLF option:
-// Assuming the character at start is a LF 0x0a character,
-// is it the only one, or does it have a friend next to it?
-- (bool) isSingleLF:(int)start {
+// If this is not an LF, return FALSE
+// If ignoreLF is 0, return TRUE
+// If first or last char, return TRUE
+// If there is an LF on either side, return TRUE
+// If ignoreLF = 1, return FALSE
+// If LF is followed by '-', Tab or Cap character, return TRUE
+// Return FALSE
+- (bool) isLF:(int)start {
 
-    bool issingle = false;
-    
-    // if this LF is the first or last char in the 
-    // text, we should return it as is
-    if (start && start < (int)[text length]-1 &&
-        [text characterAtIndex:start] == 0x0a)
-    {
-        // What is before and after it?
-        unichar after  = [text characterAtIndex:start+1];
-        unichar before = [text characterAtIndex:start-1];
+    // If this is not an LF, return FALSE
+    if (start < 0 || 
+        start >= (int)[text length] ||
+        [text characterAtIndex:start] != 0x0a)
+       return FALSE;
+       
+    // If ignoreLF is 0, return TRUE
+    if (ignoreSingleLF == 0)
+        return TRUE;
+       
+    // If this LF is the first or last char in the 
+    // text, we should return TRUE
+    if (!start || start == (int)[text length]-1)
+        return TRUE;
 
-        // Special case following a 0x0d - we need to check one 
-        // more character in front
-        if (before == 0x0d &&
-            (start < 2 || [text characterAtIndex:start-2] == 0x0a))
-           before = 0x0a;
+    // What is before and after it?
+    unichar after  = [text characterAtIndex:start+1];
+    unichar before = [text characterAtIndex:start-1];
 
-        // A 0x0d after this means there will be a 0x0a after the 0x0d
-        // so consider that sufficient proof this is not a single
-        if (before != 0x0a && after != 0x0a && after != 0x0d)
-            issingle = true;
-    }
+    // Special case following a 0x0d - we need to check one 
+    // more character in front
+    if (before == 0x0d &&
+        (start < 2 || [text characterAtIndex:start-2] == 0x0a))
+       before = 0x0a;
+
+    // A 0x0d after this means there will be a 0x0a after the 0x0d
+    // so consider that sufficient proof this is not a single
+    if (before == 0x0a || after == 0x0a || after == 0x0d)
+        return TRUE;
         
-    return issingle;
+    // If ignoreSingleLF is 1, return FALSE
+    if (ignoreSingleLF == 1)
+        return FALSE;
+       
+    // If LF is followed by '-', Tab return TRUE
+    if (after == '-' || after == '\'' || after == '\"' || after == '\t')
+        return TRUE;
+        
+//     // If LF is followed by an uppercase character, return TRUE        
+//     NSRange block = {start+1, 1};
+//     NSString * upper = [[text substringWithRange:block] uppercaseString];
+//     
+//     if ([upper characterAtIndex:0] == after)
+//         return TRUE;
 
-} // issingleLF
+    // If the previous non-blank character was '.' or ':' treat as a "real" LF
+    int prev = start-1;
+    while (prev >= 0)
+    {   
+        before = [text characterAtIndex:prev];
+        if (before != ' ')
+            break;
+        prev--;
+    }
+    // If prev char was a line ending char, keep the LF
+    if (before == '.' || before == '!' || 
+        before == '?' || before == '"' || 
+        before == '\'' || before == ':')
+        return TRUE;
+    
+    // Return FALSE
+    return FALSE;
+
+
+} // isLF
+
+
 
 
 // IS this a blank character
@@ -286,7 +310,7 @@ typedef unsigned int NSUInteger;
     
     // *If* We have a single LF and are ignoring single LFs, it 
     // should be treated as a blank/space rather than as a LF
-    if (c == 0x0a && ignoreSingleLF && [self isSingleLF:start])
+    if (c == 0x0a && ![self isLF:start])
        return TRUE;
     
     return FALSE;
@@ -297,19 +321,8 @@ typedef unsigned int NSUInteger;
 // IS this a CR/LF character
 - (bool) isCRLF:(int)start
 {
-    unichar c = [text characterAtIndex:start];
-    
-    // Treat 0x0d as a blank
-    if (c == 0x0a)
-    {
-       // Handle ignore single LF option
-       if (ignoreSingleLF && [self isSingleLF:start])
-          return FALSE;
-    
-       return TRUE;
-    }
-    
-    return FALSE;
+   // Handle ignore single LF option
+   return [self isLF:start];
     
 } // isCRLF
 
@@ -430,9 +443,9 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
     txtLayout->range.location = start;
     txtLayout->range.length   = length;
 
-    txtLayout->width = -1;
-    txtLayout->blank_per_block = -1;
-    txtLayout->blank_slop = -1;
+    txtLayout->width                  = -1;
+    txtLayout->blank_pixels_per_block = -1;
+//     txtLayout->blank_pixels_slop      = -1;
     
 } // initLayout
 
@@ -888,6 +901,32 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     
 } // doLayout
 
+
+- (void) setTextAlignment:(AlignText)ta
+{
+    textAlignment = ta;
+    
+    // Force a new layout with the new alignment at the current position
+    [self doLayout:0];
+    
+} // setTextAlignment
+
+
+- (void) setIgnoreSingleLF:(int)ignore {
+    ignoreSingleLF = ignore;
+
+    // Force a new layout with the new alignment at the current position
+    [self doLayout:0];
+}
+
+- (void) setPadMargins:(bool)pad {
+    padMargins = pad;
+
+    // Force a new layout with the new alignment at the current position
+    [self doLayout:0];
+}
+
+
 // --------------------------------------------------------------
 
 
@@ -1030,6 +1069,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 - (void) drawJustified:(TextLayout *)txtLayout at:(CGPoint)pt
 {
     CGSize  viewSize   = [trApp getOrientedViewSize];
+    NSRange block;
 
     // Strip leading and trailing blanks
     while (txtLayout->range.length && [self isBlank:txtLayout->range.location])
@@ -1041,17 +1081,13 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
            [self isBlank:txtLayout->range.location+txtLayout->range.length-1])
         txtLayout->range.length--;
     
-    NSString * x = [text substringWithRange:txtLayout->range];
+    // Get the text to be added ...
+    NSString * x = [text substringWithRange:txtLayout->range];   
     
-    NSRange block;
-    
-    if (txtLayout->width < 0)
-        txtLayout->width = [self calcWidth:x];
-
     // Nothing to do for completely blank lines ...
     if (!txtLayout->range.length)
         return;
-    
+
     // If this line ends with a 0x0a, left align it
     if ([self isCRLF:txtLayout->range.location + txtLayout->range.length - 1])
     {   
@@ -1062,38 +1098,61 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     // OK - we have to do it the hard way ...
     
     // Loop through the blocks in the text twice
-    
+     
     // The first time we count the number of blank blocks, and
     // add up the width of all of the non-blank blocks
     // (ignore CRLF blocks!)
     
     // NOTE: only do this once, and then cache the results ...
-    if (txtLayout->blank_per_block < 0)
+    if (txtLayout->blank_pixels_per_block < 0)
     {
-        int txt_width = 0;
-        int blank_blocks = 0;
-        for (block = txtLayout->range;         
-             block.location < txtLayout->range.location + txtLayout->range.length &&
-             [self getFwdBlock:&block from:block.location];
-             block.location = block.location + block.length)
+        float txt_width    = 0.0;
+        int   blank_blocks = 0;
+        
+        // For Char align, we add space between characters
+        if (textAlignment == Align_Justified2)
         {
-            // Ignore CRLF characters
-            if (![self isCRLF:block.location]) 
+            for (block.location = txtLayout->range.location, block.length = 1;         
+                 block.location < txtLayout->range.location + txtLayout->range.length;
+                 block.location++)
+            {                
+                NSString * x = [text substringWithRange:block];
+                CGSize  used = [x sizeWithFont:gsFont];
+                txt_width += ceil(used.width);
+                
+            } // for each char in the range
+            
+            // We will put blank space between characters
+            blank_blocks = txtLayout->range.length-1;
+        }
+        
+        // For Word align, we add space between words
+        else
+        {
+            for (block = txtLayout->range;         
+                 block.location < txtLayout->range.location + txtLayout->range.length &&
+                 [self getFwdBlock:&block from:block.location];
+                 block.location = block.location + block.length)
             {
-                if ([self isBlank:block.location])
-                    blank_blocks++;
-                else
+                // Ignore CRLF characters
+                if (![self isCRLF:block.location]) 
                 {
-                    NSString * x = [text substringWithRange:block];
-                    CGSize used = [x sizeWithFont:gsFont];
-                    txt_width += used.width;
+                    if ([self isBlank:block.location])
+                        blank_blocks++;
+                    else
+                    {
+                        NSString * x = [text substringWithRange:block];
+                        CGSize  used = [x sizeWithFont:gsFont];
+                        txt_width += ceil(used.width);
+                    }
                 }
-            }
 
-        } // for each block in txtLayout
+            } // for each block in txtLayout
+
+        } // if/else alignment type
 
         // If no text found, all done
-        if (!txt_width)
+        if (txt_width == 0.0)
             return;
 
         // If no blanks were found, we will do a left justify
@@ -1102,55 +1161,69 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             [x drawAtPoint:pt withFont:gsFont];
             return;
         }
-
+        
         // Calc the blank offset for each blank block
         // (remember to keep track of partial blank pixels
-        int blank_width = viewSize.width - (padMargins ? TEXTREADER_MPAD * 2 : 0);
-        blank_width -= txt_width;
+        float blank_width = viewSize.width - txt_width;
         
-        if (blank_width < 0)
-            blank_width = 0;
-            
-        txtLayout->blank_per_block = blank_width / blank_blocks;
-        txtLayout->blank_slop = blank_width % blank_blocks;   
-    }
+        if (padMargins)
+            blank_width -= TEXTREADER_MPAD * 2;
+
+//        if (blank_width < 0.0)
+//            blank_width = 0.0;
+
+        txtLayout->blank_pixels_per_block = blank_width / (float)blank_blocks;
+                    
+    } // if layout not already calc'd
     
-    // Make local copy of blank_slop so we can modify it as we consume blank space
-    int blank_slop = txtLayout->blank_slop;
+    // Draw the text in a justified manner ...
     
-   
-    // Loop through the blocks again and draw the text
-    for (block = txtLayout->range;
-         block.location < txtLayout->range.location + txtLayout->range.length &&
-         [self getFwdBlock:&block from:block.location];
-         block.location = block.location + block.length)
+    // For Char align, we add space between characters
+    if (textAlignment == Align_Justified2)
     {
-        // Ignore CRLF characters
-        if (![self isCRLF:block.location]) 
+        for (block.location = txtLayout->range.location, block.length = 1;         
+             block.location < txtLayout->range.location + txtLayout->range.length;
+             block.location++)
+        {   
+            // Draw each character
+            NSString * x = [text substringWithRange:block];
+            CGSize  used = [x drawAtPoint:pt withFont:gsFont];
+            pt.x += ceil(used.width);
+            
+            // Move the offset for blank space ...
+            pt.x += txtLayout->blank_pixels_per_block;
+
+        } // for each char in the range    
+    }
+    else
+    {
+        // Loop through the blocks again and draw the text
+        for (block = txtLayout->range;
+             block.location < txtLayout->range.location + txtLayout->range.length &&
+             [self getFwdBlock:&block from:block.location];
+             block.location = block.location + block.length)
         {
-            if ([self isBlank:block.location])
+            // Ignore CRLF characters
+            if (![self isCRLF:block.location]) 
             {
-                // Move the offset for blank space ...
-                pt.x += txtLayout->blank_per_block;
-                if (blank_slop)
+                if ([self isBlank:block.location])
                 {
-                    pt.x++;
-                    blank_slop--;
+                    // Move the offset for blank space ...
+                    pt.x += txtLayout->blank_pixels_per_block;
+                }
+                else
+                {
+                    // Draw this block of text at the indicated spot
+                    NSString * x = [text substringWithRange:block];
+                    CGSize  used = [x drawAtPoint:pt withFont:gsFont];
+                    pt.x += ceil(used.width);
                 }
             }
-            else
-            {
-                // Draw this block of text at the indicated spot
-                NSString * x = [text substringWithRange:block];
-                CGSize used = [x drawAtPoint:pt withFont:gsFont];
-                pt.x += used.width;
-            }
-        }
-        
-    } // for each block in txtLayout
+
+        } // for each block in txtLayout
+    }
 
 } // drawJustified
-
 
 
 - (void)drawRect:(struct CGRect)rect
@@ -1226,6 +1299,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                 break;
 
             case Align_Justified:    
+            case Align_Justified2:    
                 // Apply margin padding
                 pt.x = padMargins ? TEXTREADER_MPAD : 0;
                 
