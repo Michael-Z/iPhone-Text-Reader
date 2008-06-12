@@ -85,7 +85,8 @@ typedef struct _TextLayout {
 
     NSMutableString  *text;
 
-    NSStringEncoding  encoding;
+    NSStringEncoding  encodings[4];
+
     NSString         *font;
     struct __GSFont  *gsFont;
     int               fontSize;
@@ -145,8 +146,8 @@ typedef struct _TextLayout {
 - (NSString *)getFont;
 - (bool)setFont:(NSString*)newFont size:(int)size;
 
-- (NSStringEncoding)getEncoding;
-- (bool)setEncoding:(NSStringEncoding)enc;
+- (NSStringEncoding*)getEncodings;
+- (bool)setEncodings:(NSStringEncoding*)enc;
 
 - (int)getFontSize;
 - (int)getLineHeight;

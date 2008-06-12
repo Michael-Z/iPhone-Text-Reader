@@ -42,7 +42,7 @@
 
 // These are the MAX values - preferencesTable controls the actual number
 #define NUM_GROUPS      7
-#define CELLS_PER_GROUP 4
+#define CELLS_PER_GROUP 6
 
 
 
@@ -56,7 +56,12 @@ typedef enum _PickerType {
     kPicker_Type_Font           = 1,
     kPicker_Type_FontSize       = 2,
     kPicker_Type_Encoding       = 3,
-    kPicker_Type_TextAlignment  = 4
+    kPicker_Type_TextAlignment  = 4,
+
+    kPicker_Type_Encoding2      = 5,
+    kPicker_Type_Encoding3      = 6,
+    kPicker_Type_Encoding4      = 7
+
 } PickerType;
 
 // **********************************************************************
@@ -107,6 +112,7 @@ typedef enum _PickerType {
     UISwitchControl    *reverseTap;
     UISwitchControl    *repeatLine;
     UISwitchControl    *swipeOK;
+    UISwitchControl    *showCoverArt;
 
     textReader         *trApp;
     MyTextView         *textView;
@@ -116,6 +122,9 @@ typedef enum _PickerType {
     UIPreferencesTableCell *fontCell;
     UIPreferencesTableCell *fontSizeCell;
     UIPreferencesTableCell *encodingCell;
+    UIPreferencesTableCell *encoding2Cell;
+    UIPreferencesTableCell *encoding3Cell;
+    UIPreferencesTableCell *encoding4Cell;
     UIPreferencesTableCell *colorsCell;
     UIPreferencesTableCell *textAlignmentCell;
 

@@ -75,7 +75,8 @@ typedef unsigned int NSUInteger;
     font     = TEXTREADER_DFLT_FONT;
     fontSize = TEXTREADER_DFLT_FONTSIZE;
     
-    encoding = TEXTREADER_DFLT_ENCODING;
+    memset(&encodings[0], 0x00, sizeof(encodings));
+    encodings[0] = TEXTREADER_DFLT_ENCODING;
 
     cStart = 0;
     yDelta = 0;
@@ -1453,30 +1454,36 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
           
           
 // Convert an NSData with "invalid" GB2312 data into a UTF16 string
+// JIMB BUG BUG - provide an option to "Force" the file to be read as a GBK file?
 static NSMutableString * convertGB2312Data(NSData * data) {
     int                   i;
     unichar               c[8096];
     int                   cL = 0;
     const unsigned char * p = [data bytes];
+    bool                  encError = false;
     
     // Add characters to the mutable string in 8K chunks to speed up the transcoding
     NSMutableString * newText = [[NSMutableString alloc] initWithCapacity:[data length]/2];
 
-    for (i = 0; i < [data length]; i++, p++)
+    for (i = 0; !encError && i < [data length]; i++, p++)
     {
         if (p[0] < 0x81)
             c[cL++] = p[0];
+            
         else if (i+1 == [data length])
+        {
             c[cL++] = 0x00; // Encoding error! - last byte (or more) got chopped off!
-            // c[cL++] = '?';
+            // NOTE: We'll let this one slide in terms of an error since 
+            // it is the last byte!
+            // encError = true;
+        }
         else if (p[1] < 0x40)
         {
             c[cL++] = 0x00; // Encoding error! - 2nd byte should always be >= 0x40!
-            // c[cL++] = '?';
+            encError = true;
             
             // Go ahead and assume it was a double byte char, although anything we 
             // do after an error is probably wrong ...
-            // JIMB BUG BUG - report encoding problem ?!?!?!
             p++; i++;
         }
         else
@@ -1485,8 +1492,8 @@ static NSMutableString * convertGB2312Data(NSData * data) {
             
             // 0x00 would be an encoding error - we don't have the 
             // mapping in our table ...
-            // if (c[cL] == 0x00)
-            //     c[cL] = '?';
+            if (c[cL-1] == 0x00)
+                encError = true;
             
             p++; i++;
         }
@@ -1496,11 +1503,20 @@ static NSMutableString * convertGB2312Data(NSData * data) {
             cL = 0;
         }
     }
+    
     // Add any remaining characters
     if (cL)
     {
         [newText appendFormat:@"%.*S", cL, c];
         cL = 0;
+    }
+    
+    // Handle encoding errors ...
+    // Should we make this optional?!?!?
+    if (encError)
+    {
+        [newText release];
+        newText = nil;
     }
     
     return newText;
@@ -2664,7 +2680,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 // ---------------------------------------------
 
 
-- (NSMutableString*) openPDBFile:(NSString*)fullpath type:(TextFileType*)ftype  {
+- (NSMutableString*) openPDBFile:(NSString*)fullpath type:(TextFileType*)ftype {
 
     NSMutableString * newText = nil;
     NSMutableData   * data = nil;
@@ -2701,11 +2717,22 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     }
     else
     {
-        // We use our own code for gb2312
-        if (encoding == TEXTREADER_GB2312)
-            newText = convertGB2312Data(data);
-        else
-            newText = [[NSMutableString alloc] initWithData:data encoding:encoding];              
+        int i;        
+        for (i = 0; i < sizeof(encodings)/sizeof(*encodings); i++)
+        {
+            NSStringEncoding encoding = encodings[i];
+            
+            if (encoding)
+            {
+                // We use our own code for gb2312
+                if (encoding == TEXTREADER_GB2312)
+                    newText = convertGB2312Data(data);
+                else
+                    newText = [[NSMutableString alloc] initWithData:data encoding:encoding];              
+                if (newText)
+                   break;
+            }
+        }
     }
 
     if (data)
@@ -2729,14 +2756,26 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
     NSMutableString * newText = nil;
 
-    // Read in the text file - let NSMutableString do the work
-    if (encoding == TEXTREADER_GB2312)
-        newText = loadGB2312(fullpath);
-    else
-        newText = [[NSMutableString 
-                    stringWithContentsOfFile:fullpath
-                    encoding:encoding
-                    error:nil] retain];
+    int i;
+
+    for (i = 0; i < sizeof(encodings)/sizeof(*encodings); i++)
+    {
+        NSStringEncoding encoding = encodings[i];
+
+        if (encoding)
+        {
+            // Read in the text file - let NSMutableString do the work
+            if (encoding == TEXTREADER_GB2312)
+                newText = loadGB2312(fullpath);
+            else
+                newText = [[NSMutableString 
+                            stringWithContentsOfFile:fullpath
+                            encoding:encoding
+                            error:nil] retain];
+            if (newText)
+               break;
+        }
+    }
 
     return newText;
     
@@ -2863,7 +2902,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                    path,
                                    _T(@".dir_suffix"), // Just a "." in most languages ...
                                    _T(@"Please make sure the directory and file exist, the read permissions are set, and the file is really in"), 
-                                   [trApp stringFromEncoding:encoding],
+// JIMB BUG BUG - change this!!!
+                                   [trApp stringFromEncoding:encodings[0]],
+// JIMB BUG BUG - change this!!!
                                    _T(@"encoding.")]; 
     [trApp showDialog:_T(@"Error opening file")
                     msg:errorMsg
@@ -2875,20 +2916,18 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 } // openFile
 
 
-- (NSStringEncoding)getEncoding {
-    return encoding;
-} // getEncoding
+- (NSStringEncoding*)getEncodings {
+    return encodings;
+} // getEncodings
 
 
-- (bool)setEncoding:(NSStringEncoding)enc {
+- (bool)setEncodings:(NSStringEncoding*)enc {
     
-    if (!enc)
-        enc = kCGEncodingMacRoman;
-        
-    encoding = enc;
+    memcpy(encodings, enc, sizeof(encodings));
     
     return true;
-} // setEncoding
+    
+} // setEncodings
 
 
 // typedef enum {

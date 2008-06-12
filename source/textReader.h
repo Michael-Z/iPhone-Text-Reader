@@ -55,7 +55,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define _T(x) NSLocalizedString(x,nil)
 
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.9Beta3"
+#define TEXTREADER_VERSION          @"0.9Beta6"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -76,6 +76,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_SWIPE            @"swipeOK"
 #define TEXTREADER_SHOWSTATUS       @"showStatus"
 #define TEXTREADER_TEXTALIGNMENT    @"textAlignment"
+#define TEXTREADER_SHOWCOVERART     @"showCoverArt"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -85,6 +86,9 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_FONT             @"font"
 #define TEXTREADER_FONTSIZE         @"fontSize"
 #define TEXTREADER_ENCODING         @"encoding"
+#define TEXTREADER_ENCODING2        @"encoding2"
+#define TEXTREADER_ENCODING3        @"encoding3"
+#define TEXTREADER_ENCODING4        @"encoding4"
 
 #define TEXTREADER_OPENFILE         @"OpenFileName"
 #define TEXTREADER_OPENPATH         @"OpenFilePath"
@@ -103,10 +107,24 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_SLIDERSCALE      256
 
-#define TEXTREADER_GB2312         -2312
-#define TEXTREADER_GB2312_NAME    @"GBK/GB2312/CP936 (Simplified Chinese)"
+#define TEXTREADER_GB2312           -2312
+#define TEXTREADER_GB2312_NAME      @"GBK/GB2312/CP936 (Simplified Chinese)"
+
+#define TEXTREADER_ENC_NONE         0
+#define TEXTREADER_ENC_NONE_NAME    _T(@"No Encoding Specified")
 
 
+
+@class FileTable;
+@class MyTextView;
+@class MyPreferencesTable;
+@class MyColorTable;
+@class MyDownloadTable;
+
+
+
+// *****************************************************************************
+// Enums that are used all over ...
 typedef struct _MyColors {
 
     float text_red;
@@ -121,7 +139,6 @@ typedef struct _MyColors {
 
 } MyColors;
 
-
 typedef enum _TextFileType {
     kTextFileTypeUnknown = 0,
     kTextFileTypeTXT     = 1,
@@ -131,16 +148,6 @@ typedef enum _TextFileType {
     kTextFileTypeTRCache = 5
 } TextFileType;
 
-
-@class FileTable;
-@class MyTextView;
-@class MyPreferencesTable;
-@class MyColorTable;
-@class MyDownloadTable;
-
-
-
-// *****************************************************************************
 typedef enum _MyViewName {
     My_No_View,
     My_Info_View,
@@ -179,6 +186,8 @@ typedef enum _IgnoreLF {
 } IgnoreLF;
 
 
+// *****************************************************************************
+
 @interface textReader : UIOrientingApplication {
 
     UIWindow                *mainWindow;
@@ -194,6 +203,7 @@ typedef enum _IgnoreLF {
     UINavBarButton          *searchBtn;
     UINavBarButton          *bookmarkBtn;
     UITextLabel             *percent;
+    UIImageView             *coverArt;
 
     UISearchField           *searchBox;
     UIKeyboard              *keyboard;
@@ -222,6 +232,7 @@ typedef enum _IgnoreLF {
     bool                     swipeOK;
     VolScroll                volScroll;
     ShowStatus               showStatus;
+    bool                     showCoverArt;
 
 
     // Initial volume - we'll try to restore this level if possible
@@ -267,6 +278,9 @@ typedef enum _IgnoreLF {
 - (void) setShowStatus:(ShowStatus)ss;
 - (ShowStatus) getShowStatus;
 
+- (void) setShowCoverArt:(bool)show;
+- (bool) getShowCoverArt;
+
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
 
@@ -297,6 +311,8 @@ typedef enum _IgnoreLF {
 - (NSString *)stringFromEncoding:(NSStringEncoding)enc;
 - (NSStringEncoding)encodingFromString:(NSString *)string;
 
+- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth;
+- (NSString *) getCoverArt:(NSString *)fname path:(NSString*)path;
 
 @end  // textReader : UIOrientingApplication
 

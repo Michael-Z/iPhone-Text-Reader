@@ -103,14 +103,18 @@ NSString  *TextAlignmentNames[6];
             // Font
             // Font Size
             // Encoding
-            return 3; 
+            // Encoding2
+            // Encoding3
+            // Encoding4
+            return 6; 
 
         case(1):
             // Invert
             // Colors
+            // Show Cover Art
             // Pad Margins
             // Align Text
-            return 4;
+            return 5;
             
         case(2):
             // Strip Line Feeds
@@ -213,7 +217,13 @@ NSString  *TextAlignmentNames[6];
 
     [textView setFont:font size:size];
 
-    [textView setEncoding:[trApp encodingFromString:[encodingCell value]]];
+    NSStringEncoding encodings[4] = {
+                                        [trApp encodingFromString:[encodingCell  value]],
+                                        [trApp encodingFromString:[encoding2Cell value]],
+                                        [trApp encodingFromString:[encoding3Cell value]],
+                                        [trApp encodingFromString:[encoding4Cell value]]
+                                    };
+    [textView setEncodings:encodings];
 
     [textView setTextAlignment:[self alignmentFromString:[textAlignmentCell value]]];
     
@@ -267,14 +277,49 @@ NSString  *TextAlignmentNames[6];
             }               
             break;
 
-        case 5: // Colors
+
+
+        case 4: // Encoding2
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_Encoding2];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
+        case 5: // Encoding3
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_Encoding3];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
+        case 6: // Encoding4
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_Encoding4];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
+            
+            
+
+        case 8: // Colors
             {   
                 [self saveSettings];
                 [trApp showView:My_Color_View];
             }               
             break;
        
-        case 8: // textAlignment
+        case 12: // textAlignment
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -333,6 +378,9 @@ NSString  *TextAlignmentNames[6];
     else if (switchid == reverseTap)
         [trApp setReverseTap:[reverseTap value] ? 1 : 0];
 
+    else if (switchid == showCoverArt)
+        [trApp setShowCoverArt:[showCoverArt value] ? 1 : 0];
+
     else if (switchid == invertScreen)
         [textView setInvertColors:[invertScreen value] ? true : false];
 
@@ -381,10 +429,38 @@ NSString  *TextAlignmentNames[6];
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Encoding") ];
-                    [ cell setValue:[trApp stringFromEncoding:[textView getEncoding]] ];
+                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][0]] ];
                     [ cell setShowDisclosure:YES];
                     encodingCell = cell;
                     break;
+
+
+                case (3):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:_T(@"2nd Encoding") ];
+                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][1]] ];
+                    [ cell setShowDisclosure:YES];
+                    encoding2Cell = cell;
+                    break;
+                case (4):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:_T(@"3rd Encoding") ];
+                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][2]] ];
+                    [ cell setShowDisclosure:YES];
+                    encoding3Cell = cell;
+                    break;
+                case (5):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:_T(@"4th Encoding") ];
+                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][3]] ];
+                    [ cell setShowDisclosure:YES];
+                    encoding4Cell = cell;
+                    break;
+
+
            }
            break;
         case (1):
@@ -404,6 +480,15 @@ NSString  *TextAlignmentNames[6];
                     [ cell addSubview: invertScreen ];
                     break;
                 case (2):
+                    [ cell setTitle:_T(@"Show Cover Art") ];
+                    showCoverArt = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ showCoverArt setValue: [trApp getShowCoverArt] ? 1 : 0 ];
+                    [ showCoverArt addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: showCoverArt ];
+                    break;
+                case (3):
                     [ cell setTitle:_T(@"Pad Margins") ];
                     padMargins = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
@@ -412,7 +497,7 @@ NSString  *TextAlignmentNames[6];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: padMargins ];
                     break;
-                case (3):
+                case (4):
                     [ cell release ];
                     cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Align Text") ];
@@ -524,7 +609,7 @@ NSString  *TextAlignmentNames[6];
 } // preferencesTable
 
 
-- (void) segmentedControl: (UISegmentedControl *)segment selectedSegmentChanged:(int)seg
+- (void) segmentedControl:(UISegmentedControl *)segment selectedSegmentChanged:(int)seg
 {
     if (segment == volumeScroll)
     {
@@ -620,6 +705,21 @@ NSString  *TextAlignmentNames[6];
 } // setEncoding
 
 
+- (void) setEncoding2:(NSString*)enc {
+    [ encoding2Cell setValue:enc ];    
+} // setEncoding2
+
+
+- (void) setEncoding3:(NSString*)enc {
+    [ encoding3Cell setValue:enc ];    
+} // setEncoding3
+
+
+- (void) setEncoding4:(NSString*)enc {
+    [ encoding4Cell setValue:enc ];    
+} // setEncoding4
+
+
 - (void) setTextAlignment:(NSString*)ta {
     [ textAlignmentCell setValue:ta ];
 } // setTextAlignment
@@ -651,6 +751,18 @@ NSString  *TextAlignmentNames[6];
 
         case kPicker_Type_Encoding:
             [ prefsTable setEncoding:[dataArray  objectAtIndex:row] ];
+            break;
+            
+        case kPicker_Type_Encoding2:
+            [ prefsTable setEncoding2:[dataArray  objectAtIndex:row] ];
+            break;
+            
+        case kPicker_Type_Encoding3:
+            [ prefsTable setEncoding3:[dataArray  objectAtIndex:row] ];
+            break;
+            
+        case kPicker_Type_Encoding4:
+            [ prefsTable setEncoding4:[dataArray  objectAtIndex:row] ];
             break;
             
         case kPicker_Type_Font:
@@ -732,7 +844,14 @@ NSString  *TextAlignmentNames[6];
             break;
 
         case kPicker_Type_Encoding:
+        case kPicker_Type_Encoding2:
+        case kPicker_Type_Encoding3:
+        case kPicker_Type_Encoding4:
             {
+                // Add No Encoding Specified to 2/3/4 but not 0 ...
+                if (type != kPicker_Type_Encoding)
+                    [dataArray addObject:TEXTREADER_ENC_NONE_NAME];
+                
                 // Special case GB2312
                 [dataArray addObject:TEXTREADER_GB2312_NAME];
                 

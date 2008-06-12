@@ -186,26 +186,124 @@
 } // numberOfRowsInTable
 
 
+typedef enum _RowType {
+    RowType_Unknown  = 0,
+    RowType_TXT      = 1,
+    RowType_PDB      = 2,
+    RowType_HTML     = 3,
+    RowType_FB2      = 4,
+    RowType_TRCache  = 5,
+    RowType_Download = 6,
+    RowType_Parent   = 7,
+    RowType_Folder   = 8 
+} RowType;
+
+
+// Set the image for this row ...
+- (void) setRowImage:(int)row cell:(UIDeletableCell *)cell type:(RowType)rowType {
+
+    NSString * iname      = nil;
+    bool       isCoverArt = false;
+
+    // Set default images
+    switch (rowType)
+    {
+        case RowType_TXT:          
+        case RowType_PDB:          
+        case RowType_HTML:         
+        case RowType_FB2:          
+        case RowType_TRCache:      
+        case RowType_Unknown:      
+            // These will be taken care of below
+            break;
+            
+        case RowType_Download:     
+            iname = @"globedownload.png";
+            break;
+        case RowType_Parent:       
+            iname = @"folderup.png";
+            break;
+        case RowType_Folder:       
+            iname = @"folder.png";
+            break;
+    }
+    
+    // Load cover image if requested and available
+    if (!iname)
+    {
+        iname = [trApp getCoverArt:[fileList objectAtIndex:row] path:path];
+        if (iname)
+            isCoverArt = true;
+    }
+    
+    // Pick out the icon for this file type ...
+    if (!iname)
+    {
+        switch (rowType)
+        {
+            case RowType_TXT:          
+                iname = @"txt.png";
+                break;
+            case RowType_PDB:          
+                iname = @"pdb.png";
+                break;
+            case RowType_HTML:         
+                iname = @"html.png";
+                break;
+            case RowType_FB2:          
+                iname = @"fb2.png";
+                break;
+            case RowType_TRCache:      
+                iname = @"cache.png";
+                break;
+
+            case RowType_Unknown:      
+            case RowType_Download:     
+            case RowType_Parent:       
+            case RowType_Folder:       
+                // These were taken care of above
+                break;
+        }
+    }
+    
+    // Try to load the image
+    if (iname)
+    {
+        UIImage *image = nil;
+        
+        if (isCoverArt)
+            image = [UIImage imageAtPath:iname];
+        else
+            image = [UIImage applicationImageNamed:iname];
+            
+        [cell setImage: image];
+        
+        // Scale the image if needed
+        if (isCoverArt)
+            [trApp scaleImage:[cell iconImageView] maxheight:63 maxwidth:63];
+    }
+    
+} // setRowImage
+
+
+// Populate the table's rows ...
 - (UITableCell *)table:(UITable *)table 
   cellForRow:(int)row 
   column:(UITableColumn *)col
 {  
+    RowType     rowType = RowType_Unknown;
+    
     if (col == colFilename) {
         BOOL isDir = true;
         
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
         [ cell setTextReader: trApp ];
-
+        
         // Set the icon for this row
         if (row == 0) 
         {
-            // Download path ...
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/globedownload.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_Download;                                  
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
         
@@ -216,31 +314,19 @@
         
         else if ([[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]==NSOrderedSame) // handle parent/up ...
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/folderup.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_Parent;
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
         
         else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && isDir)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/folder.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_Folder;
             [ cell setTitle: [fileList objectAtIndex:row] ];
         }               
         
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/txt.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_TXT;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
@@ -249,11 +335,7 @@
         
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/pdb.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_PDB;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
@@ -262,11 +344,7 @@
 
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/html.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_HTML;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
@@ -275,11 +353,7 @@
         
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeFB2)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/fb2.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_FB2;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
@@ -288,16 +362,15 @@
         
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
         {
-            UIImageView *image = [ [ UIImage alloc ] 
-                  initWithContentsOfFile: [ [ NSString alloc ] 
-                  initWithFormat: @"/Applications/%@.app/cache.png", 
-                                  TEXTREADER_NAME ] ];
-            [ cell setImage: image ];
+            rowType = RowType_TRCache;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
             [ cell setDisclosureStyle: 3 ];
         }
+        
+        // Specify the proper image for this row
+        [self setRowImage:row cell:cell type:rowType];
         
         return [ cell autorelease ];
     } 
@@ -386,6 +459,7 @@
     {
         // Open the selected file ...
         [trApp openFile:fileName path:path];
+        [trApp showView:My_Text_View];
     }
     
 } // tableRowSelected

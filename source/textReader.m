@@ -43,7 +43,6 @@
 
 
 
-
 - (id) init {   
 
     defaults = [[NSUserDefaults standardUserDefaults] retain];
@@ -64,6 +63,7 @@
     searchBtn           = nil;
     searchBox           = nil;
     lastSearch          = nil;
+    coverArt            = nil;
     // bookmarkBtn         = nil;
     okDialog            = nil;
     currentView         = My_No_View;
@@ -74,6 +74,7 @@
     volChanged          = false;    
     volScroll           = VolScroll_Off;
     showStatus          = ShowStatus_Off;
+    showCoverArt        = false;
     orientationInitialized = false;
 
     [super init];
@@ -122,24 +123,13 @@
 } // getShowStatus
 
 
-- (void) setShowStatus:(ShowStatus)ss {
-    
-//     if (showStatus != ss)
-//     {
-        showStatus = ss;
-//         [super showStatusBar:showStatus];
-//     
-//         // Invalidate the current layout ...
-//         if (textView && [textView getText] && [[textView getText] length])
-//         {
-//             [textView redoLayout];
-//             [self redraw];
-//         }
-//     }
-    
+// Remember the new status bar setting
+- (void) setShowStatus:(ShowStatus)ss {    
+    showStatus = ss;
 } // setShowStatus
 
 
+// Enable/disable volume scrolling and scale the vol as needed
 - (void) setVolScroll:(VolScroll)vs {
 
     // Turning on ...
@@ -246,6 +236,14 @@
 } // hideWait
 
 
+- (void) setShowCoverArt:(bool)show {
+    showCoverArt = show;
+} // setShowCoverArt
+
+
+- (bool) getShowCoverArt { return showCoverArt; };
+
+
 - (MyViewName) getCurrentView { return currentView; };
 
 - (bool) getReverseTap { return reverseTap; }
@@ -299,6 +297,8 @@
     
     [defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
     
+    [defaults setInteger:showCoverArt forKey:TEXTREADER_SHOWCOVERART];
+    
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
     
     [defaults setInteger:showStatus forKey:TEXTREADER_SHOWSTATUS];
@@ -317,7 +317,10 @@
 
     [defaults setInteger:[textView getFontSize] forKey:TEXTREADER_FONTSIZE];
 
-    [defaults setInteger:[textView getEncoding] forKey:TEXTREADER_ENCODING];
+    [defaults setInteger:[textView getEncodings][0] forKey:TEXTREADER_ENCODING];
+    [defaults setInteger:[textView getEncodings][1] forKey:TEXTREADER_ENCODING2];
+    [defaults setInteger:[textView getEncodings][2] forKey:TEXTREADER_ENCODING3];
+    [defaults setInteger:[textView getEncodings][3] forKey:TEXTREADER_ENCODING4];
 
     [defaults setFloat:[textView getTextColors].text_red   forKey:TEXTREADER_TEXTRED];
     [defaults setFloat:[textView getTextColors].text_green forKey:TEXTREADER_TEXTGREEN];
@@ -430,6 +433,8 @@
 
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
+    [self setShowCoverArt:[defaults integerForKey:TEXTREADER_SHOWCOVERART]];
+
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
 
     [self setShowStatus:[defaults integerForKey:TEXTREADER_SHOWSTATUS]];
@@ -454,8 +459,13 @@
         font = TEXTREADER_DFLT_FONT;
 
     [textView setFont:font size:fontSize];
-        
-    [textView setEncoding:[defaults integerForKey:TEXTREADER_ENCODING]];
+
+    NSStringEncoding   encodings[4] = { [defaults integerForKey:TEXTREADER_ENCODING],
+                                        [defaults integerForKey:TEXTREADER_ENCODING2],
+                                        [defaults integerForKey:TEXTREADER_ENCODING3],
+                                        [defaults integerForKey:TEXTREADER_ENCODING4] 
+                                      };
+    [textView setEncodings:&encodings[0]];
 
     MyColors txtcolors;
     
@@ -1314,6 +1324,10 @@
 
     struct CGRect FSrect = [self getOrientedViewRect];
     struct CGRect rect;
+
+    // Resize cover art if visible
+    if (coverArt)
+        [self scaleImage:coverArt maxheight:FSrect.size.height maxwidth:FSrect.size.width];
     
     // Slider will not redraw properly when rotated - so nuke it and recreate it ...
     [self recreateSlider];
@@ -1376,10 +1390,59 @@
 } // getOrientedEventLocation
 
 
+- (void) clearCoverArt {
+    if (coverArt)
+    {
+        [coverArt removeFromSuperview];
+        // [coverArt release];
+        coverArt = nil;
+
+        // // Restore the transview ...        
+        // [mainWindow setContentView:transView];
+     }
+} // clearCoverArt
+
+
+// Display cover art for file if requested - if it exists
+- (void) showCoverArt:(NSString *)name path:(NSString *)path {
+
+    NSString * iname = [self getCoverArt:name path:path];
+    
+    if (iname)
+    {
+        struct CGRect FSrect = [self getOrientedViewRect];
+
+        UIImage * image = [UIImage imageAtPath:iname];
+
+        coverArt = [[UIImageView alloc] initWithImage:image];
+
+        // Scale the image for the screen ...
+        [self scaleImage:coverArt maxheight:FSrect.size.height maxwidth:FSrect.size.width];
+        
+        // I kind of like having it on the baseTextView
+        [baseTextView addSubview:coverArt];
+        
+        // Having it on the transView means it disappears as soon as we load
+        // [transView addSubview:coverArt];
+        
+        // Putting it as the main content view means it sticks around until the user taps
+        // The mouse down code will restore the transview as the content view
+        // [mainWindow setContentView:coverArt];
+    }
+    
+} // showCoverArt
+
+
 // Handle mouse down - remember the position
 - (void)mouseDown:(struct __GSEvent*)event {
 
-    mouseDown = [self getOrientedEventLocation:event];
+  if (coverArt)
+  {
+    [self clearCoverArt];
+    return;
+  }
+  
+  mouseDown = [self getOrientedEventLocation:event];
     
 } // mouseDown
  
@@ -1546,6 +1609,8 @@
 //       (kind of like scrolling)
 - (void) openFile:(NSString *)name path:(NSString *)path {
 
+    [self showCoverArt:name path:path];
+    
     [self showWait];
     
     // KLUDGE!!!!
@@ -1615,8 +1680,11 @@
 } // getFileType
 
 
+// Close the currently open dialog/alert sheet
 - (void) releaseDialog {
 
+  [self clearCoverArt];
+  
   if (okDialog)
   {
       [okDialog dismissAnimated:YES];
@@ -1627,11 +1695,14 @@
 } // releaseDialog
 
 
+// Return the id of the currently open dialog/alert sheet
 - (UIAlertSheet*) getDialog {
     return okDialog;
 } // getDialog
 
 
+// Displays an alert sheet dialog with an optional button
+// NOTE: If no button specified, caller is responsible for releasing it!
 - (UIAlertSheet*) showDialog:(NSString*)title  msg:(NSString*)msg  button:(NSString*)button  delegate:(id)delegate
 {
         CGRect rect = [[UIWindow keyWindow] bounds];
@@ -1662,7 +1733,13 @@
 } // alertSheet
 
 
+// Return the string associated with a given encoding
 - (NSString *)stringFromEncoding:(NSStringEncoding)enc {
+
+    // Handle no encoding set ...
+    if (enc == TEXTREADER_ENC_NONE)
+        return TEXTREADER_ENC_NONE_NAME;
+        
     // Special case GB2312
     if (enc == TEXTREADER_GB2312)
         return TEXTREADER_GB2312_NAME;
@@ -1672,8 +1749,13 @@
 } // stringFromEncoding
 
 
+// Return the numeric encoding associated with the given string
 - (NSStringEncoding)encodingFromString:(NSString *)string {
     
+    // Handle No Encoding ...
+    if ([string compare:TEXTREADER_ENC_NONE_NAME] == NSOrderedSame)
+        return TEXTREADER_ENC_NONE;
+        
     // Special case gb2312
     if ([string compare:TEXTREADER_GB2312_NAME] == NSOrderedSame)
         return TEXTREADER_GB2312;
@@ -1690,6 +1772,81 @@
     return (enc && *enc) ? *enc : kCGEncodingMacRoman;
     
 } // encodingFromString
+
+
+// Utility file for handling covert art images
+- (NSString *) checkForImage:(NSString *)file ext:(NSString *)ext path:(NSString*)path {
+   
+   NSString * fpath = [path stringByAppendingPathComponent:[file stringByAppendingPathExtension:ext]];
+   
+   if ([[NSFileManager defaultManager] fileExistsAtPath:fpath])
+      return fpath;
+      
+   return nil;
+    
+} // checkForImage
+
+
+// Figure out the name of the cover art file, if any ...
+- (NSString *) getCoverArt:(NSString *)fname path:(NSString*)path {
+
+    NSString * iname = nil;
+    
+    NSString * extstrip = [fname stringByDeletingPathExtension];
+    
+    // Need to do 2 stips for cache files ...
+    if ([self getFileType:fname] == kTextFileTypeTRCache)
+        extstrip = [extstrip stringByDeletingPathExtension];
+    
+    if ([self getShowCoverArt])
+    {        
+        iname = [self checkForImage:extstrip ext:@"jpg" path:path];
+        if (!iname)
+            iname = [self checkForImage:extstrip ext:@"png" path:path];
+        if (!iname)
+            iname = [self checkForImage:@"cover" ext:@"jpg" path:path];
+        if (!iname)
+            iname = [self checkForImage:@"cover" ext:@"png" path:path];
+        if (!iname)
+            iname = [self checkForImage:extstrip ext:@"JPG" path:path];
+        if (!iname)
+            iname = [self checkForImage:extstrip ext:@"PNG" path:path];
+        if (!iname)
+            iname = [self checkForImage:@"cover" ext:@"JPG" path:path];
+        if (!iname)
+            iname = [self checkForImage:@"cover" ext:@"PNG" path:path];
+    }
+    
+    return iname;
+    
+} // getCoverArt
+
+
+// Scale image view to fit in height/width and center
+- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth {
+    
+    // Get image size
+    float iwidth  = CGImageGetWidth([image imageRef]);
+    float iheight = CGImageGetHeight([image imageRef]);
+    
+    // shorten or squeeze?
+    if (iheight > maxheight)
+    {
+        iwidth = iwidth * maxheight / iheight;
+        iheight = maxheight;
+    }
+    
+    if (iwidth > maxwidth)
+    {
+        iheight = iheight * maxwidth / iwidth;
+        iwidth = maxwidth;
+    }
+    
+    [image setFrame:CGRectMake((maxwidth - iwidth)/2, 
+                               (maxheight - iheight)/2, 
+                               iwidth, iheight)];
+    
+} // scaleImage
 
 
 
