@@ -90,9 +90,31 @@ typedef unsigned int NSUInteger;
     // Make sure default directory exists
     [[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
     
+//     [self setEnabledGestures:YES];
+//     [self setGestureDelegate:self];
+//     [self setEnabledGestures:2];
+//     [self setValue: [NSNumber numberWithBool: YES] forGestureAttribute: 7]; 
+//     [self setValue: [NSNumber numberWithBool: YES] forGestureAttribute: 4];
+//     
+//     for (i = 0; i < 0x2f; i++)
+//     {
+//         [imgView setEnabledGestures: i];
+//     }
+    
     return [super initWithFrame:rect];
     
 } // initWithFrame
+
+
+// - (void)gestureEnded:(struct __GSEvent *)fp8 {
+//     *((char*)0x00) = 37;
+// } // gestureEnded
+// 
+// - (void)didFinishGesture:(int)fp8 inView:(id)fp12 forEvent:(struct __GSEvent *)fp16 {
+//     *((char*)0x00) = 37;
+// } // didFinishGesture
+
+
 
 
 // Like the trApp version, but this one will apply th status bar offset
@@ -1657,34 +1679,51 @@ static unichar patchEntity(unichar entity)
 // Adds other text "as-is"
 void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest) 
 {
-
-    NSRange addedBlanks = {[dest length], 1};
-    NSRange added       = {[dest length], 1};
+    int begining        = [dest length];
+    NSRange addedBlanks = {begining, 1};
+    NSRange added       = {begining, 1};
     
     // Add new text to the dest - we'll patch it up in place
     [dest appendString:[src substringWithRange:rtext]];
     
-    // Convert /n to blank
-    // Convert all consecutive blanks to a single blank
+    
+    // First:
+    // Convert all consecutive blank space to a single blank
+    // (this is done before the entities are expanded, so 
+    //  we won't mess up "real/intended" characters)
     while (addedBlanks.location < [dest length])
     {
         unichar c = [dest characterAtIndex:addedBlanks.location];
-        if (c==0x0a || c==0x0d || c == '\t' || c == ' ')
+        
+        // Convert tabs, 0x0d and 0x0a to blank space
+        if (c == 0x0a || c == 0x0d || c == '\t')
+        {
+            [dest replaceCharactersInRange:addedBlanks withString:@" "];
+            c = ' ';
+        }
+
+        // Strip multiple tab and blank characters
+        if (c == ' ')
         {
             // If previous character is blankspace, delete this character
             // We only add a single blank at a time
+            // (remember, cr/lf/tabs have already been turned into blanks!
             c = [dest characterAtIndex:addedBlanks.location-1];
-            if (c==0x0a || c==0x0d || c == '\t' || c == ' ')
-                // delete this chacater
+            if (c == ' ')
+                // delete this doubled blank
                 [dest deleteCharactersInRange:addedBlanks];
             else
+                // Leave this blank as is
                 addedBlanks.location++;
         }
         else
+            // Not blank space - move to the next char
             addedBlanks.location++;
     }
 
-    // Expand all character entities
+
+    // Second:
+    // Now we need to Expand all character entities
     while (added.location < [dest length])
     {
         unichar c = [dest characterAtIndex:added.location];
@@ -2531,18 +2570,17 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 //                      break;
  
                 case 'H': case 'h':
-                    // <H1
-                    if (getTag(src, rtag.location+1, 2+rtag.location+1, "1>", "1 "))
+                    // </H1
+                    if (getTag(src, rtag.location+2, 3+rtag.location+1, "1>", "1 "))
                         [dest appendString:@"\n\n\n"];  
-                    break;
  
                     // </H2 to </H6
-                    if (getTag(src, rtag.location+1, 2+rtag.location+1, "2>", "2 ") ||
-                        getTag(src, rtag.location+1, 2+rtag.location+1, "3>", "3 ") ||
-                        getTag(src, rtag.location+1, 2+rtag.location+1, "4>", "4 ") ||
-                        getTag(src, rtag.location+1, 2+rtag.location+1, "5>", "5 ") ||
-                        getTag(src, rtag.location+1, 2+rtag.location+1, "6>", "6 "))
-                        [dest appendString:@"\n\n"];    
+                    else if (getTag(src, rtag.location+2, 3+rtag.location+1, "2>", "2 ") ||
+                             getTag(src, rtag.location+2, 3+rtag.location+1, "3>", "3 ") ||
+                             getTag(src, rtag.location+2, 3+rtag.location+1, "4>", "4 ") ||
+                             getTag(src, rtag.location+2, 3+rtag.location+1, "5>", "5 ") ||
+                             getTag(src, rtag.location+2, 3+rtag.location+1, "6>", "6 "))
+                       [dest appendString:@"\n\n"];    
                     break;
  
                 case 'P': case 'p':
@@ -2573,7 +2611,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                         getTag(src, rtag.location+1, 5+rtag.location+1, "ITLE ", "itle "))
                         [dest appendString:@"\n\n"];    
                     break;
- 
             }
             break;
 
