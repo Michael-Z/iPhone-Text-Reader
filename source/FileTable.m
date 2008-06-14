@@ -280,7 +280,7 @@ typedef enum _RowType {
         
         // Scale the image if needed
         if (isCoverArt)
-            [trApp scaleImage:[cell iconImageView] maxheight:63 maxwidth:63];
+            [trApp scaleImage:[cell iconImageView] maxheight:63 maxwidth:63 yOffset:0];
     }
     
 } // setRowImage

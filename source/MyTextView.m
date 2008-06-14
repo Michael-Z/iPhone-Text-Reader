@@ -944,13 +944,6 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 } // doLayout
 
 
-- (void) redoLayout {
-    cLayouts = 0;
-    cDisplay = 0;
-    [self doLayout:0];
-} // redoLayout
-
-
 - (void) setTextAlignment:(AlignText)ta
 {
     textAlignment = ta;

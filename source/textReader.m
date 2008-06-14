@@ -1305,6 +1305,23 @@
 } // deviceOrientationChanged
 
 
+- (void) scaleCoverArt {
+
+    if (coverArt)
+    {
+        struct CGRect rect = [self getOrientedViewRect];
+        int yOffset = showStatus ? [UIHardware statusBarHeight] : 0;
+        
+        // This will return the rect taking into account the 
+        // status bar if present ... this means the image will not
+        // be cropped by the status bar
+        rect = [textView getOrientedViewRect];
+        
+        [self scaleImage:coverArt maxheight:rect.size.height-yOffset maxwidth:rect.size.width yOffset:yOffset];
+    }
+
+} // scaleCoverArt
+
 // Here's the recommended method for doing custom stuff when the screen's rotation has changed... 
 - (void) setUIOrientation: (int) o_code {
 
@@ -1326,8 +1343,7 @@
     struct CGRect rect;
 
     // Resize cover art if visible
-    if (coverArt)
-        [self scaleImage:coverArt maxheight:FSrect.size.height maxwidth:FSrect.size.width];
+    [self scaleCoverArt];
     
     // Slider will not redraw properly when rotated - so nuke it and recreate it ...
     [self recreateSlider];
@@ -1410,23 +1426,20 @@
     
     if (iname)
     {
-        struct CGRect FSrect = [self getOrientedViewRect];
-
         UIImage * image = [UIImage imageAtPath:iname];
 
         coverArt = [[UIImageView alloc] initWithImage:image];
 
         // Scale the image for the screen ...
-        [self scaleImage:coverArt maxheight:FSrect.size.height maxwidth:FSrect.size.width];
-        
-        // I kind of like having it on the baseTextView
+        [self scaleCoverArt];
+
+        // Putting it on the base text view means it will appear over the text        
         [baseTextView addSubview:coverArt];
         
-        // Having it on the transView means it disappears as soon as we load
+        // Putting it on the transview means it will disappear when the text appears
         // [transView addSubview:coverArt];
-        
-        // Putting it as the main content view means it sticks around until the user taps
-        // The mouse down code will restore the transview as the content view
+        // Putting it in the window contents means we'll have rotation problems
+        // with the other views unless we do a lot of extra work ...
         // [mainWindow setContentView:coverArt];
     }
     
@@ -1823,7 +1836,8 @@
 
 
 // Scale image view to fit in height/width and center
-- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth {
+// Used for coverart and file open table icons
+- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth yOffset:(int)yOffset {
     
     // Get image size
     float iwidth  = CGImageGetWidth([image imageRef]);
@@ -1843,7 +1857,7 @@
     }
     
     [image setFrame:CGRectMake((maxwidth - iwidth)/2, 
-                               (maxheight - iheight)/2, 
+                               (maxheight - iheight)/2 + yOffset, 
                                iwidth, iheight)];
     
 } // scaleImage

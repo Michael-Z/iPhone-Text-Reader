@@ -311,7 +311,7 @@ typedef enum _IgnoreLF {
 - (NSString *)stringFromEncoding:(NSStringEncoding)enc;
 - (NSStringEncoding)encodingFromString:(NSString *)string;
 
-- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth;
+- (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth yOffset:(int)yOffset;
 - (NSString *) getCoverArt:(NSString *)fname path:(NSString*)path;
 
 @end  // textReader : UIOrientingApplication

@@ -161,7 +161,7 @@ typedef struct _TextLayout {
 - (void) setTextColors:(MyColors*)newcolors;
 - (MyColors) getTextColors;
 
-- (void) redoLayout;
+- (struct CGRect) getOrientedViewRect;
 
 @end // MyTextView : UIView
 
