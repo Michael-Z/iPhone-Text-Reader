@@ -172,13 +172,13 @@
 	<string>Search text not found ...</string>
 
 
+
 	<key>Strip Line Feeds</key>
 	<string>Strip Line Feeds</string>
 	<key>Single</key>
 	<string>Single</string>
 	<key>Format</key>
 	<string>Format</string>
-
 	<key>Align Text</key>
 	<string>Align Text</string>	
 	<key>Align Left</key>
@@ -191,13 +191,25 @@
 	<string>Word Justified</string>	
 	<key>Character Justified</key>
 	<string>Character Justified</string>	
-
 	<key>Show Status Bar</key>
 	<string>Show Status Bar</string>	
 	<key>Solid</key>
 	<string>Solid</string>	
 	<key>Clear</key>
 	<string>Clear</string>	
+  <key>Visit Website</key>
+  <string>Visit Website</string>	
+  <key>No Encoding Specified</key>
+  <string>No Encoding Specified</string>	
+  <key>2nd Encoding</key>
+  <string>2nd Encoding</string>	
+  <key>3rd Encoding</key>
+  <string>3rd Encoding</string>	
+  <key>4th Encoding</key>
+  <string>4th Encoding</string>	
+  <key>Show Cover Art</key>
+  <string>Show Cover Art</string>	
+
 
 
 </dict>
