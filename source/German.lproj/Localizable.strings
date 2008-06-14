@@ -158,7 +158,6 @@
     <string>Bitte stellen Sie sicher, dass sowohl das Verzeichnis als auch die Datei Schreibrechte haben.</string>
     <key>Error deleting file</key>
     <string>Fehler beim Löschen der Datei</string>
-    
     <key>Volume Button Scroll</key>
     <string>Lautstärkeknopf Vorschub</string>
     <key>Line</key>
@@ -167,10 +166,49 @@
     <string>Aus</string>
     <key>Page</key>
     <string>Seite</string>
-    
     <key>Enter your search text ...</key>
     <string>Suchtext eingeben ...</string>	
     <key>Search text not found ...</key>
-    <string>Suchtext nicht gefunden ...</string>
+    <string>Suchtext nicht gefunden ...</string>	
+    <key>Strip Line Feeds</key>
+	  <string>Zeilenvorschub entfernen</string>
+	  <key>Single</key>
+	  <string>1 Zeile</string>
+	  <key>Format</key>
+	  <string>Formatiert</string>
+	  <key>Align Text</key>
+	  <string>Textausrichtung</string>	
+	  <key>Align Left</key>
+	  <string>Links</string>	
+	  <key>Align Center</key>
+	  <string>Zentriert</string>	
+	  <key>Align Right</key>
+	  <string>Rechts</string>	
+	  <key>Word Justified</key>
+	  <string>Wortabstand</string>	
+	  <key>Character Justified</key>
+	  <string>Zeichenabstand</string>	
+	  <key>Show Status Bar</key>
+	  <string>Zeige Statuszeile</string>	
+	  <key>Solid</key>
+	  <string>Farbig</string>	
+	  <key>Clear</key>
+	  <string>Transparent</string>	
+
+
+	  <key>Visit Website</key>
+	  <string>Visit Website</string>	
+    <key>No Encoding Specified</key>
+    <string>No Encoding Specified</string>	
+    <key>2nd Encoding</key>
+    <string>2nd Encoding</string>	
+    <key>3rd Encoding</key>
+    <string>3rd Encoding</string>	
+    <key>4th Encoding</key>
+    <string>4th Encoding</string>	
+    <key>Show Cover Art</key>
+    <string>Show Cover Art</string>	
+
+
 </dict>
 </plist>
