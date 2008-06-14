@@ -170,15 +170,12 @@
 	<string>请输入需要查找的文本 ...</string>	
 	<key>Search text not found ...</key>
 	<string>未发现查找的文本 ...</string>
-
-
 	<key>Strip Line Feeds</key>
 	<string>去除多余换行</string>
 	<key>Single</key>
 	<string>单个换行</string>
 	<key>Format</key>
 	<string>格式化</string>
-
 	<key>Align Text</key>
 	<string>页边调整</string>	
 	<key>Align Left</key>
@@ -190,14 +187,30 @@
 	<key>Word Justified</key>
 	<string>两端对齐_短语</string>	
 	<key>Character Justified</key>
-	<string>两端对齐_单词</string>	
-
+	<string>两端对齐_单词</string>
+  
+  
+  	
 	<key>Show Status Bar</key>
 	<string>Show Status Bar</string>	
 	<key>Solid</key>
 	<string>Solid</string>	
 	<key>Clear</key>
 	<string>Clear</string>	
+	<string>Clear</string>	
+  <key>Visit Website</key>
+  <string>Visit Website</string>	
+  <key>No Encoding Specified</key>
+  <string>No Encoding Specified</string>	
+  <key>2nd Encoding</key>
+  <string>2nd Encoding</string>	
+  <key>3rd Encoding</key>
+  <string>3rd Encoding</string>	
+  <key>4th Encoding</key>
+  <string>4th Encoding</string>	
+  <key>Show Cover Art</key>
+  <string>Show Cover Art</string>	
+
 
 
 </dict>
