@@ -2739,8 +2739,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                            ];
             [trApp showDialog:_T(@"Unable to Open PDB File!")
                             msg:errorMsg
-                         button:_T(@"OK")
-                       delegate:trApp];
+                         buttons:DialogButtons_OK];
 
             return false;
         }
@@ -2938,8 +2937,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                                    _T(@"encoding.")]; 
     [trApp showDialog:_T(@"Error opening file")
                     msg:errorMsg
-                 button:_T(@"OK")
-               delegate:trApp];
+                 buttons:DialogButtons_OK];
 
     return false;
     
@@ -2994,8 +2992,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     
     [trApp showDialog:_T(@"Error")
                     msg:[NSString stringWithFormat:_T(@"Unable to create font %@"), font]
-                 button:_T(@"OK")
-               delegate:trApp];
+                 buttons:DialogButtons_OK];
 
     return false;
     

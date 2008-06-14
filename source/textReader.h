@@ -54,6 +54,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define _T(x) NSLocalizedString(x,nil)
 
+#define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
 #define TEXTREADER_VERSION          @"0.9Beta6"
 
@@ -185,6 +186,13 @@ typedef enum _IgnoreLF {
     IgnoreLF_Format = 2
 } IgnoreLF;
 
+typedef enum _DialogButtons {
+    DialogButtons_None      = 0x00,
+    DialogButtons_OK        = 0x01,
+    DialogButtons_Website   = 0x02,
+    DialogButtons_OKWebsite = 0x03
+} DialogButtons;
+
 
 // *****************************************************************************
 
@@ -305,7 +313,7 @@ typedef enum _IgnoreLF {
 - (void) redraw;
 
 - (void) releaseDialog;
-- (UIAlertSheet*) showDialog:(NSString*)title msg:(NSString*)msg button:(NSString*)button delegate:(id)delegate;
+- (UIAlertSheet*) showDialog:(NSString*)title msg:(NSString*)msg buttons:(DialogButtons)buttons;
 - (UIAlertSheet*) getDialog;
 
 - (NSString *)stringFromEncoding:(NSStringEncoding)enc;

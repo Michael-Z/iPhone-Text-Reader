@@ -136,8 +136,7 @@
 
     [trApp showDialog:_T(@"Finished") 
                   msg:_T(@"Save complete!") 
-               button:_T(@"OK")
-             delegate:trApp];
+               buttons:DialogButtons_OK];
     
     [trApp showView:My_File_View];
 }
@@ -146,16 +145,14 @@
 
     [trApp showDialog:_T(@"Error Saving File") 
                   msg:[NSString stringWithFormat:_T(@"Unable to save file as %@"), fullPath] 
-               button:_T(@"OK")
-             delegate:trApp];
+               buttons:DialogButtons_OK];
 }
 
 - (void) threadShowURLErr {
 
     [trApp showDialog:_T(@"Error Loading From URL")
                   msg:[NSString stringWithFormat:_T(@"Unable to load file from URL %@"), urlAddress]
-               button:_T(@"OK")
-             delegate:trApp];
+               buttons:DialogButtons_OK];
 } // threadShowSaving
 
 
@@ -239,8 +236,7 @@
             {
                 [trApp showDialog:_T(@"Error Invalid Save As File Name")
                               msg:_T(@"The Save As file name can not contain slashes.")
-                           button:_T(@"OK")
-                         delegate:trApp];
+                           buttons:DialogButtons_OK];
                 return;
             }
             
@@ -252,8 +248,7 @@
             {
                 [trApp showDialog:_T(@"Error Invalid Save As File Name")
                               msg:_T(@"The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt")
-                           button:_T(@"OK")
-                         delegate:trApp];
+                           buttons:DialogButtons_OK];
                 return;
             }
             
@@ -278,8 +273,7 @@
                               msg:[NSString stringWithFormat:
                                    _T(@"Invalid URL %@"),
                                    urlAddress]
-                           button:_T(@"OK")
-                         delegate:trApp];
+                           buttons:DialogButtons_OK];
                 return;
             }
             
@@ -288,8 +282,7 @@
                             msg:[NSString stringWithFormat:
                                  _T(@"Downloading from URL %@"),
                                  urlAddress]
-                         button:nil
-                       delegate:trApp];
+                         buttons:DialogButtons_None];
 
             // Start the load thread
             [NSThread detachNewThreadSelector:@selector(downLoadFile:)

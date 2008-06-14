@@ -47,8 +47,7 @@
                                            _T(@"Please make sure both the directory and file exist and have write permissions set.")];
             [trApp showDialog:_T(@"Error deleting file")
                             msg:errorMsg
-                         button:_T(@"OK")
-                       delegate:trApp];
+                         buttons:DialogButtons_OK];
         }
         else
         {

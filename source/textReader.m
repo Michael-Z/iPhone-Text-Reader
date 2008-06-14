@@ -1716,18 +1716,20 @@
 
 // Displays an alert sheet dialog with an optional button
 // NOTE: If no button specified, caller is responsible for releasing it!
-- (UIAlertSheet*) showDialog:(NSString*)title  msg:(NSString*)msg  button:(NSString*)button  delegate:(id)delegate
+- (UIAlertSheet*) showDialog:(NSString*)title  msg:(NSString*)msg  buttons:(DialogButtons)buttons
 {
         CGRect rect = [[UIWindow keyWindow] bounds];
         
         if (!okDialog)
         {
             okDialog = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
-            if (button)
-                [okDialog addButtonWithTitle:button];
+            if (buttons & DialogButtons_OK)
+                [okDialog addButtonWithTitle:_T(@"OK")];
+            if (buttons & DialogButtons_Website)
+                [okDialog addButtonWithTitle:_T(@"Visit Website")];
             [okDialog setTitle:title];
             [okDialog setBodyText:msg];
-            [okDialog setDelegate:delegate];
+            [okDialog setDelegate:self];
             [okDialog popupAlertAnimated:YES];
         }    
 
@@ -1740,6 +1742,15 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
+
+  // Button 1 is OK - just dismiss dialog!
+  
+  // Button 2 is handle Website
+  if (button == 2)
+  {
+     NSURL *url = [NSURL URLWithString:TEXTREADER_HOMEPAGE];
+     [UIApp openURL:url];
+  }
 
   [self releaseDialog];
 

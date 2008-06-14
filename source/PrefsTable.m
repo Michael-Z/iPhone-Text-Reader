@@ -592,7 +592,7 @@ NSString  *TextAlignmentNames[6];
                     [ cell setTitle: _T(@" ") ];
                     break;
                 case (1):
-                    [ cell setTitle: _T(@"http://code.google.com/p/iphonetextreader") ];
+                    [ cell setTitle: TEXTREADER_HOMEPAGE ];
                     break;
                 case (2):
                     [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
@@ -667,8 +667,6 @@ NSString  *TextAlignmentNames[6];
             {
                 // [trApp lockUIOrientation];
                 NSString *Msg = [NSString stringWithFormat:
-                                          //_T(@"version %@\nwritten by Jim Beesley\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader"),
-                                          //TEXTREADER_VERSION];
                                           @"%@ %@\n%@\n\niphonetextreader@gmail.com\n\nhttp://code.google.com\t\t/p/iphonetextreader",
                                           _T(@"Version"),
                                           TEXTREADER_VERSION,
@@ -676,8 +674,7 @@ NSString  *TextAlignmentNames[6];
                 NSString *aboutMsg = [NSString stringWithFormat:_T(@"About %@"), TEXTREADER_NAME];
                 [trApp showDialog:aboutMsg
                                 msg:Msg
-                             button:_T(@"OK")
-                           delegate:trApp];
+                             buttons:DialogButtons_OKWebsite];
             }
             break;
 
