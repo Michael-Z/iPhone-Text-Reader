@@ -158,9 +158,6 @@
 	<string>Παρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν και ότι έχουν δοθεί οι απαραίτητες άδειες εγγραφής (write permissions).</string>
 	<key>Error deleting file</key>
 	<string>Σφάλμα διαγραφής αρχείου</string>
-
-
-
 	<key>Volume Button Scroll</key>
 	<string>Ανακύλιση (πλήκτρο έντασης φωνής)</string>
 	<key>Line</key>
@@ -169,12 +166,50 @@
 	<string>Όχι</string>
 	<key>Page</key>
 	<string>Σελίδα</string>
-
-
 	<key>Enter your search text ...</key>
 	<string>Εισάγετε κείμενο για αναζήτηση ...</string>	
 	<key>Search text not found ...</key>
 	<string>Το κείμενο δεν βρέθηκε ...</string>
+
+
+
+	<key>Strip Line Feeds</key>
+	<string>Strip Line Feeds</string>
+	<key>Single</key>
+	<string>Single</string>
+	<key>Format</key>
+	<string>Format</string>
+	<key>Align Text</key>
+	<string>Align Text</string>	
+	<key>Align Left</key>
+	<string>Align Left</string>	
+	<key>Align Center</key>
+	<string>Align Center</string>	
+	<key>Align Right</key>
+	<string>Align Right</string>	
+	<key>Word Justified</key>
+	<string>Word Justified</string>	
+	<key>Character Justified</key>
+	<string>Character Justified</string>	
+	<key>Show Status Bar</key>
+	<string>Show Status Bar</string>	
+	<key>Solid</key>
+	<string>Solid</string>	
+	<key>Clear</key>
+	<string>Clear</string>	
+  <key>Visit Website</key>
+  <string>Visit Website</string>	
+  <key>No Encoding Specified</key>
+  <string>No Encoding Specified</string>	
+  <key>2nd Encoding</key>
+  <string>2nd Encoding</string>	
+  <key>3rd Encoding</key>
+  <string>3rd Encoding</string>	
+  <key>4th Encoding</key>
+  <string>4th Encoding</string>	
+  <key>Show Cover Art</key>
+  <string>Show Cover Art</string>	
+
 
 
 
