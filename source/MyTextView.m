@@ -2727,8 +2727,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         if (rc == 2)
         {
             NSString *errorMsg = [NSString stringWithFormat:
-                                           // _T(@"The format of \"%@\" is \"%@\".\n%@ is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.\nSorry ..."), 
-                                           // fullpath, type, TEXTREADER_NAME];
                                            @"%@ \"%@\" %@ \"%@\".\n%@ %@\n%@", 
                                            _T(@"The format of"), 
                                            fullpath, 
@@ -2922,8 +2920,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
     // We had an error if we got here ...
     NSString *errorMsg = [NSString stringWithFormat:
-                                   // _T(@"Unable to open file \"%@\" in directory \"%@\".\nPlease make sure the directory and file exist, the read permissions for are set, and the file is really in %@ encoding."), 
-                                   // name, path, [NSString localizedNameOfStringEncoding:encoding]];
                                    @"%@ \"%@\" %@ \"%@\"%@\n%@ %@ %@",
                                    _T(@"Unable to open file"), 
                                    name,
