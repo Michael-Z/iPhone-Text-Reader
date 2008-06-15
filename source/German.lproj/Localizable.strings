@@ -167,47 +167,45 @@
     <key>Page</key>
     <string>Seite</string>
     <key>Enter your search text ...</key>
-    <string>Suchtext eingeben ...</string>	
+    <string>Suchtext eingeben ...</string>
     <key>Search text not found ...</key>
-    <string>Suchtext nicht gefunden ...</string>	
+    <string>Suchtext nicht gefunden ...</string>
     <key>Strip Line Feeds</key>
-	  <string>Zeilenvorschub entfernen</string>
-	  <key>Single</key>
-	  <string>1 Zeile</string>
-	  <key>Format</key>
-	  <string>Formatiert</string>
-	  <key>Align Text</key>
-	  <string>Textausrichtung</string>	
-	  <key>Align Left</key>
-	  <string>Links</string>	
-	  <key>Align Center</key>
-	  <string>Zentriert</string>	
-	  <key>Align Right</key>
-	  <string>Rechts</string>	
-	  <key>Word Justified</key>
-	  <string>Wortabstand</string>	
-	  <key>Character Justified</key>
-	  <string>Zeichenabstand</string>	
-	  <key>Show Status Bar</key>
-	  <string>Zeige Statuszeile</string>	
-	  <key>Solid</key>
-	  <string>Farbig</string>	
-	  <key>Clear</key>
-	  <string>Transparent</string>	
-
-
-	  <key>Visit Website</key>
-	  <string>Visit Website</string>	
+    <string>Zeilenvorschub entfernen</string>
+    <key>Single</key>
+    <string>1 Zeile</string>
+    <key>Format</key>
+    <string>Formatiert</string>
+    <key>Align Text</key>
+    <string>Textausrichtung</string>
+    <key>Align Left</key>
+    <string>Links</string>
+    <key>Align Center</key>
+    <string>Zentriert</string>
+    <key>Align Right</key>
+    <string>Rechts</string>
+    <key>Word Justified</key>
+    <string>Wortabstand</string>
+    <key>Character Justified</key>
+    <string>Zeichenabstand</string>
+    <key>Show Status Bar</key>
+    <string>Zeige Statuszeile</string>
+    <key>Solid</key>
+    <string>Hell</string>
+    <key>Clear</key>
+    <string>Dunkel</string>
+    <key>Visit Website</key>
+    <string>Website besuchen</string>
     <key>No Encoding Specified</key>
-    <string>No Encoding Specified</string>	
+    <string>Keine Kodierung gewählt</string>
     <key>2nd Encoding</key>
-    <string>2nd Encoding</string>	
+    <string>2. Kodierung</string>
     <key>3rd Encoding</key>
-    <string>3rd Encoding</string>	
+    <string>3. Kodierung</string>
     <key>4th Encoding</key>
-    <string>4th Encoding</string>	
+    <string>4. Kodierung</string>
     <key>Show Cover Art</key>
-    <string>Show Cover Art</string>	
+    <string>Buch-Cover zeigen</string>
 
 
 </dict>
