@@ -2,216 +2,209 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>.dir_suffix</key>
+	<string>.</string>
+	<key>2nd Encoding</key>
+	<string>2η Κωδικογράφηση</string>
+	<key>3rd Encoding</key>
+	<string>3η Κωδικογράφηση</string>
+	<key>4th Encoding</key>
+	<string>4η Κωδικογράφηση</string>
 	<key>About</key>
 	<string>Σχετικά</string>
-	<key>Done</key>
-	<string>Εντάξει</string>
-	<key>Open</key>
-	<string>Άνοιγμα</string>
-	<key>Example Text</key>
-	<string>Παράδειγμα κειμένου</string>
-	<key>Text Color</key>
-	<string>Χρώμα κειμένου</string>
-	<key>Background Color</key>
-	<string>Χρώμα φόντου</string>
-	<key>This is how the text will look ...</key>
-	<string>Το κείμενο θα έχει την εμφάνιση ...</string>
-	<key>Red</key>
-	<string>Κόκκινο</string>
-	<key>Green</key>
-	<string>Πράσινο</string>
-	<key>Blue</key>
-	<string>Μπλε</string>
+	<key>About %@</key>
+	<string>Περί %@</string>
+	<key>Align Center</key>
+	<string>Κέντρο</string>
+	<key>Align Left</key>
+	<string>Αριστερά</string>
+	<key>Align Right</key>
+	<string>Δεξιά</string>
+	<key>Align Text</key>
+	<string>Στοίχιση κειμένου</string>
 	<key>Alpha</key>
 	<string>Alpha</string>
-	<key>http://code.google.com/p/iphonetextreader</key>
-	<string>http://code.google.com/p/iphonetextreader</string>
-	<key>email: iphonetextreader@gmail.com</key>
-	<string>email: iphonetextreader@gmail.com</string>
+	<key>Back</key>
+	<string>Πίσω</string>
+	<key>Background Color</key>
+	<string>Χρώμα φόντου</string>
+	<key>Blue</key>
+	<string>Μπλε</string>
+	<key>Cancel</key>
+	<string>Ακύρωση</string>
+	<key>Character Justified</key>
+	<string>Πλήρης στοίχιση χαρακτήρων</string>
+	<key>Clear</key>
+	<string>Διαυγής</string>
+	<key>Colors</key>
+	<string>Χρώματα</string>
+	<key>Display Settings</key>
+	<string>Ρυθμίσεις εμφάνισης</string>
+	<key>Done</key>
+	<string>Εντάξει</string>
 	<key>Download Details</key>
 	<string>Λεπτομέρειες λήψης αρχείου</string>
-	<key>Saving ...</key>
-	<string>Αποθήκευση ...</string>
-	<key>Saving to %@</key>
-	<string>Αποθήκευση σε %@</string>
-	<key>Finished</key>
-	<string>Ολοκληρώθηκε</string>
-	<key>Save complete!</key>
-	<string>Η αποθήκευση ολοκληρώθηκε!</string>
-	<key>OK</key>
-	<string>OK</string>
-	<key>Error Saving File</key>
-	<string>Σφάλμα αποθήκευσης αρχείου</string>
-	<key>Unable to save file as %@</key>
-	<string>Αδύνατη η αποθήκευση αρχείου ως %@</string>
-	<key>Error Loading From URL</key>
-	<string>Σφάλμα φόρτωσης από URL</string>
-	<key>Unable to load file from URL %@"</key>
-	<string>Αδυναμία φόρτωσης αρχείου από URL %@"</string>
-	<key>Error Invalid Save As File Name</key>
-	<string>Σφάλμα άκυρης αποθήκευσης ονόματος αρχείου</string>
-	<key>The Save As file name can not contain slashes.</key>
-	<string>Το όνομα του αποθηκευμένου αρχείου δεν μπορεί να περιέχει καθέτους.</string>
-	<key>The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt</key>
-	<string>Η διεύθυνση URL ή το όνομα του αποθηκευμένου αρχείου πρέπει να έχει την κατάληξη .pdb, .prc, .fb2, .htm, .html, .text, ή .txt</string>
-	<key>Error Invalid URL</key>
-	<string>Σφάλμα άκυρης URL</string>
-	<key>Invalid URL %@</key>
-	<string>Άκυρη URL %@</string>	
+	<key>Download File Now</key>
+	<string>Λήψη αρχείου τώρα</string>
+	<key>Download File via URL</key>
+	<string>Λήψη αρχείου μέσω της διεύθυνσης URL</string>
 	<key>Downloading ...</key>
 	<string>Λήψη αρχείου ...</string>
 	<key>Downloading from URL %@</key>
 	<string>Λήψη αρχείου από URL %@</string>
-	<key>Save As:</key>
-	<string>Αποθήκευση ως:</string>
-	<key>Download File Now</key>
-	<string>Λήψη αρχείου τώρα</string>
+	<key>Encoding</key>
+	<string>Κωδικογράφηση</string>
 	<key>Enter the complete URL of the Text or PalmDoc file you want to download</key>
 	<string>Εισάγετε την ολοκληρωμένη διεύθυνση URL του αρχείου Text, FB2, HTML, PRC, ή PDB που θέλετε να κατεβάσετε</string>
-	<key>and the Name you want it saved as locally.</key>
-	<string>και το όνομα με το οποίο θέλετε να το αποθηκεύσετε στη συσκευή.</string>
-	<key>If you leave name blank</key>
-	<string>Εάν αφήσετε κενό το πεδίο του ονόματος</string>
-	<key>will try to figure out the name and extension based on the URL.</key>
-	<string>θα προσπαθήσει να προσδιορίσει το όνομα και την κατάληξη με βάση την διεύθυνση URL.</string>
-	<key>Filename</key>
-	<string>Όνομα αρχείου</string>
-	<key>The format of</key>
-	<string>Η μορφή του</string>
-	<key>is</key>
-	<string>είναι</string>
-	<key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
-	<string>έχει τη δυνατότητα να ανοίγει μόνο αποκρυπτογραφημένα αρχεία Mobipocket, Plucker, και Palm Doc PDB.</string>
-	<key>Sorry ...</key>
-	<string>Λυπάμαι ...</string>
-	<key>Unable to Open PDB File!</key>
-	<string>Αδυναμία ανοίγματος αρχείου PDB!</string>
-	<key>Unable to open file</key>
-	<string>Αδυναμία ανοίγματος αρχείου</string>
-	<key>in directory</key>
-	<string>στην τοποθεσία</string>
-	<key>.dir_suffix</key>
-	<string>.</string>
-	<key>Please make sure the directory and file exist, the read permissions are set, and the file is really in</key>
-	<string>Παρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν, έχουν δοθεί οι απαραίτητες άδειες για ανάγνωση του αρχείου (read permissions), και το αρχείο βρίσκεται στην πραγματικότητα σε</string>
-	<key>encoding.</key>
-	<string>κωδικογράφηση.</string>
-	<key>Error opening file</key>
-	<string>Σφάλμα ανοίγματος αρχείου</string>
-	<key>Unable to create font %@</key>
-	<string>Αδυναμία δημιουργίας γραμματοσειράς %@</string>
+	<key>Enter your search text ...</key>
+	<string>Εισάγετε κείμενο για αναζήτηση ...</string>
 	<key>Error</key>
 	<string>Σφάλμα</string>
-	<key>Text Settings</key>
-	<string>Ρυθμίσεις κειμένου</string>
-	<key>Display Settings</key>
-	<string>Ρυθμίσεις εμφάνισης</string>
-	<key>Scroll Settings</key>
-	<string>Ρυθμίσεις ανακύλισης</string>
+	<key>Error Invalid Save As File Name</key>
+	<string>Σφάλμα άκυρης αποθήκευσης ονόματος αρχείου</string>
+	<key>Error Invalid URL</key>
+	<string>Σφάλμα άκυρης URL</string>
+	<key>Error Loading From URL</key>
+	<string>Σφάλμα φόρτωσης από URL</string>
+	<key>Error Saving File</key>
+	<string>Σφάλμα αποθήκευσης αρχείου</string>
+	<key>Error deleting file</key>
+	<string>Σφάλμα διαγραφής αρχείου</string>
+	<key>Error opening file</key>
+	<string>Σφάλμα ανοίγματος αρχείου</string>
+	<key>Example Text</key>
+	<string>Παράδειγμα κειμένου</string>
+	<key>Filename</key>
+	<string>Όνομα αρχείου</string>
+	<key>Finished</key>
+	<string>Ολοκληρώθηκε</string>
 	<key>Font</key>
 	<string>Γραμματοσειρά</string>
 	<key>Font Size</key>
 	<string>Μέγεθος γραμματοσειράς</string>
-	<key>Encoding</key>
-	<string>Κωδικογράφηση</string>
-	<key>Select Colors</key>
-	<string>Επιλογή χρωμάτων</string>
-	<key>Invert Screen</key>
-	<string>Αναστροφή χρωμάτων</string>
-	<key>Pad Margins</key>
-	<string>Περιθώρια σελίδας</string>
+	<key>Format</key>
+	<string>Καθορισμός</string>
+	<key>Green</key>
+	<string>Πράσινο</string>
+	<key>If you leave name blank</key>
+	<string>Εάν αφήσετε κενό το πεδίο του ονόματος</string>
 	<key>Ignore Single LF</key>
 	<string>Αγνόηση μονού LF</string>
-	<key>Reverse Tap Zones</key>
-	<string>Αναστροφή κρούσης</string>
-	<key>Smooth Scroll</key>
-	<string>Ομαλή ανακύλιση</string>
-	<key>Repeat Previous Line</key>
-	<string>Τελευταία γραμμή</string>
-	<key>Version</key>
-	<string>έκδοση</string>
-	<key>Written by Jim Beesley</key>
-	<string>γράφτηκε από τον Jim Beesley</string>
-	<key>About %@</key>
-	<string>Περί %@</string>
-	<key>Loading ...</key>
-	<string>Φόρτωση ...</string>
-	<key>Colors</key>
-	<string>Χρώματα</string>
-	<key>Save</key>
-	<string>Αποθήκευση</string>
-	<key>Cancel</key>
-	<string>Ακύρωση</string>
-	<key>Download File via URL</key>
-	<string>Λήψη αρχείου μέσω της διεύθυνσης URL</string>
-	<key>Settings</key>
-	<string>Ρυθμίσεις</string>
-	<key>Back</key>
-	<string>Πίσω</string>
-	<key>Open Text File</key>
-	<string>Άνοιγμα αρχείου κειμένου</string>
-	<key>Unable to open file!</key>
-	<string>Αδυναμία ανοίγματος αρχείου!</string>
-	<key>Unable to delete file</key>
-	<string>Αδυναμία διαγραφής αρχείου</string>
-	<key>Please make sure both the directory and file exist and have write permissions set.</key>
-	<string>Παρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν και ότι έχουν δοθεί οι απαραίτητες άδειες εγγραφής (write permissions).</string>
-	<key>Error deleting file</key>
-	<string>Σφάλμα διαγραφής αρχείου</string>
-	<key>Volume Button Scroll</key>
-	<string>Ανακύλιση (πλήκτρο έντασης φωνής)</string>
+	<key>Invalid URL %@</key>
+	<string>Άκυρη URL %@</string>
+	<key>Invert Screen</key>
+	<string>Αναστροφή χρωμάτων</string>
 	<key>Line</key>
 	<string>Γραμμή</string>
+	<key>Loading ...</key>
+	<string>Φόρτωση ...</string>
+	<key>No Encoding Specified</key>
+	<string>Δεν καθορίστηκε</string>
+	<key>OK</key>
+	<string>OK</string>
 	<key>Off</key>
 	<string>Όχι</string>
+	<key>Open</key>
+	<string>Άνοιγμα</string>
+	<key>Open Text File</key>
+	<string>Άνοιγμα αρχείου κειμένου</string>
+	<key>Pad Margins</key>
+	<string>Περιθώρια σελίδας</string>
 	<key>Page</key>
 	<string>Σελίδα</string>
-	<key>Enter your search text ...</key>
-	<string>Εισάγετε κείμενο για αναζήτηση ...</string>	
+	<key>Please make sure both the directory and file exist and have write permissions set.</key>
+	<string>Παρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν και ότι έχουν δοθεί οι απαραίτητες άδειες εγγραφής (write permissions).</string>
+	<key>Please make sure the directory and file exist, the read permissions are set, and the file is really in</key>
+	<string>Παρακαλώ βεβαιωθείτε ότι η τοποθεσία και το αρχείο υπάρχουν, έχουν δοθεί οι απαραίτητες άδειες για ανάγνωση του αρχείου (read permissions), και το αρχείο βρίσκεται στην πραγματικότητα σε</string>
+	<key>Red</key>
+	<string>Κόκκινο</string>
+	<key>Repeat Previous Line</key>
+	<string>Τελευταία γραμμή</string>
+	<key>Reverse Tap Zones</key>
+	<string>Αναστροφή κρούσης</string>
+	<key>Save</key>
+	<string>Αποθήκευση</string>
+	<key>Save As:</key>
+	<string>Αποθήκευση ως:</string>
+	<key>Save complete!</key>
+	<string>Η αποθήκευση ολοκληρώθηκε!</string>
+	<key>Saving ...</key>
+	<string>Αποθήκευση ...</string>
+	<key>Saving to %@</key>
+	<string>Αποθήκευση σε %@</string>
+	<key>Scroll Settings</key>
+	<string>Ρυθμίσεις ανακύλισης</string>
 	<key>Search text not found ...</key>
 	<string>Το κείμενο δεν βρέθηκε ...</string>
-
-
-
-	<key>Strip Line Feeds</key>
-	<string>Strip Line Feeds</string>
-	<key>Single</key>
-	<string>Single</string>
-	<key>Format</key>
-	<string>Format</string>
-	<key>Align Text</key>
-	<string>Align Text</string>	
-	<key>Align Left</key>
-	<string>Align Left</string>	
-	<key>Align Center</key>
-	<string>Align Center</string>	
-	<key>Align Right</key>
-	<string>Align Right</string>	
-	<key>Word Justified</key>
-	<string>Word Justified</string>	
-	<key>Character Justified</key>
-	<string>Character Justified</string>	
+	<key>Select Colors</key>
+	<string>Επιλογή χρωμάτων</string>
+	<key>Settings</key>
+	<string>Ρυθμίσεις</string>
+	<key>Show Cover Art</key>
+	<string>Εικόνα εξωφύλου</string>
 	<key>Show Status Bar</key>
-	<string>Show Status Bar</string>	
+	<string>Εμφάνιση γραμμής κατάστασης</string>
+	<key>Single</key>
+	<string>Μονή</string>
+	<key>Smooth Scroll</key>
+	<string>Ομαλή ανακύλιση</string>
 	<key>Solid</key>
-	<string>Solid</string>	
-	<key>Clear</key>
-	<string>Clear</string>	
-  <key>Visit Website</key>
-  <string>Visit Website</string>	
-  <key>No Encoding Specified</key>
-  <string>No Encoding Specified</string>	
-  <key>2nd Encoding</key>
-  <string>2nd Encoding</string>	
-  <key>3rd Encoding</key>
-  <string>3rd Encoding</string>	
-  <key>4th Encoding</key>
-  <string>4th Encoding</string>	
-  <key>Show Cover Art</key>
-  <string>Show Cover Art</string>	
-
-
-
-
+	<string>Συμπαγής</string>
+	<key>Sorry ...</key>
+	<string>Λυπάμαι ...</string>
+	<key>Strip Line Feeds</key>
+	<string>Απάλειψη τροφοδοσίας γραμμής (LF)</string>
+	<key>Text Color</key>
+	<string>Χρώμα κειμένου</string>
+	<key>Text Settings</key>
+	<string>Ρυθμίσεις κειμένου</string>
+	<key>The Save As file name can not contain slashes.</key>
+	<string>Το όνομα του αποθηκευμένου αρχείου δεν μπορεί να περιέχει καθέτους.</string>
+	<key>The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt</key>
+	<string>Η διεύθυνση URL ή το όνομα του αποθηκευμένου αρχείου πρέπει να έχει την κατάληξη .pdb, .prc, .fb2, .htm, .html, .text, ή .txt</string>
+	<key>The format of</key>
+	<string>Η μορφή του</string>
+	<key>This is how the text will look ...</key>
+	<string>Το κείμενο θα έχει την εμφάνιση ...</string>
+	<key>Unable to Open PDB File!</key>
+	<string>Αδυναμία ανοίγματος αρχείου PDB!</string>
+	<key>Unable to create font %@</key>
+	<string>Αδυναμία δημιουργίας γραμματοσειράς %@</string>
+	<key>Unable to delete file</key>
+	<string>Αδυναμία διαγραφής αρχείου</string>
+	<key>Unable to load file from URL %@"</key>
+	<string>Αδυναμία φόρτωσης αρχείου από URL %@"</string>
+	<key>Unable to open file</key>
+	<string>Αδυναμία ανοίγματος αρχείου</string>
+	<key>Unable to open file!</key>
+	<string>Αδυναμία ανοίγματος αρχείου!</string>
+	<key>Unable to save file as %@</key>
+	<string>Αδύνατη η αποθήκευση αρχείου ως %@</string>
+	<key>Version</key>
+	<string>έκδοση</string>
+	<key>Visit Website</key>
+	<string>Επίσκεψη στην ιστοσελίδα</string>
+	<key>Volume Button Scroll</key>
+	<string>Ανακύλιση (πλήκτρο έντασης φωνής)</string>
+	<key>Word Justified</key>
+	<string>Πλήρης στοίχιση λέξεων</string>
+	<key>Written by Jim Beesley</key>
+	<string>γράφτηκε από τον Jim Beesley</string>
+	<key>and the Name you want it saved as locally.</key>
+	<string>και το όνομα με το οποίο θέλετε να το αποθηκεύσετε στη συσκευή.</string>
+	<key>email: iphonetextreader@gmail.com</key>
+	<string>email: iphonetextreader@gmail.com</string>
+	<key>encoding.</key>
+	<string>κωδικογράφηση.</string>
+	<key>http://code.google.com/p/iphonetextreader</key>
+	<string>http://code.google.com/p/iphonetextreader</string>
+	<key>in directory</key>
+	<string>στην τοποθεσία</string>
+	<key>is</key>
+	<string>είναι</string>
+	<key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
+	<string>έχει τη δυνατότητα να ανοίγει μόνο αποκρυπτογραφημένα αρχεία Mobipocket, Plucker, και Palm Doc PDB.</string>
+	<key>will try to figure out the name and extension based on the URL.</key>
+	<string>θα προσπαθήσει να προσδιορίσει το όνομα και την κατάληξη με βάση την διεύθυνση URL.</string>
 </dict>
 </plist>
