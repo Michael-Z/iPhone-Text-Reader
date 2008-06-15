@@ -138,9 +138,6 @@ typedef unsigned int NSUInteger;
 
 - (void) setTextReader:(textReader*)tr {
     trApp = tr;
-
-    isDrag = false;
-
 } // setTextReader
 
 
@@ -1431,6 +1428,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     // Do a new layout using the current position/line
     [self doLayout:0];
     lStart = 0;
+    
+    isDrag = false;
 
 } // sizeScroller
 
@@ -3043,7 +3042,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 - (void) scrollerDidEndDragging: (id) id  willSmoothScroll: (BOOL) scr
 {
     // Clear the flag so we know dragging is finished
-    isDrag = false;    
+    isDrag = false;   
 } // scrollerDidEndDragging
 
 

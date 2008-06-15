@@ -1317,7 +1317,7 @@
         // be cropped by the status bar
         rect = [textView getOrientedViewRect];
         
-        [self scaleImage:coverArt maxheight:rect.size.height-yOffset maxwidth:rect.size.width yOffset:yOffset];
+        [self scaleImage:coverArt maxheight:rect.size.height maxwidth:rect.size.width yOffset:yOffset];
     }
 
 } // scaleCoverArt
@@ -1462,7 +1462,7 @@
  
 // Handle mouse up
 - (void)mouseUp:(struct __GSEvent *)event {
-
+    
     CGPoint mouseUp = [self getOrientedEventLocation:event];
     struct CGSize viewSize = [self getOrientedViewSize];
     
@@ -1476,7 +1476,6 @@
     // If this is a drag, don't treat it like a mouse up    
     if (![textView getIsDrag])
     {
-
         // If no text loaded, show the bar and keep it up
         if (!textView || ![textView getText])
         {
