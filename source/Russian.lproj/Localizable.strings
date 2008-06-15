@@ -83,7 +83,7 @@
     <key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
     <string>возможно открыть если он не зашифрован Mobipocket, Plucker, and Palm Doc PDB файлами.</string>
     <key>Sorry ...</key>
-    <string>Бля ...</string>
+    <string>Простите ...</string>
     <key>Unable to Open PDB File!</key>
     <string>Невозможно открыть PDB файл!</string>
     <key>Unable to open file</key>
@@ -157,7 +157,7 @@
     <key>Please make sure both the directory and file exist and have write permissions set.</key>
     <string>Пожалуйста убедитесь что каталог и файл существуют и атрибуты файла на запись установленны.</string>
     <key>Error deleting file</key>
-    <string>Нихрена не удаляется</string>
+    <string>Ошибка удаления файла</string>
 	<key>Volume Button Scroll</key>
 	<string>Прокрутка кнопкой громкости</string>
 	<key>Line</key>
@@ -172,43 +172,42 @@
 	<string>Search А вот и нету! ...</string>
 
 
-
 	<key>Strip Line Feeds</key>
-	<string>Strip Line Feeds</string>
+	<string>Убрать форматирование</string>
 	<key>Single</key>
-	<string>Single</string>
+	<string>Одиночный</string>
 	<key>Format</key>
-	<string>Format</string>
+	<string>Формат</string>
 	<key>Align Text</key>
-	<string>Align Text</string>	
+	<string>Выранивание текста</string>	
 	<key>Align Left</key>
-	<string>Align Left</string>	
+	<string>Слева</string>	
 	<key>Align Center</key>
-	<string>Align Center</string>	
+	<string>По центру</string>	
 	<key>Align Right</key>
-	<string>Align Right</string>	
+	<string>Справа</string>	
 	<key>Word Justified</key>
-	<string>Word Justified</string>	
+	<string>Слова растянуты</string>	
 	<key>Character Justified</key>
-	<string>Character Justified</string>	
+	<string>Буквы растянуты</string>	
 	<key>Show Status Bar</key>
-	<string>Show Status Bar</string>	
+	<string>Показ статус бара</string>	
 	<key>Solid</key>
-	<string>Solid</string>	
+	<string>Сплошной</string>	
 	<key>Clear</key>
-	<string>Clear</string>	
+	<string>Очистить</string>	
   <key>Visit Website</key>
-  <string>Visit Website</string>	
+  <string>Посетить сайт</string>	
   <key>No Encoding Specified</key>
-  <string>No Encoding Specified</string>	
+  <string>Кодировка не выбрана</string>	
   <key>2nd Encoding</key>
-  <string>2nd Encoding</string>	
+  <string>2-я Кодировка</string>	
   <key>3rd Encoding</key>
-  <string>3rd Encoding</string>	
+  <string>3-я Кодировка</string>	
   <key>4th Encoding</key>
-  <string>4th Encoding</string>	
+  <string>4-я Кодировка</string>	
   <key>Show Cover Art</key>
-  <string>Show Cover Art</string>	
+  <string>Показать обложку</string>	
 
 
 
