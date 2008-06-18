@@ -177,41 +177,36 @@
 	<key>Format</key>
 	<string>格式化</string>
 	<key>Align Text</key>
-	<string>页边调整</string>	
+	<string>文本对齐</string>	
 	<key>Align Left</key>
-	<string>左靠齐</string>	
+	<string>左对齐</string>	
 	<key>Align Center</key>
 	<string>居中</string>	
 	<key>Align Right</key>
-	<string>右靠齐</string>	
+	<string>右对齐</string>	
 	<key>Word Justified</key>
-	<string>两端对齐_短语</string>	
+	<string>单词两端对齐</string>	
 	<key>Character Justified</key>
-	<string>两端对齐_单词</string>
-  
-  
+	<string>字符两端对齐</string>
   	
 	<key>Show Status Bar</key>
-	<string>Show Status Bar</string>	
+	<string>显示状态栏</string>	
 	<key>Solid</key>
-	<string>Solid</string>	
+	<string>立体</string>	
 	<key>Clear</key>
-	<string>Clear</string>	
-	<string>Clear</string>	
-  <key>Visit Website</key>
-  <string>Visit Website</string>	
-  <key>No Encoding Specified</key>
-  <string>No Encoding Specified</string>	
-  <key>2nd Encoding</key>
-  <string>2nd Encoding</string>	
-  <key>3rd Encoding</key>
-  <string>3rd Encoding</string>	
-  <key>4th Encoding</key>
-  <string>4th Encoding</string>	
-  <key>Show Cover Art</key>
-  <string>Show Cover Art</string>	
-
-
+	<string>简洁</string>	
+	<key>Visit Website</key>
+	<string>访问网站</string>	
+	<key>No Encoding Specified</key>
+	<string>未指定编码</string>	
+	<key>2nd Encoding</key>
+	<string>第二编码</string>	
+	<key>3rd Encoding</key>
+	<string>第三编码</string>	
+	<key>4th Encoding</key>
+	<string>第四编码</string>	
+	<key>Show Cover Art</key>
+	<string>显示封面</string>	
 
 </dict>
 </plist>
