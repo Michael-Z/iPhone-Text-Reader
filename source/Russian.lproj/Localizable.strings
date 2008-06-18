@@ -173,7 +173,7 @@
 
 
 	<key>Strip Line Feeds</key>
-	<string>Убрать форматирование</string>
+	<string>Переформатировать текст”</string>
 	<key>Single</key>
 	<string>Одиночный</string>
 	<key>Format</key>
