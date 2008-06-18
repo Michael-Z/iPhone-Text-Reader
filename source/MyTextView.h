@@ -39,6 +39,44 @@
 #import <UIKit/UISliderControl.h>
 
 
+// Some struct definitions for gestures
+// Borrowed from mobileTerminal - Thanks!
+struct GSPathPoint {
+    char unk0;
+    char unk1;
+    short int status;
+    int unk2;
+    float x;
+    float y;
+};
+typedef struct {
+    int unk0;
+    int unk1;
+    int type;
+    int subtype;
+    float unk2;
+    float unk3;
+    float x;
+    float y;
+    int timestamp1;
+    int timestamp2;
+    int unk4;
+    int modifierFlags;
+    int unk5;
+    int unk6;
+    int mouseEvent;
+    short int dx;
+    short int fingerCount;
+    int unk7;
+    int unk8;
+    char unk9;
+    char numPoints;
+    short int unk10;
+    struct GSPathPoint points[10];
+} GSEventStruct;
+
+
+
 // Prototype for the PDB decode function
 int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
@@ -61,8 +99,12 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 
 // This represents information about the layout of a single line
 typedef struct _TextLayout {
+
     // Range of characters in "text" for this line
     NSRange range;
+
+    // Is this line the begining of a new paragraph?
+    bool    newParagraph;
 
     // Used for center and right aligned text
     // Width of the line when drawn with the current font
@@ -96,6 +138,7 @@ typedef struct _TextLayout {
     IgnoreLF          ignoreSingleLF;
     bool              padMargins;
     bool              repeatLine;
+    int               indentParagraphs;
     AlignText         textAlignment;
 
     NSString         *filePath;
@@ -116,6 +159,11 @@ typedef struct _TextLayout {
 
     MyColors          txtcolors;
 
+    bool              fontZoom;
+
+    bool              gestureMode;
+    float             gestureStart;
+
 } // MyTextView
 
 - (void) setTextReader:(textReader*)tr;
@@ -134,6 +182,10 @@ typedef struct _TextLayout {
 - (bool) getRepeatLine;
 - (void) setTextAlignment:(AlignText)ta;
 - (AlignText) getTextAlignment;
+- (void) setIndentParagraphs:(int)indent;
+- (int) getIndentParagraphs;
+- (void) setFontZoom:(bool)zoom;
+- (bool) getFontZoom;
 
 - (void) closeCurrentFile;
 - (bool)              openFile:(NSString *)name path:(NSString *)path;

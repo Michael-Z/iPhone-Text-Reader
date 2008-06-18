@@ -28,11 +28,25 @@
 
 #include "unpluck.h"
 
-// ----------------------------------------------------------
-// Begin palm.h defines
-// ----------------------------------------------------------
-/* standard */
-//#include <time.h>
+
+/********** eReader stuff ******************************************************/
+
+// Handle the eReader file ...
+int decodeEReader(FILE * src, NSMutableData ** dest, NSString ** type)
+{
+    *dest = [[NSMutableData alloc] initWithCapacity:4096];   
+    
+    int rc = eReader_shred(src, *dest);
+    if (rc)
+    {
+        [*dest release];
+        *dest = nil;
+        rc   = 1;
+    }
+    
+    return rc;
+    
+} // decodeEReader
 
 
 
@@ -459,10 +473,13 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
        
     while (fin)
     {
+        // Get the header - fail if we don't have that much ...
         if ( fread( &header, DatabaseHdrSize, 1, fin ) != DatabaseHdrSize )
             break;
 
         // Return the type and creator ...
+        
+        // We special case Plucker for later
         if (!strncmp( header.type, "DataPlkr", 8 ) )
         {
             // We handle plucker below
@@ -470,12 +487,17 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
             rc = 0;
             break;
         }
+
+        // We special case eReader/Peanut Press
+        if (!strncmp( header.type, "PNRdPPrs", 8 ) )
+        {
+            *type = @"eReader";
+            rc = decodeEReader(fin, dest, type);
+            break;
+        }
         
         else if (!strncmp( header.type, DOC_TYPE, 4 ) )
             *type = [[NSString alloc] initWithBytesNoCopy:header.type length:8 encoding:kCGEncodingMacRoman freeWhenDone:NO];
-
-        else if (!strncmp( header.type, "PNRdPPrs", 8 ) )
-            *type = @"eReader";
 
         else if (!strncmp( header.type, "ToGoToGo", 8 ) )
             *type = @"iSilo";
@@ -627,7 +649,7 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type)
     // Handle Plucker files ...
     if (!rc && !strncmp( header.type, "DataPlkr", 8 ))
         rc = decodePlucker(src, dest, type);
-        
+    
     return rc;
     
 } // decodePDBToString

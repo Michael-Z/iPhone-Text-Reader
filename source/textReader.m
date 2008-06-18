@@ -309,6 +309,10 @@
 
     [defaults setInteger:[textView getPadMargins] forKey:TEXTREADER_PADMARGINS];
 
+    [defaults setInteger:[textView getFontZoom] forKey:TEXTREADER_FONTZOOM];
+
+    [defaults setInteger:[textView getIndentParagraphs] forKey:TEXTREADER_INDENT];
+
     [defaults setInteger:[textView getRepeatLine] forKey:TEXTREADER_REPEATLINE];
 
     [defaults setInteger:[textView getTextAlignment] forKey:TEXTREADER_TEXTALIGNMENT];
@@ -444,6 +448,10 @@
     [textView setIgnoreSingleLF:[defaults integerForKey:TEXTREADER_IGNORELF]];
 
     [textView setPadMargins:[defaults integerForKey:TEXTREADER_PADMARGINS]];
+
+    [textView setFontZoom:[defaults integerForKey:TEXTREADER_FONTZOOM]];
+
+    [textView setIndentParagraphs:[defaults integerForKey:TEXTREADER_INDENT]];
 
     [textView setRepeatLine:[defaults integerForKey:TEXTREADER_REPEATLINE]];
 

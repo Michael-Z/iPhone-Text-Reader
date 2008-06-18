@@ -75,3 +75,14 @@ int pdbread( pdbFILE * fin, void *buf, size_t size );
 #define fileno(a)    (a)
 #define fstat(a,b)   pdbfstat(a,b)
 
+
+
+// ***********************************************
+typedef unsigned char octet;
+typedef unsigned long int quartet;
+
+int eReader_shred(FILE * fp, NSMutableData * dest);
+
+
+
+

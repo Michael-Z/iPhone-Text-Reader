@@ -52,15 +52,16 @@
 
 
 typedef enum _PickerType {
-    kPicker_Type_None           = 0,
-    kPicker_Type_Font           = 1,
-    kPicker_Type_FontSize       = 2,
-    kPicker_Type_Encoding       = 3,
-    kPicker_Type_TextAlignment  = 4,
+    kPicker_Type_None              = 0,
+    kPicker_Type_Font              = 1,
+    kPicker_Type_FontSize          = 2,
+    kPicker_Type_TextAlignment     = 3,
+    kPicker_Type_IndentParagraphs  = 4,
 
-    kPicker_Type_Encoding2      = 5,
-    kPicker_Type_Encoding3      = 6,
-    kPicker_Type_Encoding4      = 7
+    kPicker_Type_Encoding          = 5,
+    kPicker_Type_Encoding2         = 6,
+    kPicker_Type_Encoding3         = 7,
+    kPicker_Type_Encoding4         = 8
 
 } PickerType;
 
@@ -113,6 +114,7 @@ typedef enum _PickerType {
     UISwitchControl    *repeatLine;
     UISwitchControl    *swipeOK;
     UISwitchControl    *showCoverArt;
+    UISwitchControl    *fontZoom;
 
     textReader         *trApp;
     MyTextView         *textView;
@@ -127,6 +129,8 @@ typedef enum _PickerType {
     UIPreferencesTableCell *encoding4Cell;
     UIPreferencesTableCell *colorsCell;
     UIPreferencesTableCell *textAlignmentCell;
+
+    UIPreferencesTableCell *indentParagraphsCell;
 
     UISegmentedControl     *ignoreSingleLF;
     UISegmentedControl     *showStatus;

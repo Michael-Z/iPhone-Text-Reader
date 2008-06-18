@@ -20,18 +20,6 @@
  *
  */
 
-// #if !defined(WIN32)
-// #include <unistd.h>             /* for lseek, etc. */
-// #else
-// #include <io.h>
-// #endif
-// #include <stdlib.h>
-// #include <sys/types.h>
-// #include <sys/stat.h>           /* for fstat() */
-// #include <string.h>             /* for strndup() */
-// #include <errno.h>              /* for errno */
-// #include <fcntl.h>              /* for O_RDONLY */
-// #include <assert.h>             /* for assert() */
 
 #include <zlib.h>
 
@@ -42,9 +30,6 @@
 #include "unpluck.h"
 #include "unpluckint.h"
 
-
-// Get rid of ___eprintf error!
-// #define assert
 
 
 /* return a freshly-malloced copy of str */

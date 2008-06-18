@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"0.9"
+#define TEXTREADER_VERSION          @"1.0Beta1"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -72,12 +72,14 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_INVERTCOLORS     @"color"        // This is really invert!
 #define TEXTREADER_IGNORELF         @"ignoreLF"
 #define TEXTREADER_PADMARGINS       @"padMargins"
+#define TEXTREADER_INDENT           @"indentParagraph"
 #define TEXTREADER_REPEATLINE       @"repeatLine"
 #define TEXTREADER_REVERSETAP       @"reverseTap"
 #define TEXTREADER_SWIPE            @"swipeOK"
 #define TEXTREADER_SHOWSTATUS       @"showStatus"
 #define TEXTREADER_TEXTALIGNMENT    @"textAlignment"
 #define TEXTREADER_SHOWCOVERART     @"showCoverArt"
+#define TEXTREADER_FONTZOOM         @"fontZoom"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -146,7 +148,8 @@ typedef enum _TextFileType {
     kTextFileTypePDB     = 2,
     kTextFileTypeHTML    = 3,
     kTextFileTypeFB2     = 4,
-    kTextFileTypeTRCache = 5
+    kTextFileTypeTRCache = 5,
+    kTextFileTypePML     = 6
 } TextFileType;
 
 typedef enum _MyViewName {
@@ -262,7 +265,9 @@ typedef enum _DialogButtons {
     UIAlertSheet            *okDialog;
 
     NSUserDefaults          *defaults;
-}
+
+} // @interface textReader : UIOrientingApplication
+
 
 - (void) applicationDidFinishLaunching: (id) unused;
 - (id)   init;

@@ -65,8 +65,12 @@ typedef unsigned int NSUInteger;
     ignoreSingleLF = IgnoreLF_Off;
     padMargins     = false;
     repeatLine     = false;
+    gestureMode    = false;
+    fontZoom       = false;
     textAlignment  = Align_Left;
     
+    indentParagraphs = 0;
+
     [self setTextColors:nil];
     
     isDrag = false;
@@ -90,31 +94,92 @@ typedef unsigned int NSUInteger;
     // Make sure default directory exists
     [[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
     
-//     [self setEnabledGestures:YES];
-//     [self setGestureDelegate:self];
-//     [self setEnabledGestures:2];
-//     [self setValue: [NSNumber numberWithBool: YES] forGestureAttribute: 7]; 
-//     [self setValue: [NSNumber numberWithBool: YES] forGestureAttribute: 4];
-//     
-//     for (i = 0; i < 0x2f; i++)
-//     {
-//         [imgView setEnabledGestures: i];
-//     }
+    [self setEnabledGestures:YES];
+    [self setGestureDelegate:self];
     
     return [super initWithFrame:rect];
     
 } // initWithFrame
 
 
-// - (void)gestureEnded:(struct __GSEvent *)fp8 {
-//     *((char*)0x00) = 37;
-// } // gestureEnded
-// 
-// - (void)didFinishGesture:(int)fp8 inView:(id)fp12 forEvent:(struct __GSEvent *)fp16 {
-//     *((char*)0x00) = 37;
-// } // didFinishGesture
+- (void) setFontZoom:(bool)zoom { fontZoom = zoom; };
+- (bool) getFontZoom { return fontZoom; };
 
 
+- (void) gestureChanged:(GSEvent*)event {
+
+    if (!fontZoom)
+        return;
+    
+    // Get the distance between the 2 points
+    if (((GSEventStruct*)event)->numPoints > 1)
+    {
+        // Save the current distance
+        CGPoint vector = CGPointMake(
+            ((GSEventStruct*)event)->points[0].x - 
+            ((GSEventStruct*)event)->points[1].x,
+            ((GSEventStruct*)event)->points[0].y - 
+            ((GSEventStruct*)event)->points[1].y);
+        float gestureEnd = sqrtf(vector.x*vector.x + vector.y*vector.y);
+
+        // Do nothing if the difference is minimal
+        if (ABS(gestureEnd - gestureStart) < 30)
+            return;
+            
+        // Larger or smaller?
+        if (gestureEnd > gestureStart)
+        {
+            [self setFont:[self getFont] size:[self getFontSize]+1];
+        }
+        else
+        {
+            [self setFont:[self getFont] size:[self getFontSize]-1];
+        }      
+        
+        // Save new starting point ...
+        gestureStart = gestureEnd;
+    }
+    
+} // gestureEnded
+
+
+- (void) gestureEnded:(GSEvent*)event {
+//    gestureMode = false;
+} // gestureEnded
+
+
+- (void) gestureStarted:(GSEvent*)event {
+    
+    if (!fontZoom)
+        return;
+        
+    // Get the distance between the 2 points
+    if (((GSEventStruct*)event)->numPoints > 1)
+    {
+        gestureMode = true;
+        
+        // Save the starting distance
+        CGPoint vector = CGPointMake(
+            ((GSEventStruct*)event)->points[0].x - 
+            ((GSEventStruct*)event)->points[1].x,
+            ((GSEventStruct*)event)->points[0].y - 
+            ((GSEventStruct*)event)->points[1].y);
+        gestureStart = sqrtf(vector.x*vector.x + vector.y*vector.y);
+    }
+    
+} // gestureStarted
+
+
+- (BOOL) canHandleGestures
+{
+  return YES;
+}
+
+
+- (BOOL) canHandleSwipes
+{
+    return YES;
+}
 
 
 // Like the trApp version, but this one will apply th status bar offset
@@ -162,7 +227,7 @@ typedef unsigned int NSUInteger;
 - (NSString*) getFileName { return fileName; }
 - (NSString*) getFilePath { return filePath; }
 - (AlignText) getTextAlignment { return textAlignment; }
-
+- (int) getIndentParagraphs { return indentParagraphs; };
 
 
 - (int) getStart { 
@@ -332,8 +397,6 @@ typedef unsigned int NSUInteger;
 } // isLF
 
 
-
-
 // IS this a blank character
 - (bool) isBlank:(int) start
 {
@@ -344,6 +407,7 @@ typedef unsigned int NSUInteger;
     // to skip them ... luckily with proportional fonts
     // 2 spaces look an awful lot like one ...
     if (c == ' ' ||
+        c == '\t' ||
         c == 0x0d)
        return TRUE;
     
@@ -475,7 +539,7 @@ typedef unsigned int NSUInteger;
 } // getFwdBlock
 
 
-static void initLayout(TextLayout * txtLayout, int start, int length)
+static void initLayout(TextLayout * txtLayout, int start, int length, bool newParagraph)
 {
     memset(txtLayout, 0x00, sizeof(*txtLayout));
     
@@ -484,7 +548,8 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
 
     txtLayout->width                  = -1;
     txtLayout->blank_pixels_per_block = -1;
-//     txtLayout->blank_pixels_slop      = -1;
+
+    txtLayout->newParagraph = newParagraph;
     
 } // initLayout
 
@@ -504,7 +569,6 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
         start = 0;
         
     CGRect  viewRect = [self getOrientedViewRect];
-    int     width   = (int)viewRect.size.width - (padMargins ? TEXTREADER_MPAD * 2 : 0);
     int     line;
     
     // fill in each line until we are done or run out of space
@@ -512,17 +576,30 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
     {
         CGSize  lineused  = {0};
         NSRange block;
+        bool    newParagraph = false;
+        float   width   = viewRect.size.width - (float)(padMargins ? TEXTREADER_MPAD * 2 : 0);
+        
+        // Keep track of whether or not this is the start of a new paragraph
+        if (start > 0 && start < (int)[text length] && [self isCRLF:start-1])
+            newParagraph = true;
         
         // Strip leading blanks for the new line ...
-        while (start < (int)[text length] && [self isBlank:start])
-            start++;
+        if (indentParagraphs >= 0 || !newParagraph)
+        {
+            while (start < (int)[text length] && [self isBlank:start])
+                start++;
+        }
             
         // If we hit the end, nothing to lay out
         if (start >= (int)[text length])
             break; // for each line
+            
+        // Reserve space for new paragraph indention
+        if (indentParagraphs > 0 && newParagraph)
+           width -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
         
         // Remember the starting point for this line
-        initLayout(&layouts[line], start, 0);
+        initLayout(&layouts[line], start, 0, newParagraph);
         
         // Gather up the chunks that make up this line
         // NOTE: This could probably just be while(true) ?!?!?!?
@@ -552,7 +629,9 @@ static void initLayout(TextLayout * txtLayout, int start, int length)
                 }
                 
                 // If this is all blanks and the start of a line, ignore it
-                if (!layouts[line].range.length && [self isBlank:block.location])
+                if (!layouts[line].range.length && 
+                    [self isBlank:block.location] &&
+                    (!layouts[line].newParagraph || indentParagraphs >= 0))
                 {
                     // Skip this ...
                     start = block.location + block.length;
@@ -634,14 +713,14 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         if (end < (int)layoutTop[line].range.location + 
                   (int)layoutTop[line].range.length - 1)
         {
-             layoutTop[line].range.length = MAX(0, (end - (int)layoutTop[line].range.location) + 1);
+            layoutTop[line].range.length = MAX(0, (end - (int)layoutTop[line].range.location) + 1);
              
-            // If we adjust a layout we need to set it's width to -1 
-            // so we know we need to recalculate it
-            layoutTop[line].width = -1;
+            // If we adjust a layout we need to re-init it so that
+            // the layout will be recalculated when it gets drawn
             initLayout(&layoutTop[line], 
                        layoutTop[line].range.location, 
-                       layoutTop[line].range.length);
+                       layoutTop[line].range.length,
+                       layoutTop[line].newParagraph);
         }
                 
     } // for tidy up lines
@@ -731,7 +810,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         {
             TextLayout nextLayout;
             
-            initLayout(&nextLayout, 0, 0); // not calculated yet!
+            initLayout(&nextLayout, 0, 0, 0); // not calculated yet!
             
             foundLines  = [self 
                            doFwdLayout:1          // lines needed
@@ -946,6 +1025,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     textAlignment = ta;
     
     // Force a new layout with the new alignment at the current position
+    cLayouts = 0;
     [self doLayout:0];
     
 } // setTextAlignment
@@ -954,14 +1034,25 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 - (void) setIgnoreSingleLF:(IgnoreLF)ignore {
     ignoreSingleLF = ignore;
 
-    // Force a new layout with the new alignment at the current position
+    // Force a new layout with the new formatting at the current position
+    cLayouts = 0;
     [self doLayout:0];
 }
 
 - (void) setPadMargins:(bool)pad {
     padMargins = pad;
 
-    // Force a new layout with the new alignment at the current position
+    // Force a new layout with the new padding at the current position
+    cLayouts = 0;
+    [self doLayout:0];
+}
+
+
+- (void) setIndentParagraphs:(int)indent {
+    indentParagraphs = indent;
+
+    // Force a new layout with the new indention at the current position
+    cLayouts = 0;
     [self doLayout:0];
 }
 
@@ -1032,6 +1123,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     // For now, hard code each one - Ugh!!!
     switch (fontSize)
     {
+        case 10:
         case 11:
         case 12:
             size = fontSize * 1.25 + 1;
@@ -1078,12 +1170,23 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             break;
             
         case 29:
+            size = fontSize * 1.25;
+            break;
+            
         case 30:
             size = fontSize * 1.25 + 1;
             break;
             
         case 31:
         case 32:
+            size = fontSize * 1.25;
+            break;
+            
+        case 33:
+            size = fontSize * 1.25 + 1;
+            break;
+            
+        case 34:
         default:
             size = fontSize * 1.25;
             break;
@@ -1095,7 +1198,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 
 
 // Figure out how wide this line of text actually is ...
-- (int) calcWidth:(NSString *)x {
+- (float) calcWidth:(NSString *)x {
 
     CGSize lineused = [x sizeWithFont:gsFont];
     
@@ -1111,10 +1214,13 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     NSRange block;
 
     // Strip leading and trailing blanks
-    while (txtLayout->range.length && [self isBlank:txtLayout->range.location])
+    if (!txtLayout->newParagraph || indentParagraphs >= 0)
     {
-        txtLayout->range.location++;
-        txtLayout->range.length--;
+        while (txtLayout->range.length && [self isBlank:txtLayout->range.location])
+        {
+            txtLayout->range.location++;
+            txtLayout->range.length--;
+        }
     }
     while (txtLayout->range.length && 
            [self isBlank:txtLayout->range.location+txtLayout->range.length-1])
@@ -1207,9 +1313,12 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         
         if (padMargins)
             blank_width -= TEXTREADER_MPAD * 2;
-
-//        if (blank_width < 0.0)
-//            blank_width = 0.0;
+            
+        if (txtLayout->newParagraph && indentParagraphs > 0)
+            blank_width -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
+            
+        if (blank_width < 0.0)
+            blank_width = 0.0;
 
         txtLayout->blank_pixels_per_block = blank_width / (float)blank_blocks;
                     
@@ -1339,6 +1448,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                 if (layout[line].width < 0)
                     layout[line].width = [self calcWidth:x];
                 pt.x = viewRect.size.width - layout[line].width;
+                if (layout[line].newParagraph && indentParagraphs > 0)
+                    pt.x -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
                 if (padMargins)
                     pt.x -= TEXTREADER_MPAD;
                 [x drawAtPoint:pt withFont:gsFont];
@@ -1348,7 +1459,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             case Align_Justified2:    
                 // Apply margin padding
                 pt.x = padMargins ? TEXTREADER_MPAD : 0;
-                
+                if (layout[line].newParagraph && indentParagraphs > 0)
+                    pt.x += [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
                 // Draw it in chunks
                 [self drawJustified:&layout[line] at:pt];
                 break;
@@ -1356,8 +1468,11 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             case Align_Left:    
             default:
                 pt.x = padMargins ? TEXTREADER_MPAD : 0;
+                if (layout[line].newParagraph && indentParagraphs > 0)
+                    pt.x += [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
                 [x drawAtPoint:pt withFont:gsFont];
                 break;
+                
         } // switch on alignment
 
         // Draw the text at the point
@@ -1477,7 +1592,7 @@ static NSMutableString * convertGB2312Data(NSData * data) {
     bool                  encError = false;
     
     // Add characters to the mutable string in 8K chunks to speed up the transcoding
-    NSMutableString * newText = [[NSMutableString alloc] initWithCapacity:[data length]/2];
+    NSMutableString * newText = [[[NSMutableString alloc] initWithCapacity:[data length]/2] retain];
 
     for (i = 0; !encError && i < [data length]; i++, p++)
     {
@@ -2611,6 +2726,24 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 } // addHTMLTag
 
 
+- (void) saveCache:(NSString*)newText {
+    // Save the HTML as a text file!
+    // This keeps us from having to go through this again
+    // NOTE: Some times, directory permissions will make this impossible
+    //       Don't pop a dialog since that will annoy people even more
+    NSString *fullpath = [[filePath stringByAppendingPathComponent:fileName] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
+    
+    // Cache files are always written out as Unicode strings to prevent
+    // transcoding problems ... we always load them the same way ...
+    if ([newText writeToFile:fullpath atomically:NO encoding:NSUnicodeStringEncoding error:NULL])
+    {
+        // If we cached it, change the file name so we will reload it automatically
+        NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
+        [fileName release];
+        fileName = tmp;
+    }   
+} // saveCache
+
 
 // KLUDGE - fix this !!!!
 
@@ -2638,7 +2771,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     if (rtag.location || ftype == kTextFileTypeHTML || ftype == kTextFileTypeFB2)
     {
         // Looks like we are going to do some stripping ... wild guess at final size        
-        newText = [[NSMutableString alloc] initWithCapacity:[src length]/2];
+        newText = [[[NSMutableString alloc] initWithCapacity:[src length]/2] retain];
         [newText appendString:@"\n"];
 
         // Ignore everything up to <BODY
@@ -2685,23 +2818,186 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     // Replace the open text with this new text and refresh the screen
     [self setText:newText];
     
-    // Save the HTML as a text file!
-    // This keeps us from having to go through this again
-    // NOTE: Some times, directory permissions will make this impossible
-    //       Don't pop a dialog since that will annoy people even more
-    NSString *fullpath = [[filePath stringByAppendingPathComponent:fileName] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
-    
-    // Cache files are always written out as Unicode strings to prevent
-    // transcoding problems ... we always load them the same way ...
-    if ([newText writeToFile:fullpath atomically:NO encoding:NSUnicodeStringEncoding error:NULL])
-    {
-        // If we cached it, change the file name so we will reload it automatically
-        NSString * tmp = [[fileName stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] copy];
-        [fileName release];
-        fileName = tmp;
-    }   
+    // Cache this file to speed up future opens
+    [self saveCache:newText];
     
 } // stripHTML
+
+
+int hexDigit(NSString * src, int pos)
+{
+    unichar c = [src characterAtIndex:pos];
+    
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'A' && c <= 'F')
+        return c - 'A';
+    else if (c >= 'a' && c <= 'f')
+        return c - 'a';
+    else
+        return 0;
+} // hexDigit
+
+
+// Strips out PML tags and produces ugly text for reading enjoyment ...
+// NOTE: PML definitions from http://www.ereader.com/ereader/help/dropbook/pml.htm
+- (void) stripPML:(NSMutableString  *)newText type:(TextFileType)ftype {
+
+    unichar               c[8096];
+    int                   cL     = 0;
+    NSMutableString     * src    = newText;
+    int                   pos    = 0;
+    int                   i;
+    
+    // Create new mutable string for output ...
+    newText = [[[NSMutableString alloc] initWithCapacity:[src length]] retain];
+
+    // Loop through the text copying until we hit a back slash '\'
+    for (pos = 0; pos < [src length]; pos++)
+    {
+        unichar cur = [src characterAtIndex:pos];
+        if (pos < [src length]-1 && cur == '\\')
+        {           
+            // get the next character
+            unichar nextchar = [src characterAtIndex:pos+1];
+            switch (nextchar)
+            {
+                case '\\': // a single backslash character
+                    c[cL++] = cur;
+                    pos ++;
+                    break;
+
+                case 'x': // double - New chapter; also causes a new page break
+                case 'p': // single - New page
+                    c[cL++] = 0x0a;
+                    c[cL++] = 0x0a;
+                    pos ++;
+                    break;
+
+
+                // All of these get tossed
+                case 't': // double - indent block of text
+                case 'n': // single - use normal font
+                case 's': // double - use standard font
+                case 'b': // double - use bold font
+                case 'l': // double - use large font
+                case 'B': // double - Bold the text
+                case 'k': // double - Small caps
+                case 'c': // double - center block of text
+                case 'r': // double - right justify block of text 
+                case 'i': // double - italicize block of text
+                case 'u': // double - underline block of text
+                case 'o': // double - overstrike block of text
+                case 'I': // double - reference item 
+                case '-': // single - soft hyphen
+                    pos ++;
+                    break;                       
+
+                case 'a': // single - \aXXX - insert decimal character XXX (in WIN1252 CP)
+                    if (pos+4 < [src length])
+                    {
+                        static unichar cvt1252[] = {8218, 402, 8222, 8230, 8224, 8225,
+                                                    0, 0, 352, 8249, 338, 0, 0, 0, 0,
+                                                    8216, 8217, 8220, 8221, 8226, 8211, 8212,
+                                                    0, 8482, 353, 250, 339, 0, 0, 376};
+                        unichar x = ([src characterAtIndex:pos+3]-'0')*100  +
+                                    ([src characterAtIndex:pos+4]-'0')*10   +
+                                    ([src characterAtIndex:pos+5]-'0');
+                                    
+                        // Special case 130 -> 159 which do not line up nicely
+                        if (x >= 130 && x <= 159)
+                            x = cvt1252[x-130];
+                            
+                        c[cL++] = x;
+                    }
+                    break;
+
+                case 'U': // single - \UXXXX - insert decimal character XXXX (in Unicode)
+                    if (pos+5 < [src length])
+                    {
+                        c[cL++] = hexDigit(src, pos+2)*0x1000 +
+                                  hexDigit(src, pos+3)*0x100  +
+                                  hexDigit(src, pos+4)*0x10   +
+                                  hexDigit(src, pos+5);
+                    }
+                    break;
+                    
+                case 'C': // single - Cn="Chapter Title" - invisible - just adds to table of contents
+                case 'T': // single - \T="50%" - indent screen percentage
+                case 'w': // single - \w="50%" - embed horizontal rule screen percentage (LF before and after)
+                case 'm': // single - image - \m="imagename.png"
+                case 'Q': // single - specify a link anchor - \Q="linkanchor"
+                    // Skip these ...
+                    // Find the end of the link and skip this text
+                    // (i.e. go to the second double quote character)
+                    for (i = 0, pos+=2; pos < [src length]; pos++)
+                    {
+                        if ([src characterAtIndex:pos] == '"')
+                            i++;
+                        if (i == 2)
+                            break;
+                    }
+                    break;
+
+                case 'S': // double - Sp - superscript
+                          // double - Sb - subscript
+                          // double - Sd - sidebar - \Sd="sidebar1"Sidebar\Sd
+                case 'X': // double - Xn - New chapter - no new page break (indent)
+                case 'v': // double - invisible block of text
+                case 'q': // double - link anchor - \q="#linkanchor"Some text\q
+                case 'F': // double - footnote - \Fn="footnote1"1\Fn
+                    // Skip these ...
+                    // Find the next occurrence of this tag
+                    for (pos+=2; pos < [src length]; pos++)
+                    {
+                        if ([src characterAtIndex:pos]   == nextchar &&
+                            [src characterAtIndex:pos-1] == '\\')
+                            break;
+                    }
+                    // move past the extra character for \S
+                    if (nextchar == 'S')
+                        pos++;
+                    break;
+
+                default:
+                    // No clue ... Strip the \ and move on ...
+                    break;
+            }
+
+        }
+        else
+        {
+            // If this isn't a backslash esace, just add it and move on
+            c[cL++] = cur;
+        }
+        
+        // Dump buffer when it gets full
+        // Leave a bit of space for expanded replacements
+        if (cL >= sizeof(c)/sizeof(*c)-32)
+        {
+            [newText appendFormat:@"%.*S", cL, c];
+            cL = 0;
+        }
+        
+    } // for
+    
+    // Add any remaining text in the block
+    if (cL)
+    {
+        [newText appendFormat:@"%.*S", cL, c];
+        cL = 0;
+    }
+    
+    // Free the source newText ...
+    [src release];
+    
+    // Replace the open text with this new text and refresh the screen
+    [self setText:newText];
+    
+    // Cache this file to speed up future opens
+    [self saveCache:newText];
+    
+} // stripPML
 
 
 // ---------------------------------------------
@@ -2716,6 +3012,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     NSString        * type = nil;
 
     int rc = decodePDB(fullpath, &data, &type);
+    
     if (rc || !data || ![data length])
     {
         if (data)
@@ -2754,7 +3051,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                 if (encoding == TEXTREADER_GB2312)
                     newText = convertGB2312Data(data);
                 else
-                    newText = [[NSMutableString alloc] initWithData:data encoding:encoding];              
+                    newText = [[[NSMutableString alloc] initWithData:data encoding:encoding] retain];
                 if (newText)
                    break;
             }
@@ -2764,12 +3061,16 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     if (data)
         [data release];
 
+    // Set the file type ...
+    if (![type compare:@"eReader" options:kCFCompareCaseInsensitive])
+       *ftype = kTextFileTypePML;
+    
     // Check the PDB for HTML - We'll consider anything with 
     // a < and a > in the first 128 characters an HTML doc
-    if ( newText && 
-         ([newText characterAtIndex:0] == '<' ||
-          (getTag(newText, 0, 256, "<", NULL) && 
-           getTag(newText, 0, 256, ">", NULL))) )
+    else if ( newText && 
+              ([newText characterAtIndex:0] == '<' ||
+               (getTag(newText, 0, 256, "<", NULL) && 
+                getTag(newText, 0, 256, ">", NULL))) )
        *ftype = kTextFileTypeHTML;
 
     return newText;
@@ -2910,6 +3211,16 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                 return true;
             }
 
+            // Strip PML in a similar fashion to what we do with HTML ...
+            if (ftype == kTextFileTypePML)
+            {
+                [self stripPML:newText type:ftype];            
+                
+                // All done - file will be reopened when stripPML finishes
+                return true;
+            }
+
+            // Otherwise, no massaging of the text is needed ...
             // Save the new text for view
             [self setText:newText];
 
@@ -2967,10 +3278,10 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     
     if (!newFont || [newFont length] < 1)
         newFont = @"arialuni";
-    if (size < 8)
-        size = 8;
-    if (size > 32)
-        size = 32;
+    if (size < 10)
+        size = 10;
+    if (size > 34)
+        size = 34;
     
     newgsFont = GSFontCreateWithName([newFont cStringUsingEncoding:kCGEncodingMacRoman], 0, size);
     if (newgsFont)
@@ -3005,6 +3316,8 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
 - (void)mouseDown:(struct __GSEvent*)event {
 
+    gestureMode = false;
+
     [ [self tapDelegate] mouseDown: event ];
     [ super mouseDown: event ];
 
@@ -3013,7 +3326,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
  
 - (void)mouseUp:(struct __GSEvent *)event {
 
-    [ [self tapDelegate] mouseUp: event ];
+    if (!gestureMode)
+        [ [self tapDelegate] mouseUp: event ];
+        
     [ super mouseUp: event ];
     
 } // mouseUp

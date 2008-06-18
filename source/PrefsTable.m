@@ -43,6 +43,53 @@ NSString  *TextAlignmentNames[6];
 @implementation MyPreferencesTable
 
 
+- (int) indentFromString:(NSString *)str {
+    if (![str compare:_T(@"Original") options:kCFCompareCaseInsensitive])
+        return -1;
+    else if (![str compare:_T(@"None") options:kCFCompareCaseInsensitive])
+        return 0;
+    else if (![str compare:_T(@"1 blank") options:kCFCompareCaseInsensitive])
+        return 1;
+    else if (![str compare:_T(@"2 blanks") options:kCFCompareCaseInsensitive])
+        return 2;
+    else if (![str compare:_T(@"3 blanks") options:kCFCompareCaseInsensitive])
+        return 3;
+    else if (![str compare:_T(@"4 blanks") options:kCFCompareCaseInsensitive])
+        return 4;
+    else if (![str compare:_T(@"5 blanks") options:kCFCompareCaseInsensitive])
+        return 5;
+    else if (![str compare:_T(@"6 blanks") options:kCFCompareCaseInsensitive])
+        return 6;
+        
+    return 0;
+    
+} // indentFromString
+
+- (NSString*) stringFromIndent:(int)indent {
+    switch (indent)
+    {
+        case -1:
+            return _T(@"Original");
+        case 1:
+            return _T(@"1 blank");
+        case 2:
+            return _T(@"2 blanks");
+        case 3:
+            return _T(@"3 blanks");
+        case 4:
+            return _T(@"4 blanks");
+        case 5:
+            return _T(@"5 blanks");
+        case 6:
+            return _T(@"6 blanks");
+        default:
+        case 0:
+            return _T(@"None");
+    }
+    
+} // stringFromIndent
+
+
 - (AlignText) alignmentFromString:(NSString *)str {
     AlignText ta;
     
@@ -80,9 +127,11 @@ NSString  *TextAlignmentNames[6];
     invertScreen = nil;
     ignoreSingleLF = nil;
     padMargins = nil;
+    indentParagraphsCell = nil;
     reverseTap = nil;
     swipeOK = nil;
     repeatLine = nil;
+    fontZoom = nil;
 
     return self;
 }
@@ -114,7 +163,8 @@ NSString  *TextAlignmentNames[6];
             // Show Cover Art
             // Pad Margins
             // Align Text
-            return 5;
+            // Indent Margins
+            return 6;
             
         case(2):
             // Strip Line Feeds
@@ -127,8 +177,9 @@ NSString  *TextAlignmentNames[6];
         case(4):
             // Reverse Tap
             // Repeat Line
-            // Allow Swipe
-            return 3;
+            // Smooth Scroll
+            // Font Zoom
+            return 4;
         
         case(5):
             // Volume Scroll
@@ -226,6 +277,8 @@ NSString  *TextAlignmentNames[6];
     [textView setEncodings:encodings];
 
     [textView setTextAlignment:[self alignmentFromString:[textAlignmentCell value]]];
+    
+    [textView setIndentParagraphs:[self indentFromString:[indentParagraphsCell value]]];
     
 } // saveSettings
 
@@ -330,6 +383,17 @@ NSString  *TextAlignmentNames[6];
             }               
             break;
             
+        case 13: // Indent Paragraphs
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_IndentParagraphs];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
+            
         default:
             [[self cellAtRow:i column:0] setSelected:NO];
             return;
@@ -389,6 +453,9 @@ NSString  *TextAlignmentNames[6];
 
     else if (switchid == repeatLine)
         [textView setRepeatLine:[repeatLine value] ? 1 : 0];
+
+    else if (switchid == fontZoom)
+        [textView setFontZoom:[fontZoom value] ? 1 : 0];
 
 } // handleSwitch
 
@@ -505,6 +572,14 @@ NSString  *TextAlignmentNames[6];
                     [ cell setShowDisclosure:YES];
                     textAlignmentCell = cell;
                     break;
+                case (5):
+                    [ cell release ];
+                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                    [ cell setTitle:_T(@"Indent Paragraphs") ];
+                    [ cell setValue:[self stringFromIndent:[textView getIndentParagraphs]] ];
+                    [ cell setShowDisclosure:YES];
+                    indentParagraphsCell = cell;
+                    break;
             }
             break;
         case (2):
@@ -567,6 +642,15 @@ NSString  *TextAlignmentNames[6];
                     [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: swipeOK ];
+                    break;
+                case (3):
+                    [ cell setTitle:_T(@"Font Zoom") ];
+                    fontZoom = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ fontZoom setValue: [textView getFontZoom] ? 1 : 0 ];
+                    [ fontZoom addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: fontZoom ];
                     break;
             }
             break;
@@ -722,6 +806,11 @@ NSString  *TextAlignmentNames[6];
 } // setTextAlignment
 
 
+- (void) setIndentParagraphs:(NSString*)indent {
+    [ indentParagraphsCell setValue:indent ];
+} // setIndentParagraphs
+
+
 - (void)dealloc {
   [super dealloc];
 } // dealloc
@@ -772,6 +861,10 @@ NSString  *TextAlignmentNames[6];
             
         case kPicker_Type_TextAlignment:
             [ prefsTable setTextAlignment:[dataArray  objectAtIndex:row] ];
+            break;
+
+        case kPicker_Type_IndentParagraphs:
+            [ prefsTable setIndentParagraphs:[dataArray  objectAtIndex:row] ];
             break;
     }
                 
@@ -838,6 +931,17 @@ NSString  *TextAlignmentNames[6];
                 for(ta=Align_Left; ta<=Align_Justified2; ta++)
                     [dataArray addObject:TextAlignmentNames[ta]];
             }
+            break;
+
+        case kPicker_Type_IndentParagraphs:
+            [dataArray addObject:_T(@"Original")];
+            [dataArray addObject:_T(@"None")];
+            [dataArray addObject:_T(@"1 blank")];
+            [dataArray addObject:_T(@"2 blanks")];
+            [dataArray addObject:_T(@"3 blanks")];
+            [dataArray addObject:_T(@"4 blanks")];
+            [dataArray addObject:_T(@"5 blanks")];
+            [dataArray addObject:_T(@"6 blanks")];
             break;
 
         case kPicker_Type_Encoding:
