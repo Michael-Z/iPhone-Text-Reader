@@ -90,9 +90,9 @@ int decodePDB(NSString * src, NSMutableData ** dest, NSString ** type);
 // a block above and below "current", and /100 to allow for the text height/font size multiplier
 // This is considerably larger than any user is ever likely to scroll, and whenever a file is
 // opened, closed, font or size changes, or slider is moved we will reset the thumb to current
-#define SCROLLER_SIZE   (99999999/200)
+#define SCROLLER_SIZE              (99999999/200)
 
-#define TEXTREADER_MPAD             10
+#define TEXTREADER_MPAD            ((float)10.0)
 
 #define MAX_LAYOUTS                128
 
@@ -110,9 +110,16 @@ typedef struct _TextLayout {
     // Width of the line when drawn with the current font
     int     width;
 
-    // Used for Justified aligned text
-    // number of pixels for each blank block
-    float blank_pixels_per_block;
+    // // Used for Justified aligned text
+    // // number of pixels for each blank block
+    // float blank_pixels_per_block;
+
+
+    // These are used for char and word justified
+    // Number of blanks in this line
+    int num_blanks;
+    // "extra space in the line to blank"
+    int blank_width;
 
 } TextLayout;
 

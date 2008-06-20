@@ -365,7 +365,7 @@ typedef unsigned int NSUInteger;
         return FALSE;
        
     // If LF is followed by '-', Tab return TRUE
-    if (after == '-' || after == '\'' || after == '\"' || after == '\t')
+    if (after == '-' || after == 0x2014 || after == '\'' || after == '\"' || after == '\t')
         return TRUE;
         
 //     // If LF is followed by an uppercase character, return TRUE        
@@ -462,16 +462,18 @@ typedef unsigned int NSUInteger;
     // JIMB BUG BUG - should we split on '-' ?!?!?!?
     // We would really want to split on the char *after* it ... 
     
-//     // Split *after* period, comma, and dash, etc.
-//     // We want to keep these split characters with the current text
-//     // so we check for them after the fact
-//     if (prevc == ',' ||
-//         prevc == '.' ||
-//         prevc == '-' ||
-//         prevc == '=' ||
-//         prevc == ';' ||
-//         prevc == ':')
-//        return true;
+    // Split *after* period, comma, and dash, etc.
+    // We want to keep these split characters with the current text
+    // so we check for them after the fact
+    if (ignoreSingleLF == IgnoreLF_Format &&
+        (prevc == ',' ||
+//         prevc == ':' ||
+         prevc == '-' ||
+         prevc == 0x2014 ||
+         prevc == '=' ||
+         prevc == ';' ||
+         prevc == '.'))
+       return true;
 
     // Anything else gets chunk'd together
     return false;
@@ -546,8 +548,8 @@ static void initLayout(TextLayout * txtLayout, int start, int length, bool newPa
     txtLayout->range.location = start;
     txtLayout->range.length   = length;
 
-    txtLayout->width                  = -1;
-    txtLayout->blank_pixels_per_block = -1;
+    txtLayout->width          = -1;
+    txtLayout->blank_width    = -1;
 
     txtLayout->newParagraph = newParagraph;
     
@@ -1212,6 +1214,8 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 {
     CGRect  viewRect = [self getOrientedViewRect];
     NSRange block;
+    
+    pt.x = ceil(pt.x);
 
     // Strip leading and trailing blanks
     if (!txtLayout->newParagraph || indentParagraphs >= 0)
@@ -1249,10 +1253,10 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     // (ignore CRLF blocks!)
     
     // NOTE: only do this once, and then cache the results ...
-    if (txtLayout->blank_pixels_per_block < 0)
+    if (txtLayout->blank_width < 0)
     {
-        float txt_width    = 0.0;
-        int   blank_blocks = 0;
+        float   txt_width    = 0;
+        int     blank_blocks = 0;
         
         // For Char align, we add space between characters
         if (textAlignment == Align_Justified2)
@@ -1261,14 +1265,18 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                  block.location < txtLayout->range.location + txtLayout->range.length;
                  block.location++)
             {                
+                // Ignore CRLF characters
+                if ([self isCRLF:block.location]) 
+                   continue;
+                   
                 NSString * x = [text substringWithRange:block];
                 CGSize  used = [x sizeWithFont:gsFont];
                 txt_width += ceil(used.width);
-                
+                               
             } // for each char in the range
             
-            // We will put blank space between characters
-            blank_blocks = txtLayout->range.length-1;
+            // We have one less blocks than characters
+            blank_blocks = txtLayout->range.length - 1;
         }
         
         // For Word align, we add space between words
@@ -1280,16 +1288,16 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                  block.location = block.location + block.length)
             {
                 // Ignore CRLF characters
-                if (![self isCRLF:block.location]) 
+                if ([self isCRLF:block.location]) 
+                   continue;
+
+                if ([self isBlank:block.location])
+                    blank_blocks++;
+                else
                 {
-                    if ([self isBlank:block.location])
-                        blank_blocks++;
-                    else
-                    {
-                        NSString * x = [text substringWithRange:block];
-                        CGSize  used = [x sizeWithFont:gsFont];
-                        txt_width += ceil(used.width);
-                    }
+                    NSString * x = [text substringWithRange:block];
+                    CGSize  used = [x sizeWithFont:gsFont];
+                    txt_width += ceil(used.width);
                 }
 
             } // for each block in txtLayout
@@ -1301,7 +1309,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             return;
 
         // If no blanks were found, we will do a left justify
-        if (!blank_blocks)
+        if (blank_blocks < 1)
         {
             [x drawAtPoint:pt withFont:gsFont];
             return;
@@ -1309,37 +1317,49 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         
         // Calc the blank offset for each blank block
         // (remember to keep track of partial blank pixels
-        float blank_width = viewRect.size.width - txt_width;
+        txtLayout->blank_width = viewRect.size.width - txt_width;
         
+        // Keep the start and end points in mind ...
+        txtLayout->blank_width -= pt.x;
         if (padMargins)
-            blank_width -= TEXTREADER_MPAD * 2;
+            txtLayout->blank_width -= TEXTREADER_MPAD;
             
-        if (txtLayout->newParagraph && indentParagraphs > 0)
-            blank_width -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
-            
-        if (blank_width < 0.0)
-            blank_width = 0.0;
+//         if (txtLayout->blank_width < 0)
+//             txtLayout->blank_width = 0;
 
-        txtLayout->blank_pixels_per_block = blank_width / (float)blank_blocks;
-                    
+        txtLayout->num_blanks = blank_blocks;
+                   
     } // if layout not already calc'd
     
     // Draw the text in a justified manner ...
     
     // For Char align, we add space between characters
+    float blank_width = txtLayout->blank_width;
+    float num_blanks  = txtLayout->num_blanks;
+    
     if (textAlignment == Align_Justified2)
     {
         for (block.location = txtLayout->range.location, block.length = 1;         
              block.location < txtLayout->range.location + txtLayout->range.length;
              block.location++)
         {   
+            // Ignore CRLF characters
+            if ([self isCRLF:block.location]) 
+               continue;
+               
             // Draw each character
             NSString * x = [text substringWithRange:block];
             CGSize  used = [x drawAtPoint:pt withFont:gsFont];
             pt.x += ceil(used.width);
             
             // Move the offset for blank space ...
-            pt.x += txtLayout->blank_pixels_per_block;
+            if (num_blanks)
+            {
+                float pad    = blank_width / num_blanks;
+                pt.x        += pad;
+                blank_width -= pad;
+                num_blanks--;
+            }
 
         } // for each char in the range    
     }
@@ -1352,21 +1372,27 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
              block.location = block.location + block.length)
         {
             // Ignore CRLF characters
-            if (![self isCRLF:block.location]) 
+            if ([self isCRLF:block.location]) 
+               continue;
+
+            if ([self isBlank:block.location])
             {
-                if ([self isBlank:block.location])
+                // Move the offset for blank space ...
+                if (num_blanks)
                 {
-                    // Move the offset for blank space ...
-                    pt.x += txtLayout->blank_pixels_per_block;
-                }
-                else
-                {
-                    // Draw this block of text at the indicated spot
-                    NSString * x = [text substringWithRange:block];
-                    CGSize  used = [x drawAtPoint:pt withFont:gsFont];
-                    pt.x += ceil(used.width);
+                    int pad      = blank_width / num_blanks;
+                    pt.x        += pad;
+                    blank_width -= pad;
+                    num_blanks--;
                 }
             }
+            else
+            {
+                // Draw this block of text at the indicated spot
+                NSString * x = [text substringWithRange:block];
+                CGSize  used = [x drawAtPoint:pt withFont:gsFont];
+                pt.x += ceil(used.width);
+            } 
 
         } // for each block in txtLayout
     }
@@ -2742,6 +2768,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
         [fileName release];
         fileName = tmp;
     }   
+
 } // saveCache
 
 
@@ -3297,7 +3324,7 @@ int hexDigit(NSString * src, int pos)
     }
     
     [trApp showDialog:_T(@"Error")
-                    msg:[NSString stringWithFormat:_T(@"Unable to create font %@"), font]
+                    msg:[NSString stringWithFormat:_T(@"Unable to create font %@"), newFont]
                  buttons:DialogButtons_OK];
 
     return false;

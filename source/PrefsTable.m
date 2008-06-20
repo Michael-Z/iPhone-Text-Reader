@@ -251,9 +251,7 @@ NSString  *TextAlignmentNames[6];
 }
 
 
-// Called when we leave this view
--(void)saveSettings {
-
+- (void) killPicker {
     // If picker is active, just kill it
     if (pickerView)
     {
@@ -261,26 +259,7 @@ NSString  *TextAlignmentNames[6];
         [pickerView release];
         pickerView = nil;
     }               
-
-    // Apply preferences ...            
-    NSString * font  = [fontCell value];
-    int        size  = [[fontSizeCell value] intValue];
-
-    [textView setFont:font size:size];
-
-    NSStringEncoding encodings[4] = {
-                                        [trApp encodingFromString:[encodingCell  value]],
-                                        [trApp encodingFromString:[encoding2Cell value]],
-                                        [trApp encodingFromString:[encoding3Cell value]],
-                                        [trApp encodingFromString:[encoding4Cell value]]
-                                    };
-    [textView setEncodings:encodings];
-
-    [textView setTextAlignment:[self alignmentFromString:[textAlignmentCell value]]];
-    
-    [textView setIndentParagraphs:[self indentFromString:[indentParagraphsCell value]]];
-    
-} // saveSettings
+} // killPicker
 
 
 - (void)tableRowSelected:(NSNotification *)notification 
@@ -367,7 +346,8 @@ NSString  *TextAlignmentNames[6];
 
         case 8: // Colors
             {   
-                [self saveSettings];
+                // [self saveSettings];
+                [self killPicker];
                 [trApp showView:My_Color_View];
             }               
             break;
@@ -477,57 +457,41 @@ NSString  *TextAlignmentNames[6];
         case (0):
             switch (row) {
                 case (0):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Font") ];
                     [ cell setValue:[textView getFont] ];
                     [ cell setShowDisclosure:YES];
                     fontCell = cell;
                     break;
                 case (1):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Font Size") ];
                     [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
                     [ cell setShowDisclosure:YES];
                     fontSizeCell = cell;
                     break;
                 case (2):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][0]] ];
                     [ cell setShowDisclosure:YES];
                     encodingCell = cell;
                     break;
-
-
                 case (3):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"2nd Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][1]] ];
                     [ cell setShowDisclosure:YES];
                     encoding2Cell = cell;
                     break;
                 case (4):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"3rd Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][2]] ];
                     [ cell setShowDisclosure:YES];
                     encoding3Cell = cell;
                     break;
                 case (5):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
                     [ cell setTitle:_T(@"4th Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][3]] ];
                     [ cell setShowDisclosure:YES];
                     encoding4Cell = cell;
                     break;
-
-
            }
            break;
         case (1):
@@ -585,32 +549,28 @@ NSString  *TextAlignmentNames[6];
         case (2):
             switch (row) {
                 case (0):
-                    {    
-                        ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
-                        [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
-                        [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
-                        [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
-                        [ignoreSingleLF setDelegate:self];
-                        [cell addSubview: ignoreSingleLF ];
-                        [cell setDrawsBackground:NO];
-                    }
+                    ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
+                    [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
+                    [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
+                    [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
+                    [ignoreSingleLF setDelegate:self];
+                    [cell addSubview: ignoreSingleLF ];
+                    [cell setDrawsBackground:NO];
                     break;
             }
             break;
         case (3):
             switch (row) {
                 case (0):
-                    {    
-                        showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
-                        [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
-                        [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
-                        [showStatus selectSegment:[trApp getShowStatus]];
-                        [showStatus setDelegate:self];
-                        [cell addSubview: showStatus ];
-                        [cell setDrawsBackground:NO];
-                    }
+                    showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
+                    [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
+                    [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
+                    [showStatus selectSegment:[trApp getShowStatus]];
+                    [showStatus setDelegate:self];
+                    [cell addSubview: showStatus ];
+                    [cell setDrawsBackground:NO];
                     break;
             }
             break;
@@ -657,16 +617,14 @@ NSString  *TextAlignmentNames[6];
         case (5):
             switch (row) {
                 case (0):
-                    {    
-                        volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                        [volumeScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
-                        [volumeScroll insertSegment:VolScroll_Line withTitle:_T(@"Line") animated:NO];
-                        [volumeScroll insertSegment:VolScroll_Page withTitle:_T(@"Page") animated:NO];
-                        [volumeScroll selectSegment:[trApp getVolScroll]];
-                        [volumeScroll setDelegate:self];
-                        [cell addSubview: volumeScroll ];
-                        [cell setDrawsBackground:NO];
-                    }
+                    volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    [volumeScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
+                    [volumeScroll insertSegment:VolScroll_Line withTitle:_T(@"Line") animated:NO];
+                    [volumeScroll insertSegment:VolScroll_Page withTitle:_T(@"Page") animated:NO];
+                    [volumeScroll selectSegment:[trApp getVolScroll]];
+                    [volumeScroll setDelegate:self];
+                    [cell addSubview: volumeScroll ];
+                    [cell setDrawsBackground:NO];
                     break;
             }
             break;
@@ -763,7 +721,8 @@ NSString  *TextAlignmentNames[6];
             break;
 
         case 1: // Done
-            [self saveSettings];
+            // [self saveSettings];
+            [self killPicker];
             [trApp showView:My_Info_View];
             break;
     } // switch
@@ -771,43 +730,73 @@ NSString  *TextAlignmentNames[6];
 } // navigationBar
 
 
+
+// Save the encodings
+-(void)saveEncodings {
+
+    NSStringEncoding encodings[4] = {
+                                        [trApp encodingFromString:[encodingCell  value]],
+                                        [trApp encodingFromString:[encoding2Cell value]],
+                                        [trApp encodingFromString:[encoding3Cell value]],
+                                        [trApp encodingFromString:[encoding4Cell value]]
+                                    };
+
+    [textView setEncodings:encodings];
+        
+} // saveEncodings
+
+
+// Save the font/size
+- (bool) saveFont:(NSString*)font size:(int)size {
+    return [textView setFont:font size:size];    
+} // saveFont
+
+
 - (void) setFont:(NSString*)font {
-    [ fontCell setValue:font ];
+    if ([self saveFont:font size:[[fontSizeCell value] intValue]])
+        [fontCell setValue:font];
 } // setFont
 
 
 - (void) setFontSize:(NSString*)fontSize {
-    [ fontSizeCell setValue:fontSize ];
+    if ([self saveFont:[fontCell value] size:[fontSize intValue]])
+        [fontSizeCell setValue:fontSize];
 } // setFontSize
 
 
 - (void) setEncoding:(NSString*)enc {
     [ encodingCell setValue:enc ];    
+    [self saveEncodings];
 } // setEncoding
 
 
 - (void) setEncoding2:(NSString*)enc {
     [ encoding2Cell setValue:enc ];    
+    [self saveEncodings];
 } // setEncoding2
 
 
 - (void) setEncoding3:(NSString*)enc {
     [ encoding3Cell setValue:enc ];    
+    [self saveEncodings];
 } // setEncoding3
 
 
 - (void) setEncoding4:(NSString*)enc {
     [ encoding4Cell setValue:enc ];    
+    [self saveEncodings];
 } // setEncoding4
 
 
 - (void) setTextAlignment:(NSString*)ta {
     [ textAlignmentCell setValue:ta ];
+    [textView setTextAlignment:[self alignmentFromString:ta]];    
 } // setTextAlignment
 
 
 - (void) setIndentParagraphs:(NSString*)indent {
     [ indentParagraphsCell setValue:indent ];
+    [textView setIndentParagraphs:[self indentFromString:indent]];    
 } // setIndentParagraphs
 
 
