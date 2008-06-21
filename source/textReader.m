@@ -309,6 +309,8 @@
 
     [defaults setInteger:[textView getPadMargins] forKey:TEXTREADER_PADMARGINS];
 
+    [defaults setObject:[textView getBkgImage] forKey:TEXTREADER_BKGIMAGE];
+
     [defaults setInteger:[textView getFontZoom] forKey:TEXTREADER_FONTZOOM];
 
     [defaults setInteger:[textView getIndentParagraphs] forKey:TEXTREADER_INDENT];
@@ -448,6 +450,8 @@
     [textView setIgnoreSingleLF:[defaults integerForKey:TEXTREADER_IGNORELF]];
 
     [textView setPadMargins:[defaults integerForKey:TEXTREADER_PADMARGINS]];
+
+    [textView setBkgImage:[defaults stringForKey:TEXTREADER_BKGIMAGE]];
 
     [textView setFontZoom:[defaults integerForKey:TEXTREADER_FONTZOOM]];
 
@@ -1329,6 +1333,7 @@
     }
 
 } // scaleCoverArt
+
 
 // Here's the recommended method for doing custom stuff when the screen's rotation has changed... 
 - (void) setUIOrientation: (int) o_code {

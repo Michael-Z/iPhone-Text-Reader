@@ -42,7 +42,7 @@
 
 // These are the MAX values - preferencesTable controls the actual number
 #define NUM_GROUPS      7
-#define CELLS_PER_GROUP 6
+#define CELLS_PER_GROUP 7
 
 
 
@@ -57,11 +57,12 @@ typedef enum _PickerType {
     kPicker_Type_FontSize          = 2,
     kPicker_Type_TextAlignment     = 3,
     kPicker_Type_IndentParagraphs  = 4,
+    kPicker_Type_BkgImage          = 5,
 
-    kPicker_Type_Encoding          = 5,
-    kPicker_Type_Encoding2         = 6,
-    kPicker_Type_Encoding3         = 7,
-    kPicker_Type_Encoding4         = 8
+    kPicker_Type_Encoding          = 6,
+    kPicker_Type_Encoding2         = 7,
+    kPicker_Type_Encoding3         = 8,
+    kPicker_Type_Encoding4         = 9
 
 } PickerType;
 
@@ -129,6 +130,7 @@ typedef enum _PickerType {
     UIPreferencesTableCell *encoding4Cell;
     UIPreferencesTableCell *colorsCell;
     UIPreferencesTableCell *textAlignmentCell;
+    UIPreferencesTableCell *bkgImageCell;
 
     UIPreferencesTableCell *indentParagraphsCell;
 

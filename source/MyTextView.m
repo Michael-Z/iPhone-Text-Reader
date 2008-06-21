@@ -91,6 +91,9 @@ typedef unsigned int NSUInteger;
     fileName = nil;
     filePath = [TEXTREADER_DEF_PATH copy];
     
+    bkgImage = nil;
+    bkgImageName = [_T(@"None") copy];
+    
     // Make sure default directory exists
     [[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
     
@@ -104,6 +107,47 @@ typedef unsigned int NSUInteger;
 
 - (void) setFontZoom:(bool)zoom { fontZoom = zoom; };
 - (bool) getFontZoom { return fontZoom; };
+
+
+- (bool) setBkgImage:(NSString*)name {
+
+    if (!name || ![name length] || 
+        ![name compare:_T(@"None") options:kCFCompareCaseInsensitive])
+    {
+        if (bkgImage)
+            [bkgImage release];
+        bkgImage = nil;
+        if (bkgImageName)
+            [bkgImageName release];
+        bkgImageName = [_T(@"None") copy];
+        
+        return true;
+    }
+
+    UIImage * img = [[UIImage applicationImageNamed:[NSString stringWithFormat:@"images/%@", name]] retain];
+    if (!img)
+    {
+        [trApp showDialog:_T(@"Error")
+                        msg:[NSString stringWithFormat:_T(@"Unable to load background image %@"), name]
+                     buttons:DialogButtons_OK];
+        return false;
+    }
+    
+    if (bkgImage)
+        [bkgImage release];
+    bkgImage = img;
+    if (bkgImageName)
+        [bkgImageName release];
+    bkgImageName = [name copy];
+    
+    [self setNeedsDisplay];
+    
+    return true;
+    
+} // setBkgImage
+
+
+- (NSString*) getBkgImage { return bkgImageName; };
 
 
 - (void) gestureChanged:(GSEvent*)event {
@@ -236,7 +280,7 @@ typedef unsigned int NSUInteger;
 
 
 // Fill in background with proper color, and then set the text colors
-- (void)fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect {
+- (void)fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect yOffset:(int)yStart {
 
     // Blank out the rect
     if (invertColors)
@@ -249,7 +293,32 @@ typedef unsigned int NSUInteger;
                                           txtcolors.bkg_green, 
                                           txtcolors.bkg_blue, 
                                           txtcolors.bkg_alpha);
+                      
+    // Fill in anything that might not be drawn for some reason ...    
     CGContextFillRect(context, rect);
+    
+    if (bkgImage)
+    {
+        CGRect  imgRect  = rect;
+        
+        // Figure out the part of the rect that matches the bkg 
+        imgRect.origin.y -= yStart;
+        
+        // Handle the case where drawing starts above the visible rect        
+        if (imgRect.origin.y < 0)
+        {
+            rect.size.height = imgRect.size.height = MAX(imgRect.size.height+imgRect.origin.y, 0);
+            imgRect.origin.y = 0;
+            rect.origin.y = yStart;            
+        }
+            
+        // Handle the case where drawing extends below the visible rect        
+        float excess = (imgRect.origin.y+imgRect.size.height) - [bkgImage size].height;
+        if (excess > 0)
+            rect.size.height = imgRect.size.height = MAX(imgRect.size.height-excess, 0);
+        
+        [bkgImage compositeToRect:rect fromRect:imgRect operation:1 fraction:1.0];
+    }
 
     // Restore text colors
     if (invertColors)
@@ -318,6 +387,22 @@ typedef unsigned int NSUInteger;
 
 // ------------------------------------------------------
 
+// IS this a blank character
+- (bool) isLiteralBlank:(unichar)c
+{
+    // We treat 0x0d as an embedded blank ... not ideal,
+    // but it keeps us from having to parse the string
+    // to skip them ... luckily with proportional fonts
+    // 2 spaces look an awful lot like one ...
+    if (c == ' '    ||
+        c == 0x3000 || // IDEOGRAPHIC SPACE
+        c == '\t'   ||
+        c == 0x0d)
+       return TRUE;
+    
+    return FALSE;
+    
+} // isLiteralBlank
 
 
 // Support ignoreSingleLF option:
@@ -380,19 +465,19 @@ typedef unsigned int NSUInteger;
     while (prev >= 0)
     {   
         before = [text characterAtIndex:prev];
-        if (before != ' ')
-            break;
+        if (![self isLiteralBlank:before])
+           break;
         prev--;
     }
     // If prev char was a line ending char, keep the LF
     if (before == '.' || before == '!' || 
+        before == ';' || 
         before == '?' || before == '"' || 
         before == '\'' || before == ':')
         return TRUE;
     
     // Return FALSE
     return FALSE;
-
 
 } // isLF
 
@@ -401,16 +486,11 @@ typedef unsigned int NSUInteger;
 - (bool) isBlank:(int) start
 {
     unichar c = [text characterAtIndex:start];
-    
-    // We treat 0x0d as an embedded blank ... not ideal,
-    // but it keeps us from having to parse the string
-    // to skip them ... luckily with proportional fonts
-    // 2 spaces look an awful lot like one ...
-    if (c == ' ' ||
-        c == '\t' ||
-        c == 0x0d)
-       return TRUE;
-    
+
+    // A literal blank is a blank    
+    if ([self isLiteralBlank:c])
+        return TRUE;
+        
     // *If* We have a single LF and are ignoring single LFs, it 
     // should be treated as a blank/space rather than as a LF
     if (c == 0x0a && ![self isLF:start])
@@ -582,7 +662,16 @@ static void initLayout(TextLayout * txtLayout, int start, int length, bool newPa
         float   width   = viewRect.size.width - (float)(padMargins ? TEXTREADER_MPAD * 2 : 0);
         
         // Keep track of whether or not this is the start of a new paragraph
-        if (start > 0 && start < (int)[text length] && [self isCRLF:start-1])
+        // We have to back up to before stripped blanks ...
+        int blankStart = start;
+        while (blankStart > 0 && blankStart < (int)[text length])
+        {
+            if (![self isBlank:blankStart-1])
+                break;
+            blankStart--;
+        }
+        if (blankStart <= 0 ||
+            (blankStart < (int)[text length] && [self isCRLF:blankStart-1]))
             newParagraph = true;
         
         // Strip leading blanks for the new line ...
@@ -1323,9 +1412,10 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         txtLayout->blank_width -= pt.x;
         if (padMargins)
             txtLayout->blank_width -= TEXTREADER_MPAD;
-            
-//         if (txtLayout->blank_width < 0)
-//             txtLayout->blank_width = 0;
+
+        // NOTE: We *must* allow for a negative txtLayout->blank_width!!!
+        //       This can happen if the layout of the line of text is 
+        //       shorter than the length of drawing each character separately!
 
         txtLayout->num_blanks = blank_blocks;
                    
@@ -1412,7 +1502,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     {
        // Blank screen ...
        lineRect = CGRectMake(0, 0, viewRect.size.width, viewRect.size.height+64);
-       [self fillBkgGroundRect:context rect:lineRect];
+       [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
         
        return [super drawRect:rect];
     }
@@ -1429,7 +1519,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     
     // Always clear the first line ...
     lineRect = CGRectMake(0, rect.origin.y, viewRect.size.width, lineHeight);
-    [self fillBkgGroundRect:context rect:lineRect];
+    [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
 
     // Adjust start for status bar ...
     if ([trApp getShowStatus] != ShowStatus_Off)
@@ -1447,8 +1537,10 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         lineRect = CGRectMake(0, yStart, viewRect.size.width, lineHeight);
         
         // Blank out the line so we can draw the new text
-        [self fillBkgGroundRect:context rect:lineRect];
+        [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
         
+        lineRect = CGRectMake(0, yStart, viewRect.size.width, lineHeight);
+
         // Nothing else to do if there is no text on this line
         if (line >= cDisplay || layout[line].range.location >= [text length])
            continue;
@@ -1509,14 +1601,14 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             lineRect = CGRectMake(0, rect.origin.y, 
                                   viewRect.size.width, 
                                   [UIHardware statusBarHeight]);
-            [self fillBkgGroundRect:context rect:lineRect];
+            [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y]; 
         }
 
     } // for each line of text we need to draw ...
     
     // Wipe any remaining text ...
     lineRect = CGRectMake(0, yStart, viewRect.size.width, lineHeight);
-    [self fillBkgGroundRect:context rect:lineRect];
+    [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
     
        
     [screenLock unlock];

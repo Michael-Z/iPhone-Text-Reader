@@ -171,6 +171,9 @@ typedef struct _TextLayout {
     bool              gestureMode;
     float             gestureStart;
 
+    UIImage          *bkgImage;
+    NSString         *bkgImageName;
+
 } // MyTextView
 
 - (void) setTextReader:(textReader*)tr;
@@ -178,7 +181,6 @@ typedef struct _TextLayout {
 - (id)   init;
 - (id)   initWithFrame:(CGRect)rect;
 
-- (void) fillBkgGroundRect:(CGContextRef)context rect:(CGRect)rect;
 - (void) setInvertColors:(bool)newInvertColors;
 - (bool) getInvertColors;
 - (void) setIgnoreSingleLF:(IgnoreLF)ignore;
@@ -193,6 +195,9 @@ typedef struct _TextLayout {
 - (int) getIndentParagraphs;
 - (void) setFontZoom:(bool)zoom;
 - (bool) getFontZoom;
+
+- (NSString*) getBkgImage;
+- (bool) setBkgImage:(NSString*)name;
 
 - (void) closeCurrentFile;
 - (bool)              openFile:(NSString *)name path:(NSString *)path;

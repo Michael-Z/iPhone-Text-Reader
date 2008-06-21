@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.0Beta2"
+#define TEXTREADER_VERSION          @"1.0Beta3"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -80,6 +80,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_TEXTALIGNMENT    @"textAlignment"
 #define TEXTREADER_SHOWCOVERART     @"showCoverArt"
 #define TEXTREADER_FONTZOOM         @"fontZoom"
+#define TEXTREADER_BKGIMAGE         @"bkgImage"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 

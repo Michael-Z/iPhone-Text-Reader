@@ -158,13 +158,14 @@ NSString  *TextAlignmentNames[6];
             return 6; 
 
         case(1):
-            // Invert
             // Colors
+            // Background
+            // Invert            
             // Show Cover Art
             // Pad Margins
             // Align Text
             // Indent Margins
-            return 6;
+            return 7;
             
         case(2):
             // Strip Line Feeds
@@ -346,13 +347,23 @@ NSString  *TextAlignmentNames[6];
 
         case 8: // Colors
             {   
-                // [self saveSettings];
                 [self killPicker];
                 [trApp showView:My_Color_View];
             }               
             break;
+            
+        case 9: // Background
+            {   
+                pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                [pickerView setDelegate: self];
+                [pickerView setType:kPicker_Type_BkgImage];
+                [pickerView setPrefs:self];
+
+                [self addSubview:pickerView];       
+            }               
+            break;
        
-        case 12: // textAlignment
+        case 13: // textAlignment
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -363,7 +374,7 @@ NSString  *TextAlignmentNames[6];
             }               
             break;
             
-        case 13: // Indent Paragraphs
+        case 14: // Indent Paragraphs
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -502,6 +513,12 @@ NSString  *TextAlignmentNames[6];
                     colorsCell = cell;
                     break;
                 case (1):
+                    [ cell setTitle:_T(@"Background") ];
+                    [ cell setValue:[textView getBkgImage] ];
+                    [ cell setShowDisclosure:YES];
+                    bkgImageCell = cell;
+                    break;
+                case (2):
                     [ cell setTitle:_T(@"Invert Screen") ];
                     invertScreen = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
@@ -510,7 +527,7 @@ NSString  *TextAlignmentNames[6];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: invertScreen ];
                     break;
-                case (2):
+                case (3):
                     [ cell setTitle:_T(@"Show Cover Art") ];
                     showCoverArt = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
@@ -519,7 +536,7 @@ NSString  *TextAlignmentNames[6];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: showCoverArt ];
                     break;
-                case (3):
+                case (4):
                     [ cell setTitle:_T(@"Pad Margins") ];
                     padMargins = [ [ UISwitchControl alloc ]
                         initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
@@ -528,17 +545,13 @@ NSString  *TextAlignmentNames[6];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: padMargins ];
                     break;
-                case (4):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                case (5):
                     [ cell setTitle:_T(@"Align Text") ];
                     [ cell setValue:TextAlignmentNames[[textView getTextAlignment]] ];
                     [ cell setShowDisclosure:YES];
                     textAlignmentCell = cell;
                     break;
-                case (5):
-                    [ cell release ];
-                    cell = [ [ UIPreferencesTableCell alloc ] init ];
+                case (6):
                     [ cell setTitle:_T(@"Indent Paragraphs") ];
                     [ cell setValue:[self stringFromIndent:[textView getIndentParagraphs]] ];
                     [ cell setShowDisclosure:YES];
@@ -721,7 +734,6 @@ NSString  *TextAlignmentNames[6];
             break;
 
         case 1: // Done
-            // [self saveSettings];
             [self killPicker];
             [trApp showView:My_Info_View];
             break;
@@ -762,6 +774,12 @@ NSString  *TextAlignmentNames[6];
     if ([self saveFont:[fontCell value] size:[fontSize intValue]])
         [fontSizeCell setValue:fontSize];
 } // setFontSize
+
+
+- (void) setBkgImage:(NSString*)name {
+    if ([textView setBkgImage:name])
+        [bkgImageCell setValue:[textView getBkgImage]];
+} // setBkgImage
 
 
 - (void) setEncoding:(NSString*)enc {
@@ -855,6 +873,11 @@ NSString  *TextAlignmentNames[6];
         case kPicker_Type_IndentParagraphs:
             [ prefsTable setIndentParagraphs:[dataArray  objectAtIndex:row] ];
             break;
+
+        case kPicker_Type_BkgImage:
+            [ prefsTable setBkgImage:[dataArray  objectAtIndex:row] ];
+            break;
+            
     }
                 
     return YES;
@@ -931,6 +954,32 @@ NSString  *TextAlignmentNames[6];
             [dataArray addObject:_T(@"4 blanks")];
             [dataArray addObject:_T(@"5 blanks")];
             [dataArray addObject:_T(@"6 blanks")];
+            break;
+
+        case kPicker_Type_BkgImage:
+            [dataArray addObject:_T(@"None")];
+            
+            NSString * path = [[NSString alloc] initWithFormat:@"/Applications/%@.app/images", TEXTREADER_NAME];
+            NSArray  * contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
+            for (i = 0; i < [contents count]; i++)
+            {
+                NSString * file = [contents objectAtIndex:i];
+                BOOL isDir = false;
+
+                if ([[NSFileManager defaultManager] 
+                      fileExistsAtPath:[path stringByAppendingPathComponent:file] 
+                      isDirectory:&isDir] && !isDir) 
+                {
+                    NSString * ext = [file pathExtension];
+                    
+                    if (![ext compare:@"png" options:kCFCompareCaseInsensitive]  ||
+                        ![ext compare:@"jpg" options:kCFCompareCaseInsensitive]  ||
+                        ![ext compare:@"jpeg" options:kCFCompareCaseInsensitive] ||
+                        ![ext compare:@"bmp" options:kCFCompareCaseInsensitive])
+                        [dataArray addObject:file];
+                }
+                
+            } // for each file in images directory
             break;
 
         case kPicker_Type_Encoding:
