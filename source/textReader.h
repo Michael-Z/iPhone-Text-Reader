@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.0Beta3"
+#define TEXTREADER_VERSION          @"1.0Beta4"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -150,7 +150,8 @@ typedef enum _TextFileType {
     kTextFileTypeHTML    = 3,
     kTextFileTypeFB2     = 4,
     kTextFileTypeTRCache = 5,
-    kTextFileTypePML     = 6
+    kTextFileTypePML     = 6,
+    kTextFileTypeRTF     = 7
 } TextFileType;
 
 typedef enum _MyViewName {

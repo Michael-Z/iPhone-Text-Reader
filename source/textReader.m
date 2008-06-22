@@ -1674,6 +1674,9 @@
 
         else if (![ext compare:@"fb2" options:kCFCompareCaseInsensitive ])
             type = kTextFileTypeFB2;
+
+        else if (![ext compare:@"rtf" options:kCFCompareCaseInsensitive ])
+            type = kTextFileTypeRTF;
     }
     else if ([fileName length] > 5 && 
              [fileName characterAtIndex:[fileName length]-5] == '.')

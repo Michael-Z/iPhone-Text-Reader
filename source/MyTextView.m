@@ -32,6 +32,9 @@
 
 #import <UIKit/UIKit.h>
 
+#include "rtftype.h"
+#include "rtfdecl.h"
+
 
 // NOTE: This adds about 16K to the program!
 // JIMB BUG BUG - look into a better way to "band" the conversion data
@@ -2958,6 +2961,58 @@ int hexDigit(NSString * src, int pos)
 } // hexDigit
 
 
+- (void) closeCurrentFile {
+
+    if (fileName)
+        [fileName release];
+    fileName = nil;
+    
+    [self setText:nil];
+    
+    [self setNeedsDisplay];
+    
+} // closeCurrentFile
+
+
+// Strips out RTF tags and produces ugly text for reading enjoyment ...
+// NOTE: RTF definitions from http://www.biblioscape.com/rtf15_spec.htm
+- (bool) stripRTF:(NSMutableString  *)newText type:(TextFileType)ftype {
+    
+    NSMutableString     * src    = newText;
+    
+    // Create new mutable string for output ...
+    newText = [[[NSMutableString alloc] initWithCapacity:[src length]] retain];
+
+    RTFDOC rtfdoc = {0};
+    
+    rtfdoc.src  = src;
+    rtfdoc.dest = newText;
+    
+    if (ecRtfParse(&rtfdoc) != ecOK)
+    {
+        [newText release];
+        
+        // src will be released by the caller on error ...
+                            
+        [self closeCurrentFile];
+        
+        return false;
+    }
+
+    // Free the source newText ...
+    [src release];
+ 
+    // Replace the open text with this new text and refresh the screen
+    [self setText:newText];
+    
+    // Cache this file to speed up future opens
+    [self saveCache:newText];
+    
+    return true;
+    
+} // stripRTF
+
+
 // Strips out PML tags and produces ugly text for reading enjoyment ...
 // NOTE: PML definitions from http://www.ereader.com/ereader/help/dropbook/pml.htm
 - (void) stripPML:(NSMutableString  *)newText type:(TextFileType)ftype {
@@ -3246,19 +3301,6 @@ int hexDigit(NSString * src, int pos)
 } // opentextFile
 
 
-- (void) closeCurrentFile {
-
-    if (fileName)
-        [fileName release];
-    fileName = nil;
-    
-    [self setText:nil];
-    
-    [self setNeedsDisplay];
-    
-} // closeCurrentFile
-
-
 // Open specified file and display
 - (bool) openFile:(NSString *)name path:(NSString*)path {
     NSMutableString * newText = nil;
@@ -3291,6 +3333,7 @@ int hexDigit(NSString * src, int pos)
             case kTextFileTypeTXT:
             case kTextFileTypeHTML:
             case kTextFileTypeFB2:
+            case kTextFileTypeRTF:
             default:
                 // everything else gets loaded as a plain old text file
                 newText = [self openTextFile:fullpath type:&ftype];
@@ -3339,11 +3382,27 @@ int hexDigit(NSString * src, int pos)
                 return true;
             }
 
-            // Otherwise, no massaging of the text is needed ...
-            // Save the new text for view
-            [self setText:newText];
+            // Strip RTF in a similar fashion to what we do with HTML ...
+            if (ftype == kTextFileTypeRTF)
+            {
+                if ([self stripRTF:newText type:ftype])
+                    // All done - file will be reopened when stripRTF finishes
+                    return true;
+                else
+                {
+                    // Clean up the invalid file ...
+                    [newText release];
+                    newText = nil;
+                }
+            }
+            else
+            {
+                // Otherwise, no massaging of the text is needed ...
+                // Save the new text for view
+                [self setText:newText];
 
-            return true;
+                return true;
+            }
         }
     }
 

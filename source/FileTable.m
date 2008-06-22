@@ -192,10 +192,11 @@ typedef enum _RowType {
     RowType_PDB      = 2,
     RowType_HTML     = 3,
     RowType_FB2      = 4,
-    RowType_TRCache  = 5,
-    RowType_Download = 6,
-    RowType_Parent   = 7,
-    RowType_Folder   = 8 
+    RowType_RTF      = 5,
+    RowType_TRCache  = 6,
+    RowType_Download = 7,
+    RowType_Parent   = 8,
+    RowType_Folder   = 9 
 } RowType;
 
 
@@ -212,6 +213,7 @@ typedef enum _RowType {
         case RowType_PDB:          
         case RowType_HTML:         
         case RowType_FB2:          
+        case RowType_RTF:          
         case RowType_TRCache:      
         case RowType_Unknown:      
             // These will be taken care of below
@@ -252,6 +254,9 @@ typedef enum _RowType {
                 break;
             case RowType_FB2:          
                 iname = @"fb2.png";
+                break;
+            case RowType_RTF:          
+                iname = @"rtf.png";
                 break;
             case RowType_TRCache:      
                 iname = @"cache.png";
@@ -354,6 +359,15 @@ typedef enum _RowType {
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeFB2)
         {
             rowType = RowType_FB2;
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+        
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeRTF)
+        {
+            rowType = RowType_RTF;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
