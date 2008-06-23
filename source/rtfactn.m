@@ -75,10 +75,23 @@ static SYM rgsymRtf[] = {
     {"facingp",  1,      fTrue,      kwdProp,    ipropFacingp},
     {"landscape",1,      fTrue,      kwdProp,    ipropLandscape},
     {"par",      0,      fFalse,     kwdChar,    0x0a},
+    
+    // JIMB BUG BUG ...
+    // Most of these need better mapping ...
+    {"emspace",  0,      fFalse,     kwdChar,    ' '},
+    {"enspace",  0,      fFalse,     kwdChar,    ' '},
+    {"~",        0,      fFalse,     kwdChar,    ' '},
+    {"lquote",   0,      fFalse,     kwdChar,    '\''},
+    {"rquote",   0,      fFalse,     kwdChar,    '\''},
+    {"-",        0,      fFalse,     kwdChar,    '-'},
+    {"_",        0,      fFalse,     kwdChar,    '-'},
+    {"emdash",   0,      fFalse,     kwdChar,    '-'},
+    {"endash",   0,      fFalse,     kwdChar,    '-'},
     {"pard",     0,      fFalse,     kwdChar,    0x0a},
-
     {"line",     0,      fFalse,     kwdChar,    0x0a},
     {"page",     0,      fFalse,     kwdChar,    0x0a},
+    
+    
     
     {"\0x0a",    0,      fFalse,     kwdChar,    0x0a},
     {"\0x0d",    0,      fFalse,     kwdChar,    0x0a},

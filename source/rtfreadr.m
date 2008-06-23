@@ -120,13 +120,13 @@ ecRtfParse(RTFDOC * fp)
                         {
                             if (ch < 'a' || ch > 'f')
                                 return ecInvalidHex;
-                            b += (char) ch - 'a';
+                            b += 0x0a + (char) ch - 'a';
                         }
                         else
                         {
                             if (ch < 'A' || ch > 'F')
                                 return ecInvalidHex;
-                            b += (char) ch - 'A';
+                            b += 0x0A + (char) ch - 'A';
                         }
                     }
                     cNibble--;
