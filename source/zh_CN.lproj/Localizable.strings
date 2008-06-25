@@ -188,7 +188,6 @@
 	<string>单词两端对齐</string>	
 	<key>Character Justified</key>
 	<string>字符两端对齐</string>
-  	
 	<key>Show Status Bar</key>
 	<string>显示状态栏</string>	
 	<key>Solid</key>
@@ -207,6 +206,47 @@
 	<string>第四编码</string>	
 	<key>Show Cover Art</key>
 	<string>显示封面</string>	
+
+
+
+	<key>Unable to load background image %@</key>
+	<string>无法装载背景图片 %@</string>   
+	<key>Cache All Files</key>
+	<string>缓存所有文件</string>  
+	<key>Delete Cache File</key>
+	<string>删除缓存文件</string>   
+	<key>Cache File Deleted!</key>
+	<string>缓存文件已删除！</string>   
+	<key>Do you also want to delete the original file</key>
+	<string>想要同时删除原始文件吗</string>   
+	<key>Delete Original File</key>
+	<string>删除原始文件</string>   
+	<key>Keep Original File</key>
+	<string>保留原始文件</string>   
+	<key>Font Zoom</key>
+	<string>字体缩放</string>	
+	<key>Background</key>
+	<string>背景图片</string>	
+	<key>Indent Paragraphs</key>
+	<string>段落缩进</string>	
+	<key>Original</key>
+	<string>保持原样</string>	
+	<key>None</key>
+	<string>无</string>	
+	<key>1 blank</key>
+	<string>缩进1个空格</string>	
+	<key>2 blanks</key>
+	<string>缩进2个空格</string>	
+	<key>3 blanks</key>
+	<string>缩进3个空格</string>	
+	<key>4 blanks</key>
+	<string>缩进4个空格</string>	
+	<key>5 blanks</key>
+	<string>缩进5个空格</string>	
+	<key>6 blanks</key>
+	<string>缩进6个空格</string>	
+
+
 
 </dict>
 </plist>
