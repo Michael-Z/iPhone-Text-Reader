@@ -169,7 +169,7 @@
 	<key>Enter your search text ...</key>
 	<string>Введите слово для поиска ...</string>	
 	<key>Search text not found ...</key>
-	<string>Search А вот и нету! ...</string>
+	<string>А вот и нету! ...</string>
 
 
 	<key>Strip Line Feeds</key>
@@ -208,6 +208,45 @@
   <string>4-я Кодировка</string>	
   <key>Show Cover Art</key>
   <string>Показать обложку</string>	
+
+
+
+  <key>Unable to load background image %@</key>
+  <string>Не могу загрузить фон %@</string>   
+  <key>Cache All Files</key>
+  <string>Сделать кеш всех файлов</string>  
+  <key>Delete Cache File</key>
+  <string>Удалить кеш файл</string>   
+  <key>Cache File Deleted!</key>
+  <string>Кеш файл удален!</string>   
+  <key>Do you also want to delete the original file</key>
+  <string>Хотите заодно удалить исходный файл?</string>   
+  <key>Delete Original File</key>
+  <string>Удалить исходный файл</string>   
+  <key>Keep Original File</key>
+  <string>Оставить исходный файл</string>   
+  <key>Font Zoom</key>
+  <string>Увеличение шрифта</string>   
+  <key>Background</key>
+  <string>Фон</string>   
+  <key>Indent Paragraphs</key>
+  <string>Отступы параграфа</string>   
+  <key>Original</key>
+  <string>Оригинал</string>   
+  <key>None</key>
+  <string>Пусто</string>   
+  <key>1 blank</key>
+  <string>1 пробел</string>   
+  <key>2 blanks</key>
+  <string>2 пробела</string>   
+  <key>3 blanks</key>
+  <string>3 пробела</string>   
+  <key>4 blanks</key>
+  <string>4 пробела</string>   
+  <key>5 blanks</key>
+  <string>5 пробелов</string>   
+  <key>6 blanks</key>
+  <string>6 пробелов</string>   
 
 
 
