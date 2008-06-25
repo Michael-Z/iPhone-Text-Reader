@@ -206,6 +206,43 @@
     <string>4. Kodierung</string>
     <key>Show Cover Art</key>
     <string>Buch-Cover zeigen</string>
+  <key>Unable to load background image %@</key>
+  <string>Kann Hintergrund-Bild %@ nicht laden</string>   
+  <key>Cache All Files</key>
+  <string>Alle Dateien cachen</string>  
+  <key>Delete Cache File</key>
+  <string>Cache-Speicher löschen</string>   
+  <key>Cache File Deleted!</key>
+  <string>Cache-Speicher gelöscht!</string>   
+  <key>Do you also want to delete the original file</key>
+  <string>Möchten Sie auch die Original-Datei löschen</string>   
+  <key>Delete Original File</key>
+  <string>Original-Datei löschen</string>   
+  <key>Keep Original File</key>
+  <string>Original-Datei behalten</string>   
+  <key>Font Zoom</key>
+  <string>Zeichen-Zoom</string>   
+  <key>Background</key>
+  <string>Hintergrund</string>   
+  <key>Indent Paragraphs</key>
+  <string>Absatz-Einrückung</string>   
+  <key>Original</key>
+  <string>Original</string>   
+  <key>None</key>
+  <string>Kein</string>   
+  <key>1 blank</key>
+  <string>1 Leerzeichen</string>   
+  <key>2 blanks</key>
+  <string>2 Leerzeichen</string>   
+  <key>3 blanks</key>
+  <string>3 Leerzeichen</string>   
+  <key>4 blanks</key>
+  <string>4 Leerzeichen</string>   
+  <key>5 blanks</key>
+  <string>5 Leerzeichen</string>   
+  <key>6 blanks</key>
+  <string>6 Leerzeichen</string>   
+
 
 
 </dict>
