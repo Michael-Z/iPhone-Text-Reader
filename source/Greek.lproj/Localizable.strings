@@ -4,12 +4,24 @@
 <dict>
 	<key>.dir_suffix</key>
 	<string>.</string>
+	<key>1 blank</key>
+	<string>1 κενό</string>
+	<key>2 blanks</key>
+	<string>2 κενά</string>
 	<key>2nd Encoding</key>
 	<string>2η Κωδικογράφηση</string>
+	<key>3 blanks</key>
+	<string>3 κενά</string>
 	<key>3rd Encoding</key>
 	<string>3η Κωδικογράφηση</string>
+	<key>4 blanks</key>
+	<string>4 κενά</string>
 	<key>4th Encoding</key>
 	<string>4η Κωδικογράφηση</string>
+	<key>5 blanks</key>
+	<string>5 κενά</string>
+	<key>6 blanks</key>
+	<string>6 κενά</string>
 	<key>About</key>
 	<string>Σχετικά</string>
 	<key>About %@</key>
@@ -26,10 +38,16 @@
 	<string>Alpha</string>
 	<key>Back</key>
 	<string>Πίσω</string>
+	<key>Background</key>
+	<string>Φόντο</string>
 	<key>Background Color</key>
 	<string>Χρώμα φόντου</string>
 	<key>Blue</key>
 	<string>Μπλε</string>
+	<key>Cache All Files</key>
+	<string>Φύλαξη των αρχείων</string>
+	<key>Cache File Deleted!</key>
+	<string>Διαγραφή φυλασσόμενου αρχείου!</string>
 	<key>Cancel</key>
 	<string>Ακύρωση</string>
 	<key>Character Justified</key>
@@ -38,8 +56,14 @@
 	<string>Διαυγής</string>
 	<key>Colors</key>
 	<string>Χρώματα</string>
+	<key>Delete Cache File</key>
+	<string>Διαγραφή φυλασσόμενου αρχείου</string>
+	<key>Delete Original File</key>
+	<string>Διαγραφή πρωτότυπου αρχείου</string>
 	<key>Display Settings</key>
 	<string>Ρυθμίσεις εμφάνισης</string>
+	<key>Do you also want to delete the original file</key>
+	<string>Επιθυμείτε και διαγραφή του πρωτότυπου αρχείου</string>
 	<key>Done</key>
 	<string>Εντάξει</string>
 	<key>Download Details</key>
@@ -82,6 +106,8 @@
 	<string>Γραμματοσειρά</string>
 	<key>Font Size</key>
 	<string>Μέγεθος γραμματοσειράς</string>
+	<key>Font Zoom</key>
+	<string>Εστίαση γραμματοσειράς</string>
 	<key>Format</key>
 	<string>Καθορισμός</string>
 	<key>Green</key>
@@ -90,16 +116,22 @@
 	<string>Εάν αφήσετε κενό το πεδίο του ονόματος</string>
 	<key>Ignore Single LF</key>
 	<string>Αγνόηση μονού LF</string>
+	<key>Indent Paragraphs</key>
+	<string>Εσοχή παραγράφων</string>
 	<key>Invalid URL %@</key>
 	<string>Άκυρη URL %@</string>
 	<key>Invert Screen</key>
 	<string>Αναστροφή χρωμάτων</string>
+	<key>Keep Original File</key>
+	<string>Διατήρηση προτώτυπου αρχείου</string>
 	<key>Line</key>
 	<string>Γραμμή</string>
 	<key>Loading ...</key>
 	<string>Φόρτωση ...</string>
 	<key>No Encoding Specified</key>
 	<string>Δεν καθορίστηκε</string>
+	<key>None</key>
+	<string>Χωρίς</string>
 	<key>OK</key>
 	<string>OK</string>
 	<key>Off</key>
@@ -108,6 +140,8 @@
 	<string>Άνοιγμα</string>
 	<key>Open Text File</key>
 	<string>Άνοιγμα αρχείου κειμένου</string>
+	<key>Original</key>
+	<string>Πρωτότυπο</string>
 	<key>Pad Margins</key>
 	<string>Περιθώρια σελίδας</string>
 	<key>Page</key>
@@ -172,6 +206,8 @@
 	<string>Αδυναμία δημιουργίας γραμματοσειράς %@</string>
 	<key>Unable to delete file</key>
 	<string>Αδυναμία διαγραφής αρχείου</string>
+	<key>Unable to load background image %@</key>
+	<string>Αδυναμία φόρτωσης εικόνας φόντου %@</string>
 	<key>Unable to load file from URL %@"</key>
 	<string>Αδυναμία φόρτωσης αρχείου από URL %@"</string>
 	<key>Unable to open file</key>
@@ -181,7 +217,7 @@
 	<key>Unable to save file as %@</key>
 	<string>Αδύνατη η αποθήκευση αρχείου ως %@</string>
 	<key>Version</key>
-	<string>έκδοση</string>
+	<string>Έκδοση</string>
 	<key>Visit Website</key>
 	<string>Επίσκεψη στην ιστοσελίδα</string>
 	<key>Volume Button Scroll</key>
@@ -189,7 +225,7 @@
 	<key>Word Justified</key>
 	<string>Πλήρης στοίχιση λέξεων</string>
 	<key>Written by Jim Beesley</key>
-	<string>γράφτηκε από τον Jim Beesley</string>
+	<string>Γράφτηκε από τον Jim Beesley</string>
 	<key>and the Name you want it saved as locally.</key>
 	<string>και το όνομα με το οποίο θέλετε να το αποθηκεύσετε στη συσκευή.</string>
 	<key>email: iphonetextreader@gmail.com</key>
