@@ -64,6 +64,8 @@
     searchBox           = nil;
     lastSearch          = nil;
     coverArt            = nil;
+    openname            = nil;
+    openpath            = nil;
     // bookmarkBtn         = nil;
     okDialog            = nil;
     currentView         = My_No_View;
@@ -292,6 +294,8 @@
 
     [defaults setInteger:[textView getInvertColors] forKey:TEXTREADER_INVERTCOLORS];
     
+    [defaults setInteger:[textView getCacheAll] forKey:TEXTREADER_CACHEALL];
+    
     [defaults setInteger:[self getOrientCode] forKey:TEXTREADER_OCODE];
     [defaults setInteger:[self orientationLocked] forKey:TEXTREADER_OLOCKED];
     
@@ -436,6 +440,8 @@
 
     // Restore general prefs
     [textView setInvertColors:[defaults integerForKey:TEXTREADER_INVERTCOLORS]];
+
+    [textView setCacheAll:[defaults integerForKey:TEXTREADER_CACHEALL]];
 
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
@@ -1617,10 +1623,22 @@
 } // thrdOpenFile
 
 
+- (void) rememberOpenFile:(NSString*)name path:(NSString*)path {
+
+    if (openname)
+        [openname release];
+    if (openpath)
+        [openpath release];
+
+    openname = [name copy];
+    openpath = [path copy];
+    
+} // rememberOpenFile
+
+
 // Close currently open file
 - (void) closeCurrentFile {
     
-   openname = nil;
    [textView closeCurrentFile];
    
    [self redraw];
@@ -1638,10 +1656,8 @@
     
     [self showWait];
     
-    // KLUDGE!!!!
     // Remember the open file and path
-    openname = name;
-    openpath = path;
+    [self rememberOpenFile:name path:path];
 
     // For some reason, we often don't get the "wait" when loading default file
     // Maybe because the mainwindow isn't quite up?!?!?
@@ -1737,11 +1753,22 @@
         
         if (!okDialog)
         {
+            // Remember the buttons we are using for this dialog
+            dlgButtons = buttons;
+            
+            // Display the requested dialog
             okDialog = [[UIAlertSheet alloc] initWithFrame:CGRectMake(0,rect.size.height-240,rect.size.width,240)];
             if (buttons & DialogButtons_OK)
                 [okDialog addButtonWithTitle:_T(@"OK")];
             if (buttons & DialogButtons_Website)
                 [okDialog addButtonWithTitle:_T(@"Visit Website")];
+                
+            if (buttons & DialogButtons_DeleteCache)
+            {            
+                [okDialog addButtonWithTitle:_T(@"Keep Original File")];
+                [okDialog addButtonWithTitle:_T(@"Delete Original File")];
+            }
+            
             [okDialog setTitle:title];
             [okDialog setBodyText:msg];
             [okDialog setDelegate:self];
@@ -1757,17 +1784,54 @@
 // Dismiss them without doing anything special
 - (void)alertSheet:(UIAlertSheet *)sheet buttonClicked:(int)button 
 {
+  // Button 1 is always OK - Do nothing ...
 
-  // Button 1 is OK - just dismiss dialog!
-  
-  // Button 2 is handle Website
+  // Button 2 varies ...  
   if (button == 2)
   {
-     NSURL *url = [NSURL URLWithString:TEXTREADER_HOMEPAGE];
-     [UIApp openURL:url];
+     // Remove the original file that had been cached if requested ...
+     if (dlgButtons == DialogButtons_DeleteCache /* && openname && openpath */)
+     {
+        NSString *fullpath = [openpath stringByAppendingPathComponent:openname];
+        
+        // ??? Also delete original file cover art image ???
+        
+        if (![[NSFileManager defaultManager] removeFileAtPath:fullpath handler:nil])
+        {
+            // Oops - unable to delete it for some reason ...
+            NSString *errorMsg = [NSString stringWithFormat:
+                                           @"%@ \"%@\" %@ \"%@\"%@\n%@",
+                                           _T(@"Unable to delete file"), 
+                                           openname,
+                                           _T(@"in directory"), 
+                                           openpath,
+                                           _T(@".dir_suffix"), // Just a "." in most languages ...
+                                           _T(@"Please make sure both the directory and file exist and have write permissions set.")];
+            
+            // Get rid of old dialog so we can show the new one
+            [self releaseDialog];
+            
+            [self showDialog:_T(@"Error deleting file")
+                         msg:errorMsg
+                      buttons:DialogButtons_OK];
+                      
+            return;
+        }
+        
+        if (dlgButtons & DialogButtons_Website)
+        {
+           // Button 2 is handle Website
+           NSURL *url = [NSURL URLWithString:TEXTREADER_HOMEPAGE];
+           [UIApp openURL:url];
+        }
+     }
   }
 
+  // Done with the dialog ...
   [self releaseDialog];
+    
+  // Clear the local temp file name ...
+  [self rememberOpenFile:nil path:nil];
 
 } // alertSheet
 

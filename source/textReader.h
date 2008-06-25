@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.0Beta5"
+#define TEXTREADER_VERSION          @"1.0Beta7"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -81,6 +81,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_SHOWCOVERART     @"showCoverArt"
 #define TEXTREADER_FONTZOOM         @"fontZoom"
 #define TEXTREADER_BKGIMAGE         @"bkgImage"
+#define TEXTREADER_CACHEALL         @"cacheAll"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -192,10 +193,11 @@ typedef enum _IgnoreLF {
 } IgnoreLF;
 
 typedef enum _DialogButtons {
-    DialogButtons_None      = 0x00,
-    DialogButtons_OK        = 0x01,
-    DialogButtons_Website   = 0x02,
-    DialogButtons_OKWebsite = 0x03
+    DialogButtons_None        = 0x00,
+    DialogButtons_OK          = 0x01,
+    DialogButtons_Website     = 0x02,
+    DialogButtons_OKWebsite   = 0x03,
+    DialogButtons_DeleteCache = 0x04
 } DialogButtons;
 
 
@@ -267,6 +269,7 @@ typedef enum _DialogButtons {
     UIAlertSheet            *okDialog;
 
     NSUserDefaults          *defaults;
+    DialogButtons            dlgButtons;
 
 } // @interface textReader : UIOrientingApplication
 
@@ -328,6 +331,8 @@ typedef enum _DialogButtons {
 
 - (void) scaleImage:(UIImageView*)image maxheight:(int)maxheight maxwidth:(int)maxwidth yOffset:(int)yOffset;
 - (NSString *) getCoverArt:(NSString *)fname path:(NSString*)path;
+
+- (void) rememberOpenFile:(NSString*)name path:(NSString*)path;
 
 @end  // textReader : UIOrientingApplication
 

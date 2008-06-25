@@ -152,7 +152,7 @@
             
             // Show all text files
             // Only show FB2, PDB and HTML files that do not have a cached text version
-            if (ftype == kTextFileTypeTXT || ftype == kTextFileTypeTRCache || 
+            if (ftype == kTextFileTypeTRCache || 
                 ![[NSFileManager defaultManager] fileExistsAtPath:[[path stringByAppendingPathComponent:file] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])         
             {
                 [fileList addObject:file];

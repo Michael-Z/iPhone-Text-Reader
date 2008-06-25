@@ -94,16 +94,18 @@ typedef struct symbol
 
 typedef struct _RTFDOC {
 
-        NSString        * src;
+        NSData          * src;
         int               pos;
-        int               ungetbuf[64];
+
+        unsigned char     ungetbuf[64];
         int               ungetbufL;
 
-        unichar           c[8096];
+        unsigned char     c[8096];
         int               cL;
 
         int               cch;
 
-        NSMutableString * dest;
+        // NSMutableString * dest;
+        NSMutableData   * dest;
 
 } RTFDOC;

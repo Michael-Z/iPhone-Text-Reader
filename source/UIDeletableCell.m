@@ -36,8 +36,6 @@
         if(![[NSFileManager defaultManager] removeFileAtPath:path handler:nil]) 
         {
             NSString *errorMsg = [NSString stringWithFormat:
-                                           //_T(@"Unable to delete file \"%@\" in directory \"%@\".\nPlease make sure both the directory and file exist and have write permissions set."), 
-                                           //fileName, [table getPath]];
                                            @"%@ \"%@\" %@ \"%@\"%@\n%@",
                                            _T(@"Unable to delete file"), 
                                            fileName,
@@ -51,6 +49,32 @@
         }
         else
         {
+          // If we just deleted a cache file, ask if we should delete the original
+          if ([trApp getFileType:fileName] == kTextFileTypeTRCache)
+          {
+              NSString * origfile = [fileName stringByDeletingPathExtension];
+           
+              path   = [[table getPath] stringByAppendingPathComponent:origfile];
+              dir    = false;
+              exists = [[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&dir];
+           
+              if (exists && !dir)
+              {
+                  // Save file name so we know what to delete 
+                  [trApp rememberOpenFile:origfile path:[table getPath]];
+
+                  // Display msg Cache File Deleted!\nDo you also want to delete the original file %@?
+                  NSString *errorMsg = [NSString stringWithFormat:
+                                                 @"%@\n%@ %@?",
+                                                 _T(@"Cache File Deleted!"), 
+                                                 _T(@"Do you also want to delete the original file"), 
+                                                 origfile];                                         
+                  [trApp showDialog:_T(@"Delete Cache File")
+                                msg:errorMsg
+                            buttons:DialogButtons_DeleteCache];
+              }
+          }
+        
           // We removed a file, so remove it's saved current position
           [[table getTextReader] removeDefaults:fileName];
           

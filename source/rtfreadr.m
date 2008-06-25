@@ -39,13 +39,20 @@ SAVE *psave;
 
 int rtfGetc(RTFDOC * rtfdoc)
 {
+    unsigned char ch = 0x00;
+    
     if (rtfdoc->ungetbufL > 0)
         return (int)rtfdoc->ungetbuf[--rtfdoc->ungetbufL];
     
     if (rtfdoc->pos >= [rtfdoc->src length])
         return EOF;
         
-    return (int)[rtfdoc->src characterAtIndex:rtfdoc->pos++];
+    NSRange range = {rtfdoc->pos, 1};
+    [rtfdoc->src getBytes:&ch range:range];
+    
+    rtfdoc->pos++;
+    
+    return (int)ch;
     
 } // rtfGetc 
 
@@ -55,7 +62,7 @@ int rtfUngetc(int ch, RTFDOC * rtfdoc)
     if (rtfdoc->ungetbufL >= sizeof(rtfdoc->ungetbuf)/sizeof(*rtfdoc->ungetbuf))
         return EOF;
     
-    rtfdoc->ungetbuf[rtfdoc->ungetbufL++] = ch;
+    rtfdoc->ungetbuf[rtfdoc->ungetbufL++] = (unsigned char)ch;
     
     return ch;
 } // rtfUngetc
@@ -317,7 +324,8 @@ ecPrintChar(int ch, RTFDOC *fp, bool flush)
     fp->c[fp->cL++] = ch;
     if (flush || fp->cL >= sizeof(fp->c)/sizeof(*fp->c))
     {
-        [fp->dest appendFormat:@"%.*S", fp->cL, fp->c];
+        // [fp->dest appendFormat:@"%.*S", fp->cL, fp->c];
+        [fp->dest appendBytes:&fp->c[0] length:fp->cL];
         fp->cL = 0;
     }
         

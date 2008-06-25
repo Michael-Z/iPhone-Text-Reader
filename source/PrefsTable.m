@@ -125,6 +125,7 @@ NSString  *TextAlignmentNames[6];
     TextAlignmentNames[5] = nil;
     
     invertScreen = nil;
+    cacheAll = nil;
     ignoreSingleLF = nil;
     padMargins = nil;
     indentParagraphsCell = nil;
@@ -151,11 +152,13 @@ NSString  *TextAlignmentNames[6];
         case(0):
             // Font
             // Font Size
+            // Font Zoom
             // Encoding
             // Encoding2
             // Encoding3
             // Encoding4
-            return 6; 
+            // cache all
+            return 8; 
 
         case(1):
             // Colors
@@ -179,8 +182,7 @@ NSString  *TextAlignmentNames[6];
             // Reverse Tap
             // Repeat Line
             // Smooth Scroll
-            // Font Zoom
-            return 4;
+            return 3;
         
         case(5):
             // Volume Scroll
@@ -299,7 +301,7 @@ NSString  *TextAlignmentNames[6];
             }               
             break;
 
-        case 3: // Encoding
+        case 4: // Encoding
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -312,7 +314,7 @@ NSString  *TextAlignmentNames[6];
 
 
 
-        case 4: // Encoding2
+        case 5: // Encoding2
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -322,7 +324,7 @@ NSString  *TextAlignmentNames[6];
                 [self addSubview:pickerView];       
             }               
             break;
-        case 5: // Encoding3
+        case 6: // Encoding3
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -332,7 +334,7 @@ NSString  *TextAlignmentNames[6];
                 [self addSubview:pickerView];       
             }               
             break;
-        case 6: // Encoding4
+        case 7: // Encoding4
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -342,17 +344,14 @@ NSString  *TextAlignmentNames[6];
                 [self addSubview:pickerView];       
             }               
             break;
-            
-            
-
-        case 8: // Colors
+        case 10: // Colors
             {   
                 [self killPicker];
                 [trApp showView:My_Color_View];
             }               
             break;
             
-        case 9: // Background
+        case 11: // Background
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -362,8 +361,8 @@ NSString  *TextAlignmentNames[6];
                 [self addSubview:pickerView];       
             }               
             break;
-       
-        case 13: // textAlignment
+
+        case 15: // textAlignment
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -374,7 +373,7 @@ NSString  *TextAlignmentNames[6];
             }               
             break;
             
-        case 14: // Indent Paragraphs
+        case 16: // Indent Paragraphs
             {   
                 pickerView = [[MyPickerView alloc] initWithFrame:rect];
                 [pickerView setDelegate: self];
@@ -448,6 +447,9 @@ NSString  *TextAlignmentNames[6];
     else if (switchid == fontZoom)
         [textView setFontZoom:[fontZoom value] ? 1 : 0];
 
+    else if (switchid == cacheAll)
+        [textView setCacheAll:[cacheAll value] ? 1 : 0];
+
 } // handleSwitch
 
 
@@ -480,28 +482,46 @@ NSString  *TextAlignmentNames[6];
                     fontSizeCell = cell;
                     break;
                 case (2):
+                    [ cell setTitle:_T(@"Font Zoom") ];
+                    fontZoom = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ fontZoom setValue: [textView getFontZoom] ? 1 : 0 ];
+                    [ fontZoom addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: fontZoom ];
+                    break;
+                case (3):
                     [ cell setTitle:_T(@"Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][0]] ];
                     [ cell setShowDisclosure:YES];
                     encodingCell = cell;
                     break;
-                case (3):
+                case (4):
                     [ cell setTitle:_T(@"2nd Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][1]] ];
                     [ cell setShowDisclosure:YES];
                     encoding2Cell = cell;
                     break;
-                case (4):
+                case (5):
                     [ cell setTitle:_T(@"3rd Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][2]] ];
                     [ cell setShowDisclosure:YES];
                     encoding3Cell = cell;
                     break;
-                case (5):
+                case (6):
                     [ cell setTitle:_T(@"4th Encoding") ];
                     [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][3]] ];
                     [ cell setShowDisclosure:YES];
                     encoding4Cell = cell;
+                    break;
+                case (7):
+                    [ cell setTitle:_T(@"Cache All Files") ];
+                    cacheAll = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ cacheAll setValue: [textView getCacheAll] ? 1 : 0 ];
+                    [ cacheAll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: cacheAll ];
                     break;
            }
            break;
@@ -615,15 +635,6 @@ NSString  *TextAlignmentNames[6];
                     [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: swipeOK ];
-                    break;
-                case (3):
-                    [ cell setTitle:_T(@"Font Zoom") ];
-                    fontZoom = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ fontZoom setValue: [textView getFontZoom] ? 1 : 0 ];
-                    [ fontZoom addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: fontZoom ];
                     break;
             }
             break;

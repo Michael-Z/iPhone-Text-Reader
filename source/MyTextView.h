@@ -141,6 +141,7 @@ typedef struct _TextLayout {
     int               fontSize;
 
     bool              invertColors;
+    bool              cacheAll;
 
     IgnoreLF          ignoreSingleLF;
     bool              padMargins;
@@ -181,6 +182,8 @@ typedef struct _TextLayout {
 - (id)   init;
 - (id)   initWithFrame:(CGRect)rect;
 
+- (void) setCacheAll:(bool)ca;
+- (bool) getCacheAll;
 - (void) setInvertColors:(bool)newInvertColors;
 - (bool) getInvertColors;
 - (void) setIgnoreSingleLF:(IgnoreLF)ignore;

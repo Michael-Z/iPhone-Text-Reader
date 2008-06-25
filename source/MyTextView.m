@@ -64,6 +64,7 @@ typedef unsigned int NSUInteger;
     
     screenLock = [[NSLock alloc] init];
 
+    cacheAll       = false;
     invertColors   = false;
     ignoreSingleLF = IgnoreLF_Off;
     padMargins     = false;
@@ -260,12 +261,17 @@ typedef unsigned int NSUInteger;
     [self setNeedsDisplay];
 } // setInvertColors
 
+- (void) setCacheAll:(bool)ca {
+    cacheAll = ca;
+} // setCacheAll
+
 
 - (void) setRepeatLine:(bool)repeat {
     repeatLine = repeat;
 } // setRepeastLine
 
 
+- (bool) getCacheAll { return cacheAll; }
 - (bool) getInvertColors { return invertColors; }
 - (IgnoreLF) getIgnoreSingleLF { return ignoreSingleLF; }
 - (bool) getPadMargins { return padMargins; }
@@ -364,9 +370,9 @@ typedef unsigned int NSUInteger;
        txtcolors.text_green = 0;
        txtcolors.text_blue  = 0;
        
-       txtcolors.bkg_red   = 1; // white
-       txtcolors.bkg_green = 1;
-       txtcolors.bkg_blue  = 1;
+       txtcolors.bkg_red    = 1; // white
+       txtcolors.bkg_green  = 1;
+       txtcolors.bkg_blue   = 1;
     }
     else
     {
@@ -1500,25 +1506,25 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
     int          lineHeight = [self getLineHeight]; 
     CGRect       lineRect;
     
-    // No text means nothing to do ...
-    if (!text || ![text length] || !trApp || !gsFont)
-    {
-       // Blank screen ...
-       lineRect = CGRectMake(0, 0, viewRect.size.width, viewRect.size.height+64);
-       [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
-        
-       return [super drawRect:rect];
-    }
-       
-    [screenLock lock];
-    
-
 // JIMB BUG BUG - Figure out how to only redraw the invalid portion !!!
 
     // Figure out where we draw the text
     // This allows us to scroll partial lines
         
     int yStart = rect.origin.y - yDelta;
+
+    // No text means nothing to do ...
+    if (!text || ![text length] || !trApp || !gsFont)
+    {
+       // Blank screen ...
+       lineRect = CGRectMake(0, yStart, viewRect.size.width, viewRect.size.height+lineHeight*2);
+       
+       [self fillBkgGroundRect:context rect:lineRect yOffset:rect.origin.y];
+        
+       return [super drawRect:rect];
+    }
+          
+    [screenLock lock];
     
     // Always clear the first line ...
     lineRect = CGRectMake(0, rect.origin.y, viewRect.size.width, lineHeight);
@@ -2848,7 +2854,14 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 
 
 - (void) saveCache:(NSString*)newText {
-    // Save the HTML as a text file!
+
+    // Save the modified text ad Unicode so we don't have to reconvert, and don't have
+    // to worry about encoding mismatches
+    
+    // Nothing to do if it is already a cache file ...
+    if ([trApp getFileType:fileName] == kTextFileTypeTRCache)
+        return;
+    
     // This keeps us from having to go through this again
     // NOTE: Some times, directory permissions will make this impossible
     //       Don't pop a dialog since that will annoy people even more
@@ -2968,49 +2981,10 @@ int hexDigit(NSString * src, int pos)
     fileName = nil;
     
     [self setText:nil];
-    
+        
     [self setNeedsDisplay];
     
 } // closeCurrentFile
-
-
-// Strips out RTF tags and produces ugly text for reading enjoyment ...
-// NOTE: RTF definitions from http://www.biblioscape.com/rtf15_spec.htm
-- (bool) stripRTF:(NSMutableString  *)newText type:(TextFileType)ftype {
-    
-    NSMutableString     * src    = newText;
-    
-    // Create new mutable string for output ...
-    newText = [[[NSMutableString alloc] initWithCapacity:[src length]] retain];
-
-    RTFDOC rtfdoc = {0};
-    
-    rtfdoc.src  = src;
-    rtfdoc.dest = newText;
-    
-    if (ecRtfParse(&rtfdoc) != ecOK)
-    {
-        [newText release];
-        
-        // src will be released by the caller on error ...
-                            
-        [self closeCurrentFile];
-        
-        return false;
-    }
-
-    // Free the source newText ...
-    [src release];
- 
-    // Replace the open text with this new text and refresh the screen
-    [self setText:newText];
-    
-    // Cache this file to speed up future opens
-    [self saveCache:newText];
-    
-    return true;
-    
-} // stripRTF
 
 
 // Strips out PML tags and produces ugly text for reading enjoyment ...
@@ -3178,7 +3152,63 @@ int hexDigit(NSString * src, int pos)
 // Thread specific code ...
 // ---------------------------------------------
 
+- (NSMutableString *)dataToString:(NSData *)data {
 
+    NSMutableString * newText = nil;
+    
+    int i;        
+    for (i = 0; i < sizeof(encodings)/sizeof(*encodings); i++)
+    {
+        NSStringEncoding encoding = encodings[i];
+
+        if (encoding)
+        {
+            // We use our own code for gb2312
+            if (encoding == TEXTREADER_GB2312)
+                newText = convertGB2312Data(data);
+            else
+                newText = [[[NSMutableString alloc] initWithData:data encoding:encoding] retain];
+            if (newText)
+               break;
+        }
+        
+    } // for each encoding ...
+    
+    return newText;
+    
+} // dataToString
+
+
+// Load an RTF doc as data, and then convert it to a string
+- (NSMutableString*)openRTFFile:(NSString*)fullpath type:(TextFileType*)ftype {
+
+    NSMutableString * newText = nil;
+
+    RTFDOC rtfdoc = {0};
+
+    rtfdoc.src  = [[NSData dataWithContentsOfMappedFile:fullpath] retain];
+    rtfdoc.dest = [[NSMutableData alloc] initWithCapacity:4096];
+    
+    if (rtfdoc.src && rtfdoc.dest)
+    {
+        if (ecRtfParse(&rtfdoc) == ecOK)
+            newText = [self dataToString:rtfdoc.dest];
+    }
+
+    if (rtfdoc.src)
+        [rtfdoc.src release];
+        
+    if (rtfdoc.dest)
+        [rtfdoc.dest release];
+        
+    *ftype = kTextFileTypeRTF;
+    
+    return newText;   
+
+} // openRTFFile
+
+
+// Load a PDB doc as data and then convert it to a string
 - (NSMutableString*) openPDBFile:(NSString*)fullpath type:(TextFileType*)ftype {
 
     NSMutableString * newText = nil;
@@ -3330,10 +3360,14 @@ int hexDigit(NSString * src, int pos)
                 newText = [self openPDBFile:fullpath type:&ftype];
                 break;
                 
+            case kTextFileTypeRTF:
+                // Open an RTF file
+                newText = [self openRTFFile:fullpath type:&ftype];
+                break;
+                
             case kTextFileTypeTXT:
             case kTextFileTypeHTML:
             case kTextFileTypeFB2:
-            case kTextFileTypeRTF:
             default:
                 // everything else gets loaded as a plain old text file
                 newText = [self openTextFile:fullpath type:&ftype];
@@ -3382,29 +3416,20 @@ int hexDigit(NSString * src, int pos)
                 return true;
             }
 
-            // Strip RTF in a similar fashion to what we do with HTML ...
-            if (ftype == kTextFileTypeRTF)
-            {
-                if ([self stripRTF:newText type:ftype])
-                    // All done - file will be reopened when stripRTF finishes
-                    return true;
-                else
-                {
-                    // Clean up the invalid file ...
-                    [newText release];
-                    newText = nil;
-                }
-            }
-            else
-            {
-                // Otherwise, no massaging of the text is needed ...
-                // Save the new text for view
-                [self setText:newText];
+            // Otherwise, no massaging of the text is needed ...
+            // Save the new text for view
+            [self setText:newText];
 
-                return true;
-            }
-        }
-    }
+            // Always Cache RTF text to keep us from having to parse it again ...
+            // Cache all files if they told us to ...
+            if (ftype == kTextFileTypeRTF || cacheAll)
+                [self saveCache:newText];
+                
+            return true;
+
+        } // if newText
+        
+    } // if name
 
     // We had an error if we got here ...
     NSString *errorMsg = [NSString stringWithFormat:
@@ -3436,6 +3461,10 @@ int hexDigit(NSString * src, int pos)
 - (bool)setEncodings:(NSStringEncoding*)enc {
     
     memcpy(encodings, enc, sizeof(encodings));
+    
+    // Default initial encoding ...
+    if (!encodings[0])
+        encodings[0] = NSMacOSRomanStringEncoding;
     
     return true;
     
