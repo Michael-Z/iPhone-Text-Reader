@@ -143,7 +143,7 @@
     <key>Cancel</key>
     <string>Annuler</string>
     <key>Download File via URL</key>
-    <string>Chargement du fichier</string>
+    <string>Chargement d'un fichier</string>
     <key>Settings</key>
     <string>Paramètres</string>
     <key>Back</key>
@@ -174,13 +174,13 @@
 
 
 	<key>Strip Line Feeds</key>
-	<string>Ignore les retours</string>
+	<string>Ignorer les retours à la ligne</string>
 	<key>Single</key>
 	<string>Simple</string>
 	<key>Format</key>
 	<string>Format</string>
 	<key>Align Text</key>
-	<string>Aligne le texte</string>	
+	<string>Aligner le texte</string>	
 	<key>Align Left</key>
 	<string>Aligne à gauche</string>	
 	<key>Align Center</key>
@@ -192,7 +192,7 @@
 	<key>Character Justified</key>
 	<string>Justifié (caractère)</string>	
 	<key>Show Status Bar</key>
-	<string>Montre la barre d'état</string>	
+	<string>Montrer la barre d'état</string>	
 	<key>Solid</key>
 	<string>Solide</string>	
 	<key>Clear</key>
@@ -209,6 +209,45 @@
   <string>4eme Encodage</string>	
   <key>Show Cover Art</key>
   <string>Montrer la couverture</string>	
+
+
+
+  <key>Unable to load background image %@</key>
+  <string>Impossible de charger l'image de fond %@</string>   
+  <key>Cache All Files</key>
+  <string>Cacher Tous les Fichiers</string>  
+  <key>Delete Cache File</key>
+  <string>Suppr. les fichiers cachés</string>   
+  <key>Cache File Deleted!</key>
+  <string>Fichiers cachés supprimés!</string>   
+  <key>Do you also want to delete the original file</key>
+  <string>Voulez-vous aussi supprimer le fichier d'origine</string>   
+  <key>Delete Original File</key>
+  <string>Suppr. le fichier original</string>   
+  <key>Keep Original File</key>
+  <string>Garger le fichier original</string>   
+  <key>Font Zoom</key>
+  <string>Zoom de Police</string>   
+  <key>Background</key>
+  <string>Fond</string>   
+  <key>Indent Paragraphs</key>
+  <string>Retrait des Paragraphes</string>   
+  <key>Original</key>
+  <string>Inchangé</string>   
+  <key>None</key>
+  <string>Aucun</string>   
+  <key>1 blank</key>
+  <string>1 espace</string>   
+  <key>2 blanks</key>
+  <string>2 espace</string>   
+  <key>3 blanks</key>
+  <string>3 espace</string>   
+  <key>4 blanks</key>
+  <string>4 espace</string>   
+  <key>5 blanks</key>
+  <string>5 espace</string>   
+  <key>6 blanks</key>
+  <string>6 espace</string>   
 
 
 
