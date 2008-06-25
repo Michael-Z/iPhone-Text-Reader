@@ -214,7 +214,7 @@
   <key>Unable to load background image %@</key>
   <string>Не могу загрузить фон %@</string>   
   <key>Cache All Files</key>
-  <string>Сделать кеш всех файлов</string>  
+  <string>Кэш Все файлы</string>  
   <key>Delete Cache File</key>
   <string>Удалить кеш файл</string>   
   <key>Cache File Deleted!</key>
