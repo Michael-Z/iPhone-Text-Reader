@@ -1871,9 +1871,37 @@ NSUInteger getTag(NSString * str, NSUInteger start, NSUInteger end, char * upTag
 } // findTag
 
 
-// JIMB BUG BUG - rewrite this so it is sorted table driven!
-// There are way more than I planned to support ...
+static const unichar cvt1252[] = {8218, 402, 8222, 8230, 8224, 8225,
+                                  0, 0, 352, 8249, 338, 0, 0, 0, 0,
+                                  8216, 8217, 8220, 8221, 8226, 8211, 8212,
+                                  0, 8482, 353, 250, 339, 0, 0, 376};
 
+// Handle explicit references to bytes in CP1252
+static unichar fix1252Char(unichar ch) {
+
+    // These CP1252 characters do not map directly to UTF16 
+    // so we have to translate them ...
+    if (ch >= 130 && ch <= 159)
+        ch = cvt1252[ch-130];
+
+    return ch;
+    
+} // fix1252Char
+
+
+static int hexDigit(NSString * src, int pos)
+{
+    unichar c = [src characterAtIndex:pos];
+    
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'A' && c <= 'F')
+        return c - 'A';
+    else if (c >= 'a' && c <= 'f')
+        return c - 'a';
+    else
+        return 0;
+} // hexDigit
 
 
 // Replace some entities with characters more likely to be transcodable
@@ -1905,6 +1933,10 @@ static unichar patchEntity(unichar entity)
     return entity;
     
 } // patchEntity
+
+
+// JIMB BUG BUG - rewrite this so it is sorted table driven!
+// There are way more than I planned to support ...
 
 
 // Adds the specified block of text from src to dest
@@ -1975,20 +2007,41 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest)
                 // Handle &#????; entities
                 if ([dest characterAtIndex:added.location+1] == '#')
                 {
-                    // Convert the number to a unicode character - no validation!
                     int i;
-                    for (i = 2; i < added.length; i++)
+
+                    // Convert the number to a unicode character - no validation!
+
+                    // Hex or decimal?!?!?
+                    c = [dest characterAtIndex:added.location+2];
+                    if (c == 'x' || c == 'X')
                     {
-                        c = [dest characterAtIndex:added.location+i];
-                        if (c == ';')
-                            break;
-                            
-                        if (c < '0' || c > '9')
-                            break;
-                            
-                        entity = entity * 10 + c - '0';
+                        for (i = 3; i < added.length; i++)
+                        {
+                            c = [dest characterAtIndex:added.location+i];
+                            if (c == ';')
+                                break;
+
+                            entity = entity * 0x10 + hexDigit(dest, added.location+i);
+                        }                        
                     }
-                    // Whatever it is, it is ...                    
+                    else
+                    {
+                        for (i = 2; i < added.length; i++)
+                        {
+                            c = [dest characterAtIndex:added.location+i];
+                            if (c == ';')
+                                break;
+
+                            if (c < '0' || c > '9')
+                                break;
+
+                            entity = entity * 10 + c - '0';
+                        }
+                   }
+                   
+                   // This doesn't really seem right, but I've seen files that seem to 
+                   // want #151 mapped to a '-', so force it and hope for the best ...
+                   entity = fix1252Char(entity);
                 }
                 else
                 {
@@ -2749,6 +2802,12 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
                 [dest appendString:@"\n\n"];
             break;
 
+        case 'L': case 'l':
+            // <LI
+            if (getTag(src, rtag.location, 2+rtag.location+1, "I>", "i>"))
+                [dest appendFormat:@" %C ", (unichar)0x2022]; // bullet character
+            break;
+            
         case 'P': case 'p':
             // <p
             if (getTag(src, rtag.location, 1+rtag.location+1, ">", ">") ||
@@ -2802,6 +2861,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 //                          getTag(src, rtag.location+1, 4+rtag.location+1, "DIV ", "div "))
 //                          [dest appendString:@"\n"];
 //                      break;
+ 
+                case 'L': case 'l':
+                    // </LI
+                    if (getTag(src, rtag.location+2, 3+rtag.location+1, "I>", "i>"))
+                        [dest appendString:@"\n"]; // end this list item entry
  
                 case 'H': case 'h':
                     // </H1
@@ -2959,21 +3023,6 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 } // stripHTML
 
 
-int hexDigit(NSString * src, int pos)
-{
-    unichar c = [src characterAtIndex:pos];
-    
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    else if (c >= 'A' && c <= 'F')
-        return c - 'A';
-    else if (c >= 'a' && c <= 'f')
-        return c - 'a';
-    else
-        return 0;
-} // hexDigit
-
-
 - (void) closeCurrentFile {
 
     if (fileName)
@@ -3044,19 +3093,13 @@ int hexDigit(NSString * src, int pos)
                 case 'a': // single - \aXXX - insert decimal character XXX (in WIN1252 CP)
                     if (pos+4 < [src length])
                     {
-                        static unichar cvt1252[] = {8218, 402, 8222, 8230, 8224, 8225,
-                                                    0, 0, 352, 8249, 338, 0, 0, 0, 0,
-                                                    8216, 8217, 8220, 8221, 8226, 8211, 8212,
-                                                    0, 8482, 353, 250, 339, 0, 0, 376};
                         unichar x = ([src characterAtIndex:pos+3]-'0')*100  +
                                     ([src characterAtIndex:pos+4]-'0')*10   +
                                     ([src characterAtIndex:pos+5]-'0');
                                     
-                        // Special case 130 -> 159 which do not line up nicely
-                        if (x >= 130 && x <= 159)
-                            x = cvt1252[x-130];
-                            
-                        c[cL++] = x;
+                        // This specifies a CP1252 char rather than UTF16, so 
+                        // handle the mapping if needed ...
+                        c[cL++] = fix1252Char(x);
                     }
                     break;
 

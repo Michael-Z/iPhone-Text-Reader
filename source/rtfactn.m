@@ -76,6 +76,8 @@ static SYM rgsymRtf[] = {
     {"landscape",1,      fTrue,      kwdProp,    ipropLandscape},
     {"par",      0,      fFalse,     kwdChar,    0x0a},
     
+    
+    
     // JIMB BUG BUG ...
     // Most of these need better mapping ...
     {"emspace",  0,      fFalse,     kwdChar,    ' '},
@@ -87,11 +89,12 @@ static SYM rgsymRtf[] = {
     {"_",        0,      fFalse,     kwdChar,    '-'},
     {"emdash",   0,      fFalse,     kwdChar,    '-'},
     {"endash",   0,      fFalse,     kwdChar,    '-'},
-    {"pard",     0,      fFalse,     kwdChar,    0x0a},
     {"line",     0,      fFalse,     kwdChar,    0x0a},
     {"page",     0,      fFalse,     kwdChar,    0x0a},
-    
-    
+    {"pagebb",   0,      fFalse,     kwdChar,    0x0a},
+    {"outlinelevel",  0, fFalse,     kwdChar,    0x0a},
+
+
     
     {"\0x0a",    0,      fFalse,     kwdChar,    0x0a},
     {"\0x0d",    0,      fFalse,     kwdChar,    0x0a},
@@ -128,7 +131,7 @@ static SYM rgsymRtf[] = {
     {"private1", 0,      fFalse,     kwdDest,    idestSkip},
     {"revtim",   0,      fFalse,     kwdDest,    idestSkip},
     {"rxe",      0,      fFalse,     kwdDest,    idestSkip},
-    {"stylesheet",   0,      fFalse,     kwdDest,    idestSkip},
+    {"stylesheet",   0,  fFalse,     kwdDest,    idestSkip},
     {"subject",  0,      fFalse,     kwdDest,    idestSkip},
     {"tc",       0,      fFalse,     kwdDest,    idestSkip},
     {"title",    0,      fFalse,     kwdDest,    idestSkip},
