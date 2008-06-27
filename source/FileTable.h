@@ -35,6 +35,11 @@
 #import <UIKit/UIImage.h>
 #import <GraphicsServices/GraphicsServices.h>
 
+
+// This should be somewhere else ...
+int extract_chm(char * chmfile, char * outfile);
+
+
 @class textReader;
 
 @interface FileTable : UITable

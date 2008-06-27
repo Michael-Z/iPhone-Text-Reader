@@ -3603,11 +3603,17 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 } // mouseDragged
 
 
+- (void) endDragging {
+    // Clear the flag so we know dragging is finished
+    isDrag = false;   
+} // endDragging
+
+
 // Keep current page up to date
 - (void) scrollerDidEndDragging: (id) id  willSmoothScroll: (BOOL) scr
 {
-    // Clear the flag so we know dragging is finished
-    isDrag = false;   
+    [self endDragging];
+    
 } // scrollerDidEndDragging
 
 

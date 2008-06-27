@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.0"
+#define TEXTREADER_VERSION          @"1.1Beta1"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -82,6 +82,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_FONTZOOM         @"fontZoom"
 #define TEXTREADER_BKGIMAGE         @"bkgImage"
 #define TEXTREADER_CACHEALL         @"cacheAll"
+#define TEXTREADER_FILESCROLL       @"fileScroll"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -152,7 +153,9 @@ typedef enum _TextFileType {
     kTextFileTypeFB2     = 4,
     kTextFileTypeTRCache = 5,
     kTextFileTypePML     = 6,
-    kTextFileTypeRTF     = 7
+    kTextFileTypeRTF     = 7,
+    kTextFileTypeCHM     = 8,
+    kTextFileTypeZIP     = 9
 } TextFileType;
 
 typedef enum _MyViewName {
@@ -248,6 +251,7 @@ typedef enum _DialogButtons {
     VolScroll                volScroll;
     ShowStatus               showStatus;
     bool                     showCoverArt;
+    bool                     fileScroll;
 
 
     // Initial volume - we'll try to restore this level if possible
@@ -299,6 +303,9 @@ typedef enum _DialogButtons {
 - (void) setShowCoverArt:(bool)show;
 - (bool) getShowCoverArt;
 
+- (void) setFileScroll:(bool)fs;
+- (bool) getFileScroll;
+
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
 
@@ -333,6 +340,8 @@ typedef enum _DialogButtons {
 - (NSString *) getCoverArt:(NSString *)fname path:(NSString*)path;
 
 - (void) rememberOpenFile:(NSString*)name path:(NSString*)path;
+
+- (bool) isVisibleFile:(NSString*)file path:(NSString*)path;
 
 @end  // textReader : UIOrientingApplication
 

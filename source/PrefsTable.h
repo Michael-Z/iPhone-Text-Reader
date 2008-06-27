@@ -117,6 +117,7 @@ typedef enum _PickerType {
     UISwitchControl    *showCoverArt;
     UISwitchControl    *fontZoom;
     UISwitchControl    *cacheAll;
+    UISwitchControl    *fileScroll;
 
     textReader         *trApp;
     MyTextView         *textView;

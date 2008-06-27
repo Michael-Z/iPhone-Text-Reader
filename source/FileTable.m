@@ -143,24 +143,15 @@
     for (i = 0; i < [contents count]; i++)
     {
         NSString * file = [contents  objectAtIndex:i];
-        BOOL isDir = false;
-        TextFileType ftype = [trApp getFileType:file];
 
-        if (ftype &&
-            [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:file] isDirectory:&isDir] && 
-            !isDir) {
-            
-            // Show all text files
-            // Only show FB2, PDB and HTML files that do not have a cached text version
-            if (ftype == kTextFileTypeTRCache || 
-                ![[NSFileManager defaultManager] fileExistsAtPath:[[path stringByAppendingPathComponent:file] stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])         
-            {
-                [fileList addObject:file];
-            
-                // Is this the currently open book?
-                if (openFile && (highlight < 0) && [openFile isEqualToString:file])
-                    highlight = [fileList count];
-            }
+        // Only add the file if we can open it ...
+        if ([trApp isVisibleFile:file path:path])
+        {
+            [fileList addObject:file];
+
+            // Is this the currently open book?
+            if (openFile && (highlight < 0) && [openFile isEqualToString:file])
+                highlight = [fileList count];
         }
     }
 
@@ -193,10 +184,12 @@ typedef enum _RowType {
     RowType_HTML     = 3,
     RowType_FB2      = 4,
     RowType_RTF      = 5,
-    RowType_TRCache  = 6,
-    RowType_Download = 7,
-    RowType_Parent   = 8,
-    RowType_Folder   = 9 
+    RowType_CHM      = 6,
+    RowType_ZIP      = 7,
+    RowType_TRCache  = 8,
+    RowType_Download = 9,
+    RowType_Parent   = 10,
+    RowType_Folder   = 11 
 } RowType;
 
 
@@ -214,6 +207,8 @@ typedef enum _RowType {
         case RowType_HTML:         
         case RowType_FB2:          
         case RowType_RTF:          
+        case RowType_CHM:          
+        case RowType_ZIP:          
         case RowType_TRCache:      
         case RowType_Unknown:      
             // These will be taken care of below
@@ -248,6 +243,12 @@ typedef enum _RowType {
                 break;
             case RowType_PDB:          
                 iname = @"pdb.png";
+                break;
+            case RowType_CHM:          
+                iname = @"chm.png";
+                break;
+            case RowType_ZIP:          
+                iname = @"zip.png";
                 break;
             case RowType_HTML:         
                 iname = @"html.png";
@@ -323,6 +324,15 @@ typedef enum _RowType {
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
         
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
+        {
+            rowType = RowType_TRCache;
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+
         else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && isDir)
         {
             rowType = RowType_Folder;
@@ -341,6 +351,24 @@ typedef enum _RowType {
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
         {
             rowType = RowType_PDB;
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeCHM)
+        {
+            rowType = RowType_CHM;
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeZIP)
+        {
+            rowType = RowType_ZIP;
             [ cell setTitle: [ [ fileList objectAtIndex: row ]
                                stringByDeletingPathExtension ]];
             [ cell setShowDisclosure: YES ];
@@ -373,16 +401,7 @@ typedef enum _RowType {
             [ cell setShowDisclosure: YES ];
             [ cell setDisclosureStyle: 3 ];
         }
-        
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
-        {
-            rowType = RowType_TRCache;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-        
+                
         // Specify the proper image for this row
         [self setRowImage:row cell:cell type:rowType];
         
@@ -394,6 +413,8 @@ typedef enum _RowType {
 
 - (int)swipe:(int)type withEvent:(struct __GSEvent *)event;
 {
+    struct CGRect FSrect = [trApp getOrientedViewRect];
+
     CGPoint point= GSEventGetLocationInWindow(event);
     CGPoint offset = _startOffset;
 
@@ -406,10 +427,18 @@ typedef enum _RowType {
     
     BOOL isDir = true;
     
-    if (row != 0 && // Download
+    // We display the delete notification:
+    //  If the starting point of the swipe is on the right 1/3 of the screen ...
+    //  If this is NOT ".." up directory *and*
+    //  If this file exists *and*
+    //  If this is a cache file *or* not a directory
+    //  (caches of CHM and ZIP files are actual directories)
+    // Remember, we *can* delete directories if they are a trCache!
+    if (point.x > FSrect.origin.x + FSrect.size.width * 2 / 3 &&
+        row != 0 && // Download
         [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
         [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
-        !isDir)// directory
+        ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache || !isDir))
     {
         UIDeletableCell *cell = [self visibleCellForRow:row column:0];
 
@@ -434,10 +463,11 @@ typedef enum _RowType {
 {
     BOOL isDir = true;
     
+    // Remember, we *can* delete directories if they are a trCache!
     if (row != 0 && // Download
         [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
         [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
-        !isDir)// directory
+        true/*([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache || !isDir)*/)// directory
     {
         //[ fileList removeObjectAtIndex: row ]; // now done in delete cell
         [ super _willDeleteRow:row forTableCell:cell viaEdge:edge animateOthers:animate ];
@@ -448,7 +478,110 @@ typedef enum _RowType {
 } // _willDeleteRow
 
 
+
+// ------------------------------
+// Begin ZIP Wrapper
+// ------------------------------
+// Called from the thread wrapper for extracting a ZIP file ...
+- (void) extractZIP {
+
+    NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
+    NSString * infile  = [path stringByAppendingPathComponent:fileName];
+    NSString * outdir  = [infile stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
+    BOOL       isDir   = true;
+
+    // Build the unzip command ...
+    NSString * unzip = [NSString stringWithFormat:@"/usr/bin/unzip -o \"%@\" -d \"%@\"",
+                                 infile, outdir];
+
+    // Execute the unzip command ...
+    system([unzip UTF8String]);
+    
+    // If the dir exists, hop into it, otherwise assume disaster ...
+    if (![[NSFileManager defaultManager] fileExistsAtPath:outdir isDirectory:&isDir] || !isDir)
+    {
+        NSString *errorMsg = [NSString stringWithFormat:_T(@"Unable to unzip file %@"), infile];
+        [trApp showDialog:_T(@"Error Caching ZIP File")
+                      msg:errorMsg
+                  buttons:DialogButtons_OK];
+    }
+    else
+    {
+        // Drop into the new directory ...
+        [trApp showFileTable:outdir];
+    }
+        
+    // Dismiss the wait spinner       
+    [trApp hideWait];
+    [self setEnabled:YES];
+    
+} // extractZIP
+
+
+// We use the thread so we can pop the wait spinner, but then
+// we need to do the actual work on the main thread so we
+// don't mess up the Table ... sheesh ...
+- (void) thrdExtractZIP:(id)ignored 
+{   
+    [self performSelectorOnMainThread:@selector(extractZIP) 
+                            withObject:nil waitUntilDone:YES];
+} // thrdExtractZIP
+// ------------------------------
+// End ZIP Wrapper
+// ------------------------------
+
+
+
+
+// ------------------------------
+// Begin CHM Wrapper
+// ------------------------------
+// Called from the thread wrapper for extracting a ZIP file ...
+- (void) extractCHM {
+
+    NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
+    NSString * infile  = [path stringByAppendingPathComponent:fileName];
+    NSString * outdir  = [infile stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
+    BOOL       isDir   = true;
+
+    if (extract_chm((char*)[infile UTF8String], (char*)[outdir UTF8String]) ||
+        ![[NSFileManager defaultManager] fileExistsAtPath:outdir isDirectory:&isDir] || !isDir)
+    {
+        NSString *errorMsg = [NSString stringWithFormat:_T(@"Unable to explode CHM file %@"), infile];
+        [trApp showDialog:_T(@"Error Caching CHM File")
+                      msg:errorMsg
+                  buttons:DialogButtons_OK];
+    }
+    else
+    {
+        // Drop into the new directory ...
+        [trApp showFileTable:outdir];
+    }
+        
+    // Dismiss the wait spinner       
+    [trApp hideWait];
+    [self setEnabled:YES];
+    
+} // extractCHM
+
+
+// We use the thread so we can pop the wait spinner, but then
+// we need to do the actual work on the main thread so we
+// don't mess up the Table ... sheesh ...
+- (void) thrdExtractCHM:(id)ignored 
+{   
+    [self performSelectorOnMainThread:@selector(extractCHM) 
+                            withObject:nil waitUntilDone:YES];
+} // thrdExtractCHM
+// ------------------------------
+// End CHM Wrapper
+// ------------------------------
+
+
+
+
 - (void)tableRowSelected:(NSNotification *)notification {
+
     NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
     BOOL isDir = true;
 
@@ -465,9 +598,27 @@ typedef enum _RowType {
              ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
               isDir)) // directory
     {
-        // [self setPath:[path stringByAppendingPathComponent:fileName]];
-        // [self reloadData];
         [trApp showFileTable:[path stringByAppendingPathComponent:fileName]];
+    }
+    else if ([trApp getFileType:fileName] == kTextFileTypeCHM)
+    {
+        // Disable input to the view and show spinner while we extract
+        [trApp showWait];
+        
+        // Start the thread to 
+        [NSThread detachNewThreadSelector:@selector(thrdExtractCHM:)
+                                 toTarget:self
+                               withObject:nil];
+    }
+    else if ([trApp getFileType:fileName] == kTextFileTypeZIP)
+    {
+        // Disable input to the view and show spinner while we extract
+        [trApp showWait];
+        
+        // Start the thread to 
+        [NSThread detachNewThreadSelector:@selector(thrdExtractZIP:)
+                                 toTarget:self
+                               withObject:nil];
     }
     else // Must be a text or pdb file ...
     {

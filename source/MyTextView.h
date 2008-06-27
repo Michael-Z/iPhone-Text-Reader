@@ -230,6 +230,8 @@ typedef struct _TextLayout {
 
 - (struct CGRect) getOrientedViewRect;
 
+- (void) endDragging;
+
 @end // MyTextView : UIView
 
 

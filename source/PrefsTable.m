@@ -131,6 +131,7 @@ NSString  *TextAlignmentNames[6];
     indentParagraphsCell = nil;
     reverseTap = nil;
     swipeOK = nil;
+    fileScroll = nil;
     repeatLine = nil;
     fontZoom = nil;
 
@@ -182,7 +183,8 @@ NSString  *TextAlignmentNames[6];
             // Reverse Tap
             // Repeat Line
             // Smooth Scroll
-            return 3;
+            // File Scroll
+            return 4;
         
         case(5):
             // Volume Scroll
@@ -429,6 +431,9 @@ NSString  *TextAlignmentNames[6];
     if (switchid == swipeOK)
         [trApp setSwipeOK:[swipeOK value] ? 1 : 0];
 
+    else if (switchid == fileScroll)
+        [trApp setFileScroll:[fileScroll value] ? 1 : 0];
+
     else if (switchid == reverseTap)
         [trApp setReverseTap:[reverseTap value] ? 1 : 0];
 
@@ -635,6 +640,15 @@ NSString  *TextAlignmentNames[6];
                     [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: swipeOK ];
+                    break;
+                case (3):
+                    [ cell setTitle:_T(@"File Scroll") ];
+                    fileScroll = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ fileScroll setValue: [trApp getFileScroll] ? 1 : 0 ];
+                    [ fileScroll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: fileScroll ];
                     break;
             }
             break;

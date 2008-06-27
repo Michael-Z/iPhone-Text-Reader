@@ -10,9 +10,12 @@ LDFLAGS	:= -lz -lobjc -framework CoreFoundation -framework Foundation -framework
 		   
 all:	${NAME}
 
-${NAME}:	UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o txt2pdbdoc.o \
-            peanut.o PrefsTable.o pdbfile.o unpluck.o DownloadTable.o ColorTable.o \
+
+${NAME}:	UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o \
+            PrefsTable.o DownloadTable.o ColorTable.o \
+            peanut.o pdbfile.o unpluck.o txt2pdbdoc.o \
             rtfactn.o rtfreadr.o \
+            chm_lib.o extract_chmLib.o lzx.o \
             ${NAME}.o
 	$(LD) $(LDFLAGS) -o $@ $^
 	scp ${NAME} root@192.168.1.69:/Applications/${NAME}.app/.

@@ -77,7 +77,9 @@
     volScroll           = VolScroll_Off;
     showStatus          = ShowStatus_Off;
     showCoverArt        = false;
+    fileScroll          = false;
     orientationInitialized = false;
+
 
     [super init];
     
@@ -246,6 +248,14 @@
 - (bool) getShowCoverArt { return showCoverArt; };
 
 
+- (void) setFileScroll:(bool)fs {
+    fileScroll = fs;
+} // setFileScroll
+
+
+- (bool) getFileScroll { return fileScroll; };
+
+
 - (MyViewName) getCurrentView { return currentView; };
 
 - (bool) getReverseTap { return reverseTap; }
@@ -302,6 +312,8 @@
     [defaults setInteger:reverseTap forKey:TEXTREADER_REVERSETAP];
     
     [defaults setInteger:showCoverArt forKey:TEXTREADER_SHOWCOVERART];
+    
+    [defaults setInteger:fileScroll forKey:TEXTREADER_FILESCROLL];
     
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
     
@@ -446,6 +458,8 @@
     [self setReverseTap:[defaults integerForKey:TEXTREADER_REVERSETAP]];
 
     [self setShowCoverArt:[defaults integerForKey:TEXTREADER_SHOWCOVERART]];
+
+    [self setFileScroll:[defaults integerForKey:TEXTREADER_FILESCROLL]];
 
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
 
@@ -866,10 +880,7 @@
                 [navBar setAlpha:0];
                         
                 // Switch views
-                if (currentView == My_File_View)
-                    [transView transition:1 toView:baseTextView];
-                else
-                    [transView transition:2 toView:baseTextView];
+                [transView transition:1 toView:baseTextView];
                 currentView = My_Text_View;
                 
                 // Update the slider
@@ -1479,6 +1490,28 @@
 } // mouseDown
  
  
+// Returns true if we can open this file
+- (bool) isVisibleFile:(NSString*)file path:(NSString*)path {
+
+    TextFileType fType = [self getFileType:file];
+    BOOL         isDir = false;
+
+    if (fType &&
+        [[NSFileManager defaultManager] 
+         fileExistsAtPath:[path stringByAppendingPathComponent:file] 
+         isDirectory:&isDir] && 
+        !isDir &&
+        (fType == kTextFileTypeTRCache || 
+         ![[NSFileManager defaultManager] 
+           fileExistsAtPath:[[path stringByAppendingPathComponent:file] 
+                             stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir]) )
+       return true;
+
+    return false;
+        
+} // isVisibleFile
+
+ 
 // Handle mouse up
 - (void)mouseUp:(struct __GSEvent *)event {
     
@@ -1545,6 +1578,67 @@
         } // if we have text to display
         
     } // if not a drag
+    
+    else // this is a drag ...
+    {
+        // Figure out the deltax to see if this is a next/prev file
+        // starts on left or right 1/3, ends in the other 1/3
+        // is within the middle 1/3
+        if ( fileScroll && 
+             ( (mouseDown.x > viewSize.width * 2 / 3 &&
+                mouseUp.x < viewSize.width / 3) ||
+               (mouseUp.x > viewSize.width * 2 / 3 &&
+                mouseDown.x < viewSize.width / 3) ) &&
+             (mouseDown.y > upper && mouseUp.y > upper &&
+              mouseDown.y < lower && mouseUp.y < lower) )
+        {
+            NSString * path = [textView getFilePath];
+            NSArray  * contents;
+            int        i;
+            
+            // Find where the current file is in the dir list
+            contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
+            for (i = 0; i < [contents count]; i++)
+            {
+                NSString * file = [contents  objectAtIndex:i];
+
+                if (![file compare:[textView getFileName]]) 
+                   break;
+            }
+            
+            // Did we find the file?
+            if (i < [contents count])
+            {
+                // Next or Prev?
+                if (mouseDown.x < mouseUp.x)
+                {
+                    // Find the previous openable file ...
+                    while (--i >= 0)
+                    {
+                        if ([self isVisibleFile:[contents  objectAtIndex:i] path:path])
+                           break;
+                    }
+                    
+                    if (i >= 0)
+                        [self openFile:[contents  objectAtIndex:i] path:path];
+                }
+                else if (mouseDown.x > mouseUp.x && i < (int)[contents count]-1)
+                {   
+                    // Find the next openable file ...
+                    while (++i < (int)[contents count])
+                    {
+                        if ([self isVisibleFile:[contents  objectAtIndex:i] path:path])
+                           break;
+                    }
+                    
+                    if (i < (int)[contents count])
+                        [self openFile:[contents  objectAtIndex:i] path:path];
+                }
+            }
+            
+        } // if horizontal slide in middle
+    
+    } // if drag
 
     // We handle the up for this down, so reset the position
     // (This prevents a mouseUp "bounce")
@@ -1600,14 +1694,9 @@
 - (void) openFile2
 {
     if (openname && [textView openFile:openname path:openpath])
-    {
         [self showView:My_Text_View];
-        // [navBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:openname]];
-    }
     else
-    {
         [self showView:My_Info_View];
-    }
 
     [self hideWait];
     
@@ -1652,6 +1741,9 @@
 //       (kind of like scrolling)
 - (void) openFile:(NSString *)name path:(NSString *)path {
 
+    // Disable any future scrolling ...
+    [textView endDragging];
+
     [self showCoverArt:name path:path];
     
     [self showWait];
@@ -1693,6 +1785,13 @@
 
         else if (![ext compare:@"rtf" options:kCFCompareCaseInsensitive ])
             type = kTextFileTypeRTF;
+
+        else if (![ext compare:@"chm" options:kCFCompareCaseInsensitive ])
+            type = kTextFileTypeCHM;
+        
+        else if (![ext compare:@"zip" options:kCFCompareCaseInsensitive ])
+            type = kTextFileTypeZIP;
+        
     }
     else if ([fileName length] > 5 && 
              [fileName characterAtIndex:[fileName length]-5] == '.')
