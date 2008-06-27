@@ -206,9 +206,6 @@
   <string>4th Encoding</string> 
   <key>Show Cover Art</key>
   <string>Show Cover Art</string>   
-
-
-
   <key>Unable to load background image %@</key>
   <string>Unable to load background image %@</string>   
   <key>Cache All Files</key>
@@ -245,6 +242,19 @@
   <string>5 blanks</string>   
   <key>6 blanks</key>
   <string>6 blanks</string>   
+
+
+
+  <key>File Scroll</key>
+  <string>File Scroll</string>   
+  <key>Unable to unzip file %@</key>
+  <string>Unable to unzip file %@</string>   
+  <key>Error Caching ZIP File</key>
+  <string>Error Caching ZIP File</string>   
+  <key>Unable to explode CHM file %@</key>
+  <string>Unable to explode CHM file %@</string>   
+  <key>Error Caching CHM File</key>
+  <string>Error Caching CHM File</string>   
 
 
 
