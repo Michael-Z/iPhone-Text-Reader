@@ -245,8 +245,6 @@
 
 
 
-  <key>File Scroll</key>
-  <string>File Scroll</string>   
   <key>Unable to unzip file %@</key>
   <string>Unable to unzip file %@</string>   
   <key>Error Caching ZIP File</key>
@@ -255,6 +253,18 @@
   <string>Unable to explode CHM file %@</string>   
   <key>Error Caching CHM File</key>
   <string>Error Caching CHM File</string>   
+  <key>Scroll To Next File</key>
+  <string>Scroll To Next File</string>   
+  <key>Left</key>
+  <string>Left</string>   
+  <key>Right</key>
+  <string>Right</string>   
+  <key>Search Options</key>
+  <string>Search Options</string>   
+  <key>Match Whole Words</key>
+  <string>Match Whole Words</string>   
+  <key>Wrap Searches</key>
+  <string></string>   
 
 
 
