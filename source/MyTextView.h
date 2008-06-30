@@ -232,6 +232,11 @@ typedef struct _TextLayout {
 
 - (void) endDragging;
 
+- (bool) isPunct:(int)start;
+- (bool) isBlank:(int)start;
+- (bool) isLF:(int)start;
+
+
 @end // MyTextView : UIView
 
 

@@ -491,6 +491,42 @@ typedef unsigned int NSUInteger;
 } // isLF
 
 
+// IS this a punctuation character
+- (bool) isPunct:(int)start
+{
+    unichar c = [text characterAtIndex:start];
+    
+    switch (c)
+    {
+        case '.':
+        case '!':
+        case '(':
+        case ')':
+        case '-':
+        case '=':
+        case '+':
+        case '*':
+        case '/':
+        case ',':
+        case '<':
+        case '>':
+        case '{':
+        case '}':
+        case '[':
+        case ']':
+        case '\\':
+        case '\'':
+        case '"':
+        case '`':
+        case '?':
+            return true;
+    }
+    
+    return false;
+
+} // isPunct
+
+
 // IS this a blank character
 - (bool) isBlank:(int) start
 {
@@ -696,7 +732,7 @@ static void initLayout(TextLayout * txtLayout, int start, int length, bool newPa
             
         // Reserve space for new paragraph indention
         if (indentParagraphs > 0 && newParagraph)
-           width -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
+           width -= [[NSString stringWithFormat:@"%C", 0x3000] sizeWithFont:gsFont].width * (float)indentParagraphs;
         
         // Remember the starting point for this line
         initLayout(&layouts[line], start, 0, newParagraph);
@@ -1576,7 +1612,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                     layout[line].width = [self calcWidth:x];
                 pt.x = viewRect.size.width - layout[line].width;
                 if (layout[line].newParagraph && indentParagraphs > 0)
-                    pt.x -= [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
+                    pt.x -= [[NSString stringWithFormat:@"%C", 0x3000] sizeWithFont:gsFont].width * (float)indentParagraphs;
                 if (padMargins)
                     pt.x -= TEXTREADER_MPAD;
                 [x drawAtPoint:pt withFont:gsFont];
@@ -1587,7 +1623,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
                 // Apply margin padding
                 pt.x = padMargins ? TEXTREADER_MPAD : 0;
                 if (layout[line].newParagraph && indentParagraphs > 0)
-                    pt.x += [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
+                    pt.x += [[NSString stringWithFormat:@"%C", 0x3000] sizeWithFont:gsFont].width * (float)indentParagraphs;
                 // Draw it in chunks
                 [self drawJustified:&layout[line] at:pt];
                 break;
@@ -1596,7 +1632,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
             default:
                 pt.x = padMargins ? TEXTREADER_MPAD : 0;
                 if (layout[line].newParagraph && indentParagraphs > 0)
-                    pt.x += [@" " sizeWithFont:gsFont].width * (float)indentParagraphs;
+                    pt.x += [[NSString stringWithFormat:@"%C", 0x3000] sizeWithFont:gsFont].width * (float)indentParagraphs;
                 [x drawAtPoint:pt withFont:gsFont];
                 break;
                 
@@ -3594,11 +3630,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 - (void)mouseDragged:(struct __GSEvent *)event
 {
     // We use this to disable scrolling as needed
-    if ([trApp getSwipeOK])
-    {
+    //if ([trApp getSwipeOK])
+    //{
         isDrag = true;
         [super mouseDragged:event];
-    }
+    //}
     
 } // mouseDragged
 
@@ -3623,7 +3659,10 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
 {
     if (!text)
         return;
-        
+      
+    if (![trApp getSwipeOK])
+       return;
+       
     isDrag = true;
     
     // Figure new line based on slider offset
@@ -3639,6 +3678,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     // Do layout for the new line
     // We moved current-start pixels from cStart
     [self doLayout:delta];
+    
+    [trApp showPercentage:cStart];
+
 
 } // scrollerDidScroll
 

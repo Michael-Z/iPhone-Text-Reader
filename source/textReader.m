@@ -77,9 +77,10 @@
     volScroll           = VolScroll_Off;
     showStatus          = ShowStatus_Off;
     showCoverArt        = false;
-    fileScroll          = false;
+    fileScroll          = FileScroll_Off;
     orientationInitialized = false;
-
+    searchWrap          = false;
+    searchWord          = false;
 
     [super init];
     
@@ -95,6 +96,12 @@
     swipeOK = sw;
 } // setSwipeOK
 
+
+- (void) setSearchWrap:(bool)sw {searchWrap = sw; }
+- (bool) getSearchWrap { return searchWrap; }
+
+- (void) setSearchWord:(bool)sw { searchWord = sw; }
+- (bool) getSearchWord { return searchWord; }
 
 // Turn on the volume hud
 // Called from a timer to prevent the hud from appearing when we turn on 
@@ -248,12 +255,12 @@
 - (bool) getShowCoverArt { return showCoverArt; };
 
 
-- (void) setFileScroll:(bool)fs {
+- (void) setFileScroll:(FileScroll)fs {
     fileScroll = fs;
 } // setFileScroll
 
 
-- (bool) getFileScroll { return fileScroll; };
+- (FileScroll) getFileScroll { return fileScroll; };
 
 
 - (MyViewName) getCurrentView { return currentView; };
@@ -314,6 +321,9 @@
     [defaults setInteger:showCoverArt forKey:TEXTREADER_SHOWCOVERART];
     
     [defaults setInteger:fileScroll forKey:TEXTREADER_FILESCROLL];
+    
+    [defaults setInteger:searchWrap forKey:TEXTREADER_SEARCHWRAP];
+    [defaults setInteger:searchWord forKey:TEXTREADER_SEARCHWORD];
     
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
     
@@ -460,6 +470,9 @@
     [self setShowCoverArt:[defaults integerForKey:TEXTREADER_SHOWCOVERART]];
 
     [self setFileScroll:[defaults integerForKey:TEXTREADER_FILESCROLL]];
+
+    [self setSearchWrap:[defaults integerForKey:TEXTREADER_SEARCHWRAP]];
+    [self setSearchWord:[defaults integerForKey:TEXTREADER_SEARCHWORD]];
 
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
 
@@ -950,6 +963,61 @@
 } // showSearch
 
 
+- (NSRange) findText:(NSString *)str range:(NSRange)cur {
+
+        NSRange found;
+
+DoSearch:        
+        found = [[textView getText] rangeOfString:str
+                                          options:NSCaseInsensitiveSearch 
+                                            range:cur];
+                                            
+        // Do we need to make sure that this is not a substring of another word?                                            
+        if (searchWord && found.location != NSNotFound)
+        {
+            unichar prev = 0x00;
+            unichar next = 0x00;
+            
+            // Check char before and after, and make sure it isn't a letter ...
+            if (found.location && found.location < [[textView getText] length]-1)
+            {
+                prev = [[textView getText] characterAtIndex:found.location-1];
+                if ([textView isBlank:found.location-1] ||
+                    [textView isLF:found.location-1] ||
+                    [textView isPunct:found.location-1])
+                   prev = 0x00;
+            }
+            if (found.location+found.length < [[textView getText] length])
+            {
+                next = [[textView getText] characterAtIndex:found.location+found.length];
+                if ([textView isBlank:found.location+found.length] ||
+                    [textView isLF:found.location+found.length] ||
+                    [textView isPunct:found.location+found.length])
+                   next = 0x00;
+            }
+            if (prev || next)
+            {
+                // Bummer ... this is part of a larger word
+                // Start searching from location+1
+                cur.length   = MAX(0, (int)cur.length - (((int)found.location - (int)cur.location) + 1));
+                cur.location = found.location+1;
+                
+                // Make sure we have not gone past the end ...
+                if (cur.location + cur.length > [[textView getText] length])
+                {
+                    found.location = NSNotFound;
+                    found.length   = 0;
+                }
+                else
+                    goto DoSearch;
+            }    
+        }
+        
+        return found;
+        
+} // findText
+
+
 // The keyboard is used for searching ...
 -(BOOL) keyboardInput:(id)k shouldInsertText:(id)i isMarkedText:(int)b {
 
@@ -967,11 +1035,19 @@
                            (int)[[textView getText] length]-1), 
                        MAX(0, 
                            (int)[[textView getText] length] - ((int)[textView getStart] + 1))};
-                           
-        // lastSearch = [[NSString stringWithFormat:@"l=%d l=%d s=%d max=%d", cur.location, cur.length, [textView getStart], [[textView getText] length]] copy];
-        NSRange found = [[textView getText] rangeOfString:lastSearch 
-                                                  options:NSCaseInsensitiveSearch 
-                                                    range:cur];
+
+        NSRange found = [self findText:lastSearch range:cur];
+        
+        // Wrap search?
+        if (found.location == NSNotFound && searchWrap)
+        {
+            // Search from begining to current location
+            cur.location = 0;
+            cur.length   = MIN( (int)[[textView getText] length]-1, 
+                                (int)[textView getStart]+(int)[lastSearch length] );
+            
+            found = [self findText:lastSearch range:cur];
+        }
 
         if (found.location == NSNotFound)
         {
@@ -1493,21 +1569,37 @@
 // Returns true if we can open this file
 - (bool) isVisibleFile:(NSString*)file path:(NSString*)path {
 
-    TextFileType fType = [self getFileType:file];
-    BOOL         isDir = false;
+    NSString     * fullpath = [path stringByAppendingPathComponent:file];
+    TextFileType   fType    = [self getFileType:file];
+    BOOL           isDir    = false;
 
-    if (fType &&
-        [[NSFileManager defaultManager] 
-         fileExistsAtPath:[path stringByAppendingPathComponent:file] 
-         isDirectory:&isDir] && 
-        !isDir &&
-        (fType == kTextFileTypeTRCache || 
-         ![[NSFileManager defaultManager] 
-           fileExistsAtPath:[[path stringByAppendingPathComponent:file] 
-                             stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir]) )
+    // A file is visible if it is a supported type
+    // Cached directories are also visible
+    if (!fType)
+        return false;
+       
+    // Not visible if it doesn't exist
+    if (![[NSFileManager defaultManager] 
+          fileExistsAtPath:fullpath
+          isDirectory:&isDir])
+       return false;
+       
+    // Visible if it is a cache file
+    if (fType == kTextFileTypeTRCache)
        return true;
-
-    return false;
+    
+    // Directories are not visible "files"
+    if (isDir)
+       return false;
+       
+    // If this file has a cache file, it is not visible
+    if ([[NSFileManager defaultManager] 
+         fileExistsAtPath:[fullpath
+                            stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] isDirectory:&isDir])
+       return false;
+    
+    // Otherwise, this is visible
+    return true;
         
 } // isVisibleFile
 
@@ -1610,7 +1702,8 @@
             if (i < [contents count])
             {
                 // Next or Prev?
-                if (mouseDown.x < mouseUp.x)
+                if ((mouseDown.x < mouseUp.x && fileScroll == FileScroll_RtoL) ||
+                    (mouseDown.x > mouseUp.x && fileScroll == FileScroll_LtoR))
                 {
                     // Find the previous openable file ...
                     while (--i >= 0)
@@ -1622,7 +1715,9 @@
                     if (i >= 0)
                         [self openFile:[contents  objectAtIndex:i] path:path];
                 }
-                else if (mouseDown.x > mouseUp.x && i < (int)[contents count]-1)
+                else if ( i < (int)[contents count]-1 &&
+                          ((mouseDown.x > mouseUp.x && fileScroll == FileScroll_RtoL) ||
+                           (mouseDown.x < mouseUp.x && fileScroll == FileScroll_LtoR)) )
                 {   
                     // Find the next openable file ...
                     while (++i < (int)[contents count])

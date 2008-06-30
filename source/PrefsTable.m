@@ -56,10 +56,6 @@ NSString  *TextAlignmentNames[6];
         return 3;
     else if (![str compare:_T(@"4 blanks") options:kCFCompareCaseInsensitive])
         return 4;
-    else if (![str compare:_T(@"5 blanks") options:kCFCompareCaseInsensitive])
-        return 5;
-    else if (![str compare:_T(@"6 blanks") options:kCFCompareCaseInsensitive])
-        return 6;
         
     return 0;
     
@@ -78,10 +74,6 @@ NSString  *TextAlignmentNames[6];
             return _T(@"3 blanks");
         case 4:
             return _T(@"4 blanks");
-        case 5:
-            return _T(@"5 blanks");
-        case 6:
-            return _T(@"6 blanks");
         default:
         case 0:
             return _T(@"None");
@@ -134,6 +126,9 @@ NSString  *TextAlignmentNames[6];
     fileScroll = nil;
     repeatLine = nil;
     fontZoom = nil;
+    volumeScroll = nil;
+    searchWrap = nil;
+    searchWord = nil;
 
     return self;
 }
@@ -183,14 +178,22 @@ NSString  *TextAlignmentNames[6];
             // Reverse Tap
             // Repeat Line
             // Smooth Scroll
-            // File Scroll
-            return 4;
+            return 3;
         
         case(5):
-            // Volume Scroll
+            // File Scroll
             return 1;
             
         case(6):
+            // Volume Scroll
+            return 1;
+            
+        case(7):
+            // search wrap
+            // search word
+            return 2;
+            
+        case(8):
             // Blank line
             // Web Site
             // Email address
@@ -224,7 +227,13 @@ NSString  *TextAlignmentNames[6];
              [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
              break;
          case (5):
+             [ groupcell[group] setTitle: _T(@"Scroll To Next File") ];
+             break;
+         case (6):
              [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
+             break;
+         case (7):
+             [ groupcell[group] setTitle: _T(@"Search Options") ];
              break;
      }
      return groupcell[group];
@@ -431,9 +440,6 @@ NSString  *TextAlignmentNames[6];
     if (switchid == swipeOK)
         [trApp setSwipeOK:[swipeOK value] ? 1 : 0];
 
-    else if (switchid == fileScroll)
-        [trApp setFileScroll:[fileScroll value] ? 1 : 0];
-
     else if (switchid == reverseTap)
         [trApp setReverseTap:[reverseTap value] ? 1 : 0];
 
@@ -454,6 +460,12 @@ NSString  *TextAlignmentNames[6];
 
     else if (switchid == cacheAll)
         [textView setCacheAll:[cacheAll value] ? 1 : 0];
+
+    else if (switchid == searchWrap)
+        [trApp setSearchWrap:[searchWrap value] ? 1 : 0];
+
+    else if (switchid == searchWord)
+        [trApp setSearchWord:[searchWord value] ? 1 : 0];
 
 } // handleSwitch
 
@@ -641,18 +653,25 @@ NSString  *TextAlignmentNames[6];
                     [[ cell titleTextLabel] sizeToFit];
                     [ cell addSubview: swipeOK ];
                     break;
-                case (3):
-                    [ cell setTitle:_T(@"File Scroll") ];
-                    fileScroll = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ fileScroll setValue: [trApp getFileScroll] ? 1 : 0 ];
-                    [ fileScroll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: fileScroll ];
+            }
+            break;
+            
+        case (5):
+            switch (row) {
+                case (0):
+                    fileScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    [fileScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
+                    [fileScroll insertSegment:VolScroll_Line withTitle:[NSString stringWithFormat:@"<%@<", _T(@"Left")] animated:NO];
+                    [fileScroll insertSegment:VolScroll_Page withTitle:[NSString stringWithFormat:@">%@>", _T(@"Right")] animated:NO];
+                    [fileScroll selectSegment:[trApp getFileScroll]];
+                    [fileScroll setDelegate:self];
+                    [cell addSubview: fileScroll ];
+                    [cell setDrawsBackground:NO];
                     break;
             }
             break;
-        case (5):
+            
+        case (6):
             switch (row) {
                 case (0):
                     volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
@@ -666,7 +685,31 @@ NSString  *TextAlignmentNames[6];
                     break;
             }
             break;
-        case (6):
+            
+        case (7):
+            switch (row) {
+                case (0):
+                    [ cell setTitle:_T(@"Match Whole Words") ];
+                    searchWord = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ searchWord setValue: [trApp getSearchWord] ? 1 : 0 ];
+                    [ searchWord addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: searchWord ];
+                    break;
+                case (1):
+                    [ cell setTitle:_T(@"Wrap Searches") ];
+                    searchWrap = [ [ UISwitchControl alloc ]
+                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                    [ searchWrap setValue: [trApp getSearchWrap] ? 1 : 0 ];
+                    [ searchWrap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                    [[ cell titleTextLabel] sizeToFit];
+                    [ cell addSubview: searchWrap ];
+                    break;
+            }
+            break;           
+            
+        case (8):
             switch (row) {
                 case (0):
                     [ cell setTitle: _T(@" ") ];
@@ -702,6 +745,10 @@ NSString  *TextAlignmentNames[6];
     else if (segment == showStatus)
     {
         [trApp setShowStatus:seg];
+    }
+    else if (segment == fileScroll)
+    {
+        [trApp setFileScroll:seg];
     }
     
 } // selectedSegmentChanged
@@ -771,12 +818,13 @@ NSString  *TextAlignmentNames[6];
 // Save the encodings
 -(void)saveEncodings {
 
-    NSStringEncoding encodings[4] = {
-                                        [trApp encodingFromString:[encodingCell  value]],
-                                        [trApp encodingFromString:[encoding2Cell value]],
-                                        [trApp encodingFromString:[encoding3Cell value]],
-                                        [trApp encodingFromString:[encoding4Cell value]]
-                                    };
+    NSStringEncoding encodings[4] = 
+            {
+                [trApp encodingFromString:[encodingCell  value]],
+                [trApp encodingFromString:[encoding2Cell value]],
+                [trApp encodingFromString:[encoding3Cell value]],
+                [trApp encodingFromString:[encoding4Cell value]]
+            };
 
     [textView setEncodings:encodings];
         
@@ -977,8 +1025,6 @@ NSString  *TextAlignmentNames[6];
             [dataArray addObject:_T(@"2 blanks")];
             [dataArray addObject:_T(@"3 blanks")];
             [dataArray addObject:_T(@"4 blanks")];
-            [dataArray addObject:_T(@"5 blanks")];
-            [dataArray addObject:_T(@"6 blanks")];
             break;
 
         case kPicker_Type_BkgImage:

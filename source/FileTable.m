@@ -126,17 +126,23 @@
     if ([path length] > 1)
         [fileList addObject:TEXTREADER_PARENT_DIR];
         
+        
+        
     // Add directories
     contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
     for (i = 0; i < [contents count]; i++)
     {
         NSString * dir = [contents  objectAtIndex:i];
+        NSString * fullpath = [path stringByAppendingPathComponent:dir];
         BOOL isDir = true;
 
-        if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:dir] isDirectory:&isDir] && isDir) {
+        // Don't add cache directories here - add them in their proper spot ...
+        if ([[NSFileManager defaultManager] fileExistsAtPath:fullpath isDirectory:&isDir] && isDir &&
+            [trApp getFileType:fullpath] != kTextFileTypeTRCache) {
             [fileList addObject:dir];            
         }
     }
+
 
     // Add files
     contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
@@ -154,6 +160,8 @@
                 highlight = [fileList count];
         }
     }
+    
+    
 
     [ super reloadData ];
     

@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.1Beta1"
+#define TEXTREADER_VERSION          @"1.1Beta2"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -83,6 +83,9 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_BKGIMAGE         @"bkgImage"
 #define TEXTREADER_CACHEALL         @"cacheAll"
 #define TEXTREADER_FILESCROLL       @"fileScroll"
+
+#define TEXTREADER_SEARCHWRAP       @"searchWrap"
+#define TEXTREADER_SEARCHWORD       @"searchWord"
 
 #define TEXTREADER_VOLSCROLL        @"volScroll"
 
@@ -195,6 +198,12 @@ typedef enum _IgnoreLF {
     IgnoreLF_Format = 2
 } IgnoreLF;
 
+typedef enum _FileScroll {
+    FileScroll_Off    = 0,
+    FileScroll_RtoL   = 1,
+    FileScroll_LtoR   = 2
+} FileScroll;
+
 typedef enum _DialogButtons {
     DialogButtons_None        = 0x00,
     DialogButtons_OK          = 0x01,
@@ -251,8 +260,10 @@ typedef enum _DialogButtons {
     VolScroll                volScroll;
     ShowStatus               showStatus;
     bool                     showCoverArt;
-    bool                     fileScroll;
+    FileScroll               fileScroll;
 
+    bool                     searchWrap;
+    bool                     searchWord;
 
     // Initial volume - we'll try to restore this level if possible
     float                    initVol;
@@ -294,6 +305,12 @@ typedef enum _DialogButtons {
 - (void) setSwipeOK:(bool)sw;
 - (bool) getSwipeOK;
 
+- (void) setSearchWrap:(bool)sw;
+- (bool) getSearchWrap;
+
+- (void) setSearchWord:(bool)sw;
+- (bool) getSearchWord;
+
 - (void) setVolScroll:(VolScroll)vs;
 - (VolScroll) getVolScroll;
 
@@ -303,8 +320,8 @@ typedef enum _DialogButtons {
 - (void) setShowCoverArt:(bool)show;
 - (bool) getShowCoverArt;
 
-- (void) setFileScroll:(bool)fs;
-- (bool) getFileScroll;
+- (void) setFileScroll:(FileScroll)fs;
+- (FileScroll) getFileScroll;
 
 - (void) mouseDown:(struct __GSEvent*)event;
 - (void) mouseUp:(struct __GSEvent *)event;
@@ -342,6 +359,8 @@ typedef enum _DialogButtons {
 - (void) rememberOpenFile:(NSString*)name path:(NSString*)path;
 
 - (bool) isVisibleFile:(NSString*)file path:(NSString*)path;
+
+- (void) showPercentage:(int)pos;
 
 @end  // textReader : UIOrientingApplication
 
