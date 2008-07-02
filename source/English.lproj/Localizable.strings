@@ -245,6 +245,10 @@
 
 
 
+  <key>Unable to unrar file %@</key>
+  <string>Unable to unrar file %@</string>   
+  <key>Error Caching RAR File</key>
+  <string>Error Caching RAR File</string>   
   <key>Unable to unzip file %@</key>
   <string>Unable to unzip file %@</string>   
   <key>Error Caching ZIP File</key>
