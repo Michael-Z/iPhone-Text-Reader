@@ -194,10 +194,11 @@ typedef enum _RowType {
     RowType_RTF      = 5,
     RowType_CHM      = 6,
     RowType_ZIP      = 7,
-    RowType_TRCache  = 8,
-    RowType_Download = 9,
-    RowType_Parent   = 10,
-    RowType_Folder   = 11 
+    RowType_RAR      = 8,
+    RowType_TRCache  = 9,
+    RowType_Download = 10,
+    RowType_Parent   = 11,
+    RowType_Folder   = 12 
 } RowType;
 
 
@@ -217,6 +218,7 @@ typedef enum _RowType {
         case RowType_RTF:          
         case RowType_CHM:          
         case RowType_ZIP:          
+        case RowType_RAR:          
         case RowType_TRCache:      
         case RowType_Unknown:      
             // These will be taken care of below
@@ -257,6 +259,9 @@ typedef enum _RowType {
                 break;
             case RowType_ZIP:          
                 iname = @"zip.png";
+                break;
+            case RowType_RAR:          
+                iname = @"rar.png";
                 break;
             case RowType_HTML:         
                 iname = @"html.png";
@@ -383,6 +388,15 @@ typedef enum _RowType {
             [ cell setDisclosureStyle: 3 ];
         }
 
+        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeRAR)
+        {
+            rowType = RowType_RAR;
+            [ cell setTitle: [ [ fileList objectAtIndex: row ]
+                               stringByDeletingPathExtension ]];
+            [ cell setShowDisclosure: YES ];
+            [ cell setDisclosureStyle: 3 ];
+        }
+
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
         {
             rowType = RowType_HTML;
@@ -488,6 +502,59 @@ typedef enum _RowType {
 
 
 // ------------------------------
+// Begin RAR Wrapper
+// ------------------------------
+// Called from the thread wrapper for extracting a RAR file ...
+- (void) extractRAR {
+
+    NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
+    NSString * infile  = [path stringByAppendingPathComponent:fileName];
+    NSString * outdir  = [infile stringByAppendingPathExtension:TEXTREADER_CACHE_EXT];
+    BOOL       isDir   = true;
+
+    // Build the unrar command ...
+    NSString * unrar = [NSString stringWithFormat:@"/Applications/textReader.app/unrar x -y \"%@\" \"%@/\"",
+                                 infile, outdir];
+
+    // Execute the unrar command ...
+    system([unrar UTF8String]);
+    
+    // If the dir exists, hop into it, otherwise assume disaster ...
+    if (![[NSFileManager defaultManager] fileExistsAtPath:outdir isDirectory:&isDir] || !isDir)
+    {
+        NSString *errorMsg = [NSString stringWithFormat:_T(@"Unable to unrar file %@"), infile];
+        [trApp showDialog:_T(@"Error Caching RAR File")
+                      msg:errorMsg
+                  buttons:DialogButtons_OK];
+    }
+    else
+    {
+        // Drop into the new directory ...
+        [trApp showFileTable:outdir];
+    }
+        
+    // Dismiss the wait spinner       
+    [trApp hideWait];
+    [self setEnabled:YES];
+    
+} // extractRAR
+
+
+// We use the thread so we can pop the wait spinner, but then
+// we need to do the actual work on the main thread so we
+// don't mess up the Table ... sheesh ...
+- (void) thrdExtractRAR:(id)ignored 
+{   
+    [self performSelectorOnMainThread:@selector(extractRAR) 
+                            withObject:nil waitUntilDone:YES];
+} // thrdExtractRAR
+// ------------------------------
+// End RAR Wrapper
+// ------------------------------
+
+
+
+// ------------------------------
 // Begin ZIP Wrapper
 // ------------------------------
 // Called from the thread wrapper for extracting a ZIP file ...
@@ -544,7 +611,7 @@ typedef enum _RowType {
 // ------------------------------
 // Begin CHM Wrapper
 // ------------------------------
-// Called from the thread wrapper for extracting a ZIP file ...
+// Called from the thread wrapper for extracting a CHM file ...
 - (void) extractCHM {
 
     NSString *fileName = [ fileList objectAtIndex: [ self selectedRow ] ];
@@ -625,6 +692,16 @@ typedef enum _RowType {
         
         // Start the thread to 
         [NSThread detachNewThreadSelector:@selector(thrdExtractZIP:)
+                                 toTarget:self
+                               withObject:nil];
+    }
+    else if ([trApp getFileType:fileName] == kTextFileTypeRAR)
+    {
+        // Disable input to the view and show spinner while we extract
+        [trApp showWait];
+        
+        // Start the thread to 
+        [NSThread detachNewThreadSelector:@selector(thrdExtractRAR:)
                                  toTarget:self
                                withObject:nil];
     }

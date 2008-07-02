@@ -1887,6 +1887,9 @@ DoSearch:
         else if (![ext compare:@"zip" options:kCFCompareCaseInsensitive ])
             type = kTextFileTypeZIP;
         
+        else if (![ext compare:@"rar" options:kCFCompareCaseInsensitive ])
+            type = kTextFileTypeRAR;
+        
     }
     else if ([fileName length] > 5 && 
              [fileName characterAtIndex:[fileName length]-5] == '.')
