@@ -268,7 +268,9 @@
   <key>Match Whole Words</key>
   <string>Match Whole Words</string>   
   <key>Wrap Searches</key>
-  <string></string>   
+  <string>Wrap Searches</string>   
+  <key>Delete Cache Dir</key>
+  <string>Delete Cache Dir</string>   
 
 
 
