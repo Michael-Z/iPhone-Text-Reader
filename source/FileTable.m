@@ -648,11 +648,22 @@ typedef enum _RowType {
     {
         // Do nothing ... ignore blank entries ...
     }
-    else if (([fileName compare:TEXTREADER_PARENT_DIR] == NSOrderedSame) || // folderup
-             ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
-              isDir)) // directory
+    else if ([fileName compare:TEXTREADER_PARENT_DIR] == NSOrderedSame) // folderup
     {
-        [trApp showFileTable:[path stringByAppendingPathComponent:fileName]];
+        NSString * newPath = [[path stringByAppendingPathComponent:fileName] stringByStandardizingPath];
+        
+        // If user said to delete cache dir and we are leaving a cache dir, delete it
+        if ([trApp getDeleteCacheDir] && [trApp getFileType:path] == kTextFileTypeTRCache)
+            [[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
+    
+        [trApp showFileTable:newPath];
+    }
+    else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
+              isDir) // directory
+    {
+        NSString * newPath = [[path stringByAppendingPathComponent:fileName] stringByStandardizingPath];
+        
+        [trApp showFileTable:newPath];
     }
     else if ([trApp getFileType:fileName] == kTextFileTypeCHM)
     {

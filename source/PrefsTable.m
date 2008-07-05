@@ -130,6 +130,7 @@ NSString  *TextAlignmentNames[6];
         showCoverArt = nil;
         fontZoom = nil;
         cacheAll = nil;
+        deleteCacheDir = nil;
         searchWrap = nil;
         searchWord = nil;
         textView = nil;
@@ -211,7 +212,8 @@ NSString  *TextAlignmentNames[6];
                     // Encoding3
                     // Encoding4
                     // cache all
-                    return 8; 
+                    // Delete Cache Dir
+                    return 9; 
                 case(1):
                     // Web Site
                     // Email address
@@ -655,6 +657,9 @@ NSString  *TextAlignmentNames[6];
     else if (switchid == searchWord)
         [trApp setSearchWord:[searchWord value] ? 1 : 0];
 
+    else if (switchid == deleteCacheDir)
+        [trApp setDeleteCacheDir:[deleteCacheDir value] ? 1 : 0];
+
 } // handleSwitch
 
 
@@ -731,6 +736,15 @@ NSString  *TextAlignmentNames[6];
                             [ cacheAll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
                             [[ cell titleTextLabel] sizeToFit];
                             [ cell addSubview: cacheAll ];
+                            break;
+                        case (8):
+                            [ cell setTitle:_T(@"Delete Cache Dir") ];
+                            deleteCacheDir = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ deleteCacheDir setValue: [trApp getDeleteCacheDir] ? 1 : 0 ];
+                            [ deleteCacheDir addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: deleteCacheDir ];
                             break;
                    }
                    break;

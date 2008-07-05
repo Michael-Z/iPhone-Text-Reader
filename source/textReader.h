@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.1Beta7"
+#define TEXTREADER_VERSION          @"1.1Beta8"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -83,6 +83,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_BKGIMAGE         @"bkgImage"
 #define TEXTREADER_CACHEALL         @"cacheAll"
 #define TEXTREADER_FILESCROLL       @"fileScroll"
+#define TEXTREADER_DELETECACHEDIR   @"deleteCacheDir"
 
 #define TEXTREADER_SEARCHWRAP       @"searchWrap"
 #define TEXTREADER_SEARCHWORD       @"searchWord"
@@ -268,6 +269,7 @@ typedef enum _DialogButtons {
     ShowStatus               showStatus;
     bool                     showCoverArt;
     FileScroll               fileScroll;
+    bool                     deleteCacheDir;
 
     bool                     searchWrap;
     bool                     searchWord;
@@ -311,6 +313,9 @@ typedef enum _DialogButtons {
 
 - (void) setSwipeOK:(bool)sw;
 - (bool) getSwipeOK;
+
+- (void) setDeleteCacheDir:(bool)dcd;
+- (bool) getDeleteCacheDir;
 
 - (void) setSearchWrap:(bool)sw;
 - (bool) getSearchWrap;

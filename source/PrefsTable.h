@@ -42,7 +42,7 @@
 
 // These are the MAX values - preferencesTable controls the actual number
 #define NUM_GROUPS      9
-#define CELLS_PER_GROUP 8
+#define CELLS_PER_GROUP 9
 
 
 
@@ -124,6 +124,7 @@ typedef enum _PickerType {
     UISwitchControl    *showCoverArt;
     UISwitchControl    *fontZoom;
     UISwitchControl    *cacheAll;
+    UISwitchControl    *deleteCacheDir;
     UISwitchControl    *searchWrap;
     UISwitchControl    *searchWord;
 

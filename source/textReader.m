@@ -81,7 +81,8 @@
     orientationInitialized = false;
     searchWrap          = false;
     searchWord          = false;
-
+    deleteCacheDir      = false;
+    
     [super init];
     
 } // init
@@ -96,6 +97,8 @@
     swipeOK = sw;
 } // setSwipeOK
 
+- (void) setDeleteCacheDir:(bool)dcd { deleteCacheDir = dcd; }
+- (bool) getDeleteCacheDir { return deleteCacheDir; }
 
 - (void) setSearchWrap:(bool)sw {searchWrap = sw; }
 - (bool) getSearchWrap { return searchWrap; }
@@ -322,6 +325,8 @@
     
     [defaults setInteger:fileScroll forKey:TEXTREADER_FILESCROLL];
     
+    [defaults setInteger:deleteCacheDir forKey:TEXTREADER_DELETECACHEDIR];
+    
     [defaults setInteger:searchWrap forKey:TEXTREADER_SEARCHWRAP];
     [defaults setInteger:searchWord forKey:TEXTREADER_SEARCHWORD];
     
@@ -477,6 +482,8 @@
     [self setShowCoverArt:[defaults integerForKey:TEXTREADER_SHOWCOVERART]];
 
     [self setFileScroll:[defaults integerForKey:TEXTREADER_FILESCROLL]];
+
+    [self setDeleteCacheDir:[defaults integerForKey:TEXTREADER_DELETECACHEDIR]];
 
     [self setSearchWrap:[defaults integerForKey:TEXTREADER_SEARCHWRAP]];
     [self setSearchWord:[defaults integerForKey:TEXTREADER_SEARCHWORD]];
