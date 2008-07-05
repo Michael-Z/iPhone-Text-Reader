@@ -109,6 +109,13 @@ typedef enum _PickerType {
     UIPreferencesTableCell *cells[NUM_GROUPS][CELLS_PER_GROUP];
     UIPreferencesTableCell *groupcell[NUM_GROUPS];
 
+
+    UIPreferencesTableCell *textSettings;
+    UIPreferencesTableCell *displaySettings;
+    UIPreferencesTableCell *scrollSettings;
+    UIPreferencesTableCell *searchSettings;
+
+
     UISwitchControl    *invertScreen;
     UISwitchControl    *padMargins;
     UISwitchControl    *reverseTap;
@@ -134,7 +141,6 @@ typedef enum _PickerType {
     UIPreferencesTableCell *colorsCell;
     UIPreferencesTableCell *textAlignmentCell;
     UIPreferencesTableCell *bkgImageCell;
-
     UIPreferencesTableCell *indentParagraphsCell;
 
     UISegmentedControl     *ignoreSingleLF;
@@ -145,7 +151,8 @@ typedef enum _PickerType {
 } // MyPreferencesTable
 
 
-- (id)initWithFrame:(CGRect)rect;
+- (id)initWithFrame:(CGRect)rect trApp:(textReader*)tr;
+
 - (int)numberOfGroupsInPreferencesTable:(UIPreferencesTable *)aTable;
 - (UIPreferencesTableCell *)preferencesTable: (UIPreferencesTable *)aTable
     cellForGroup:(int)group;
@@ -155,7 +162,6 @@ typedef enum _PickerType {
 - (UIPreferencesTableCell *)preferencesTable:(UIPreferencesTable *)aTable
     cellForRow:(int)row inGroup:(int)group;
 
-- (void) setTextReader:(textReader*)tr;
 - (void) setTextView:(MyTextView*)tv;
 - (void) resize;
 

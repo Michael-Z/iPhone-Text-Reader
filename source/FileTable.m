@@ -105,14 +105,6 @@
         [[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];    
     } 
 
-    // If the paths are not the same, highlight the Download rather than looking for 
-    // a file match in thw wrong directory
-    if ([path compare:openPath]!=NSOrderedSame)
-    {
-        highlight = 0;
-    }
-
-
     // Clean out the old entries
     [ fileList removeAllObjects ];
 
@@ -125,8 +117,7 @@
     // Add parent directory option (unless we are at '/')
     if ([path length] > 1)
         [fileList addObject:TEXTREADER_PARENT_DIR];
-        
-        
+
         
     // Add directories
     contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
@@ -143,33 +134,33 @@
         }
     }
 
-
-    // Add files
-    contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
-    for (i = 0; i < [contents count]; i++)
+    // Add visible files
+    [fileList addObjectsFromArray:[trApp getVisibleFiles:path]];
+    
+    
+    // Quick check to find the file that matches the currently open file ...
+    // If the paths are not the same, highlight the Download rather than looking for 
+    // a file match in thw wrong directory
+    if (openPath && [path compare:openPath]==NSOrderedSame)
     {
-        NSString * file = [contents  objectAtIndex:i];
-
-        // Only add the file if we can open it ...
-        if ([trApp isVisibleFile:file path:path])
+        for (i = 0; i < [fileList count]; i++)
         {
-            [fileList addObject:file];
-
             // Is this the currently open book?
-            if (openFile && (highlight < 0) && [openFile isEqualToString:file])
-                highlight = [fileList count];
+            if ([openFile isEqualToString:[fileList objectAtIndex:i]])
+            {
+                highlight = i;
+                break;
+            }
         }
     }
     
-    
-
     [ super reloadData ];
     
     // Highlight the currently open book
     if (highlight > 0)
     {
-        [self scrollRowToVisible:highlight-1];
-        [self highlightRow:highlight-1];
+        [self scrollRowToVisible:highlight];
+        [self highlightRow:highlight];
     }
     else
     {
@@ -305,6 +296,26 @@ typedef enum _RowType {
 } // setRowImage
 
 
+- (void) setFileCell:(UIDeletableCell *)cell row:(int)row {
+
+    NSString * file = [fileList objectAtIndex:row];
+    
+    [cell setTitle:[file stringByDeletingPathExtension]];
+    [cell setShowDisclosure:YES];
+    
+    // We set a "fat" disclosure if the file has not been opened
+    // (i.e. not the current one, and we don't have a position saved)
+    if ([trApp getDefaultStart:file] < 1)
+    {
+        NSString * openFile = [trApp getFileName];
+
+        if (!openFile || [openFile compare:file])
+           [ cell setDisclosureStyle: 3 ];
+    }
+
+} // setFileCell 
+
+
 // Populate the table's rows ...
 - (UITableCell *)table:(UITable *)table 
   cellForRow:(int)row 
@@ -336,14 +347,11 @@ typedef enum _RowType {
             rowType = RowType_Parent;
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
-        
+               
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
         {
             rowType = RowType_TRCache;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
+            [self setFileCell:cell row:row];
         }
 
         else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && isDir)
@@ -351,78 +359,49 @@ typedef enum _RowType {
             rowType = RowType_Folder;
             [ cell setTitle: [fileList objectAtIndex:row] ];
         }               
-        
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTXT)
-        {
-            rowType = RowType_TXT;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-        
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypePDB)
-        {
-            rowType = RowType_PDB;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
 
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeCHM)
+        else 
         {
-            rowType = RowType_CHM;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
+            // Handle the other types ...
+            switch ([trApp getFileType:[fileList objectAtIndex:row]])
+            {
+                case kTextFileTypeTXT:
+                    rowType = RowType_TXT;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypePDB:
+                    rowType = RowType_PDB;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeCHM:
+                    rowType = RowType_CHM;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeZIP:
+                    rowType = RowType_ZIP;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeRAR:
+                    rowType = RowType_RAR;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeHTML:
+                    rowType = RowType_HTML;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeFB2:
+                    rowType = RowType_FB2;
+                    [self setFileCell:cell row:row];
+                    break;
+                case kTextFileTypeRTF:
+                    rowType = RowType_RTF;
+                    [self setFileCell:cell row:row];
+                    break;
 
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeZIP)
-        {
-            rowType = RowType_ZIP;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeRAR)
-        {
-            rowType = RowType_RAR;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeHTML)
-        {
-            rowType = RowType_HTML;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-        
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeFB2)
-        {
-            rowType = RowType_FB2;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
-        
-        else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeRTF)
-        {
-            rowType = RowType_RTF;
-            [ cell setTitle: [ [ fileList objectAtIndex: row ]
-                               stringByDeletingPathExtension ]];
-            [ cell setShowDisclosure: YES ];
-            [ cell setDisclosureStyle: 3 ];
-        }
+                default:
+                    break;
+            }                                   
+        }        
                 
         // Specify the proper image for this row
         [self setRowImage:row cell:cell type:rowType];

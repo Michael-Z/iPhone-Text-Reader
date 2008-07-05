@@ -1713,8 +1713,14 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
 
 
 - (void) setStart:(int)newStart {
+
     if (text)
     {
+        // We treat 1 and 0 as both meaning the start (i.e. 0)
+        // This allows us to tell if a default exists or not
+        if (newStart <= 1)
+            newStart = 0;
+            
         // Force layout to use the new start location
         cDisplay = cLayouts = 0;
 
@@ -1723,6 +1729,7 @@ int tidyRevLayout(TextLayout * layoutTop, int foundLines, int end)
         [self sizeScroller];
         // sizeScroller will do a new layout and force a redraw
     }
+    
 } // setStart
 
 
@@ -1838,7 +1845,7 @@ NSUInteger getTag(NSString * str, NSUInteger start, NSUInteger end, char * upTag
     NSUInteger i, j;
 
     // 0 means search to the end    
-    if (!end)
+    if (!end || end > [str length])
         end = [str length];
 
     // search to the end ...
@@ -1987,7 +1994,6 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest)
     
     // Add new text to the dest - we'll patch it up in place
     [dest appendString:[src substringWithRange:rtext]];
-    
     
     // First:
     // Convert all consecutive blank space to a single blank
@@ -2792,6 +2798,7 @@ void addHTMLText(NSString * src, NSRange rtext, NSMutableString * dest)
 // Honor some tags - ignore most others ...
 // KLUDGE!!! - move this stuff to it's own class!!!
 static bool openParagraph = false;
+static bool openScript    = false;
 void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest) 
 {
     // NOTE: Search always starts one early to make sure we get a non0 index 
@@ -2800,7 +2807,7 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     // Ignore NULL tags
     if (!rtag.length)
         return;
-            
+
     unichar c = [src characterAtIndex:rtag.location];
 
     switch (c)
@@ -2869,6 +2876,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
             else if (getTag(src, rtag.location, 8+rtag.location+1, "UBTITLE>", "ubtitle>") ||
                      getTag(src, rtag.location, 8+rtag.location+1, "UBTITLE ", "ubtitle "))
                 [dest appendString:@"\n\n"];
+
+            // <script - look for </script to end the block ...
+            else if (getTag(src, rtag.location, 6+rtag.location+1, "CRIPT>", "cript>") ||
+                     getTag(src, rtag.location, 6+rtag.location+1, "CRIPT ", "cript "))
+                openScript = true;
             break;
             
         case 'T': case 't':
@@ -2886,41 +2898,41 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
             {
                 case 'B': case 'b':
                     // </book-title - treat like H1
-                    if (getTag(src, rtag.location+1, 10+rtag.location+1, "OOK-TITLE>", "ook-title>") ||
-                        getTag(src, rtag.location+1, 10+rtag.location+1, "OOK-TITLE ", "ook-title "))
+                    if (getTag(src, rtag.location+1, 10+rtag.location+1+1, "OOK-TITLE>", "ook-title>") ||
+                        getTag(src, rtag.location+1, 10+rtag.location+1+1, "OOK-TITLE ", "ook-title "))
                         [dest appendString:@"\n\n\n"];  
                     break;
  
 //                  case 'D': case 'd':
 //                      // </div
-//                      if (getTag(src, rtag.location+1, 4+rtag.location+1, "DIV>", "div>") ||
-//                          getTag(src, rtag.location+1, 4+rtag.location+1, "DIV ", "div "))
+//                      if (getTag(src, rtag.location+1, 4+rtag.location+1+1, "DIV>", "div>") ||
+//                          getTag(src, rtag.location+1, 4+rtag.location+1+1, "DIV ", "div "))
 //                          [dest appendString:@"\n"];
 //                      break;
  
                 case 'L': case 'l':
                     // </LI
-                    if (getTag(src, rtag.location+2, 3+rtag.location+1, "I>", "i>"))
+                    if (getTag(src, rtag.location+2, 2+rtag.location+1+1, "I>", "i>"))
                         [dest appendString:@"\n"]; // end this list item entry
  
                 case 'H': case 'h':
                     // </H1
-                    if (getTag(src, rtag.location+2, 3+rtag.location+1, "1>", "1 "))
+                    if (getTag(src, rtag.location+2, 2+rtag.location+1, "1>", "1 "))
                         [dest appendString:@"\n\n\n"];  
  
                     // </H2 to </H6
-                    else if (getTag(src, rtag.location+2, 3+rtag.location+1, "2>", "2 ") ||
-                             getTag(src, rtag.location+2, 3+rtag.location+1, "3>", "3 ") ||
-                             getTag(src, rtag.location+2, 3+rtag.location+1, "4>", "4 ") ||
-                             getTag(src, rtag.location+2, 3+rtag.location+1, "5>", "5 ") ||
-                             getTag(src, rtag.location+2, 3+rtag.location+1, "6>", "6 "))
+                    else if (getTag(src, rtag.location+2, 2+rtag.location+1+1, "2>", "2 ") ||
+                             getTag(src, rtag.location+2, 2+rtag.location+1+1, "3>", "3 ") ||
+                             getTag(src, rtag.location+2, 2+rtag.location+1+1, "4>", "4 ") ||
+                             getTag(src, rtag.location+2, 2+rtag.location+1+1, "5>", "5 ") ||
+                             getTag(src, rtag.location+2, 2+rtag.location+1+1, "6>", "6 "))
                        [dest appendString:@"\n\n"];    
                     break;
  
                 case 'P': case 'p':
                     // </p
-                    if (getTag(src, rtag.location+1, 2+rtag.location+1, "P>", "p>") ||
-                        getTag(src, rtag.location+1, 2+rtag.location+1, "P ", "p "))
+                    if (getTag(src, rtag.location+1, 2+rtag.location+1+1, "P>", "p>") ||
+                        getTag(src, rtag.location+1, 2+rtag.location+1+1, "P ", "p "))
                     {
                         [dest appendString:@"\n"];
                         openParagraph = false;
@@ -2929,23 +2941,28 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
  
                 case 'S': case 's':
                     // </section - treat like /H2
-                    if (getTag(src, rtag.location+1, 7+rtag.location+1, "ECTION>", "ection>") ||
-                        getTag(src, rtag.location+1, 7+rtag.location+1, "ECTION ", "ection "))
+                    if (getTag(src, rtag.location+1, 7+rtag.location+1+1, "ECTION>", "ection>") ||
+                        getTag(src, rtag.location+1, 7+rtag.location+1+1, "ECTION ", "ection "))
                         [dest appendString:@"\n\n"];
  
                     // </subtitle - treat like /H3
-                    else if (getTag(src, rtag.location+1, 8+rtag.location+1, "UBTITLE>", "ubtitle>") ||
-                             getTag(src, rtag.location+1, 8+rtag.location+1, "UBTITLE ", "ubtitle "))
+                    else if (getTag(src, rtag.location+1, 8+rtag.location+1+1, "UBTITLE>", "ubtitle>") ||
+                             getTag(src, rtag.location+1, 8+rtag.location+1+1, "UBTITLE ", "ubtitle "))
                         [dest appendString:@"\n\n"];
+
+                    // </script - close out <script tag ...
+                    else if (getTag(src, rtag.location+1, 6+rtag.location+1+1, "CRIPT>", "cript>") ||
+                             getTag(src, rtag.location+1, 6+rtag.location+1+1, "CRIPT ", "cript "))
+                        openScript = false;
                     break;                      
  
                 case 'T': case 't':
                     // </title - same as </H2
-                    if (getTag(src, rtag.location+1, 5+rtag.location+1, "ITLE>", "itle>") ||
-                        getTag(src, rtag.location+1, 5+rtag.location+1, "ITLE ", "itle "))
+                    if (getTag(src, rtag.location+1, 5+rtag.location+1+1, "ITLE>", "itle>") ||
+                        getTag(src, rtag.location+1, 5+rtag.location+1+1, "ITLE ", "itle "))
                         [dest appendString:@"\n\n"];    
-                    break;
-            }
+                    break;                      
+           }
             break;
 
     } // switch on first char of tag
@@ -2991,9 +3008,11 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
     
     if (!newText || ![newText length])
         return;
+        
     
     // KLUDGE - put HTML stuff in it's own class !!!!
     openParagraph = false;
+    openScript    = false;
 
     // Special case a check for the document starting with <BODY
     // The check below wouldn't find it because the offset would be 0
@@ -3020,7 +3039,9 @@ void addHTMLTag(NSString * src, NSRange rtag, NSMutableString * dest)
             rtext.length = rtag.location-rtext.location;
 
             // Add the text portion to newText      
-            addHTMLText(src, rtext, newText);
+            // NOTE: Ignore text if we are in a <script> block!
+            if (!openScript)
+                addHTMLText(src, rtext, newText);
 
             // Find end of current tag
             rtag.location++;

@@ -96,111 +96,208 @@ NSString  *TextAlignmentNames[6];
     
 } // alignmentFromString
 
-- (id)initWithFrame:(CGRect)rect {
-    pickerView = nil;
+
+- (id)initWithFrame:(CGRect)rect trApp:(textReader*)tr {
+
+    trApp = tr;
     
     self = [ super initWithFrame: rect ];
-    if (nil != self) {
+    if (self) {
     
         memset(groupcell, sizeof(groupcell), 0x00);
         memset(cells,     sizeof(groupcell), 0x00);
         
         [ self setDataSource: self ];
         [ self setDelegate: self ];
+    
+        TextAlignmentNames[0] = _T(@"Align Left");
+        TextAlignmentNames[1] = _T(@"Align Center");
+        TextAlignmentNames[2] = _T(@"Align Right");
+        TextAlignmentNames[3] = _T(@"Word Justified");
+        TextAlignmentNames[4] = _T(@"Character Justified");
+        TextAlignmentNames[5] = nil;
+
+        textSettings = nil;
+        displaySettings = nil;
+        scrollSettings = nil;
+        searchSettings = nil;
+
+        invertScreen = nil;
+        padMargins = nil;
+        reverseTap = nil;
+        repeatLine = nil;
+        swipeOK = nil;
+        showCoverArt = nil;
+        fontZoom = nil;
+        cacheAll = nil;
+        searchWrap = nil;
+        searchWord = nil;
+        textView = nil;
+        pickerView = nil;
+        fontCell = nil;
+        fontSizeCell = nil;
+        encodingCell = nil;
+        encoding2Cell = nil;
+        encoding3Cell = nil;
+        encoding4Cell = nil;
+        colorsCell = nil;
+        textAlignmentCell = nil;
+        bkgImageCell = nil;
+        indentParagraphsCell = nil;
+        ignoreSingleLF = nil;
+        showStatus = nil;
+        volumeScroll = nil;
+        fileScroll = nil;
+
     }
-    
-    TextAlignmentNames[0] = _T(@"Align Left");
-    TextAlignmentNames[1] = _T(@"Align Center");
-    TextAlignmentNames[2] = _T(@"Align Right");
-    TextAlignmentNames[3] = _T(@"Word Justified");
-    TextAlignmentNames[4] = _T(@"Character Justified");
-    TextAlignmentNames[5] = nil;
-    
-    invertScreen = nil;
-    cacheAll = nil;
-    ignoreSingleLF = nil;
-    padMargins = nil;
-    indentParagraphsCell = nil;
-    reverseTap = nil;
-    swipeOK = nil;
-    fileScroll = nil;
-    repeatLine = nil;
-    fontZoom = nil;
-    volumeScroll = nil;
-    searchWrap = nil;
-    searchWord = nil;
 
     return self;
 }
 
 
+/*
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            break;
+        case My_Display_Prefs_View:
+            break;
+        case My_Scroll_Prefs_View:
+            break;
+        case My_Search_Prefs_View:
+            break;
+        default:
+        case My_Prefs_View:
+            break;
+    }
+*/
 - (int)numberOfGroupsInPreferencesTable:(UIPreferencesTable *)aTable {
 
     /* Number of logical groups, including labels */
-    return NUM_GROUPS;
-}
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            return 2;        
+
+        case My_Display_Prefs_View:
+            return 4;
+            
+        case My_Scroll_Prefs_View:
+            return 4;
+            
+        case My_Search_Prefs_View:
+            return 2;
+
+        default:
+        case My_Prefs_View:
+            return 5;
+    }
+} // numberOfGroupsInPreferencesTable
 
 
 - (int)preferencesTable:(UIPreferencesTable *)aTable
     numberOfRowsInGroup:(int)group
 {
-    switch (group) {
-        case(0):
-            // Font
-            // Font Size
-            // Font Zoom
-            // Encoding
-            // Encoding2
-            // Encoding3
-            // Encoding4
-            // cache all
-            return 8; 
-
-        case(1):
-            // Colors
-            // Background
-            // Invert            
-            // Show Cover Art
-            // Pad Margins
-            // Align Text
-            // Indent Margins
-            return 7;
-            
-        case(2):
-            // Strip Line Feeds
-            return 1;
-            
-        case(3):
-            // Show Status Bar
-            return 1;
-            
-        case(4):
-            // Reverse Tap
-            // Repeat Line
-            // Smooth Scroll
-            return 3;
-        
-        case(5):
-            // File Scroll
-            return 1;
-            
-        case(6):
-            // Volume Scroll
-            return 1;
-            
-        case(7):
-            // search wrap
-            // search word
-            return 2;
-            
-        case(8):
-            // Blank line
-            // Web Site
-            // Email address
-            return 3;
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            switch (group) {
+                case(0):
+                    // Font
+                    // Font Size
+                    // Font Zoom
+                    // Encoding
+                    // Encoding2
+                    // Encoding3
+                    // Encoding4
+                    // cache all
+                    return 8; 
+                case(1):
+                    // Web Site
+                    // Email address
+                    return 2;
+            }
+            break;
+        case My_Display_Prefs_View:
+            switch (group) {
+                case(0):
+                    // Colors
+                    // Background
+                    // Invert            
+                    // Show Cover Art
+                    // Pad Margins
+                    // Align Text
+                    // Indent Margins
+                    return 7;
+                case(1):
+                    // Strip Line Feeds
+                    return 1;
+                case(2):
+                    // Show Status Bar
+                    return 1;
+                case(3):
+                    // Web Site
+                    // Email address
+                    return 2;
+            }
+            break;
+        case My_Scroll_Prefs_View:
+            switch (group) {
+                case(0):
+                    // Reverse Tap
+                    // Repeat Line
+                    // Smooth Scroll
+                    return 3;
+                case(1):
+                    // File Scroll
+                    return 1;
+                case(2):
+                    // Volume Scroll
+                    return 1;
+                case(3):
+                    // Web Site
+                    // Email address
+                    return 2;
+            }
+            break;
+        case My_Search_Prefs_View:
+            switch (group) {
+                case(0):
+                    // search wrap
+                    // search word
+                    return 2;
+                case(1):
+                    // Web Site
+                    // Email address
+                    return 2;
+            }
+            break;
+        default:
+        case My_Prefs_View:
+            switch (group) {
+                case(0):
+                    // text settings
+                    return 1;
+                case(1):
+                    // display settings
+                    return 1;
+                case(2):
+                    // scroll settings
+                    return 1;
+                case(3):
+                    // search settings
+                    return 1;
+                case(4):
+                    // Web Site
+                    // Email address
+                    return 2;
+            }
+            break;
     }
+    
     return 0;
-}
+    
+} // numberOfRowsInGroup
 
 
 - (UIPreferencesTableCell *)preferencesTable:(UIPreferencesTable *)aTable
@@ -208,36 +305,43 @@ NSString  *TextAlignmentNames[6];
 {
      if (groupcell[group] != NULL)
          return groupcell[group];
-
-     groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
-     switch (group) {
-         case (0):
-             [ groupcell[group] setTitle: _T(@"Text Settings") ];
-             break;
-         case (1):
-             [ groupcell[group] setTitle: _T(@"Display Settings") ];
-             break;
-         case (2):
-             [ groupcell[group] setTitle: _T(@"Strip Line Feeds") ];
-             break;
-         case (3):
-             [ groupcell[group] setTitle: _T(@"Show Status Bar") ];
-             break;
-         case (4):
-             [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
-             break;
-         case (5):
-             [ groupcell[group] setTitle: _T(@"Scroll To Next File") ];
-             break;
-         case (6):
-             [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
-             break;
-         case (7):
-             [ groupcell[group] setTitle: _T(@"Search Options") ];
-             break;
-     }
-     return groupcell[group];
-}
+         
+    groupcell[group] = [ [ UIPreferencesTableCell alloc ] init ];
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            if (group == 0)
+               [ groupcell[group] setTitle: _T(@"Text Settings") ];
+            break;
+        case My_Display_Prefs_View:
+            if (group == 0)
+               [ groupcell[group] setTitle: _T(@"Display Settings") ];
+            else if (group == 1)
+               [ groupcell[group] setTitle: _T(@"Strip Line Feeds") ];
+            else if (group == 2)
+               [ groupcell[group] setTitle: _T(@"Show Status Bar") ];
+            break;
+        case My_Scroll_Prefs_View:
+            if (group == 0)
+               [ groupcell[group] setTitle: _T(@"Scroll Settings") ];
+            else if (group == 1)
+               [ groupcell[group] setTitle: _T(@"Scroll To Next File") ];
+            else if (group == 2)
+               [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
+            break;
+        case My_Search_Prefs_View:
+            if (group == 0)
+               [ groupcell[group] setTitle: _T(@"Search Settings") ];
+            break;
+        default:
+        case My_Prefs_View:
+            if (group == 0)
+               [ groupcell[group] setTitle: _T(@"Settings") ];
+            break;
+    }
+         
+    return groupcell[group];
+} // cellForGroup
 
 
 - (float)preferencesTable:(UIPreferencesTable *)aTable
@@ -245,24 +349,75 @@ NSString  *TextAlignmentNames[6];
     inGroup:(int)group
     withProposedHeight:(float)proposed
 {
-    /* Return height for group titles */
     if (row == -1) {
-        if (group < NUM_GROUPS-1)
-            return 40;
+        switch ([trApp getCurrentView])
+        {
+            case My_Text_Prefs_View:
+                if (group == 0)
+                    return 40;
+                return 8;
+            case My_Display_Prefs_View:
+                if (group < 3)
+                    return 40;
+                return 8;
+            case My_Scroll_Prefs_View:
+                if (group < 3)
+                    return 40;
+                return 8;
+            case My_Search_Prefs_View:
+                if (group == 0)
+                    return 40;
+                return 8;
+            default:
+            case My_Prefs_View:
+                if (group == 0)
+                    return 40;
+                return 8;
+        }
     }
 
+
+//    /* Return height for group titles */
+//    if (row == -1) {
+//        if (group < NUM_GROUPS-1)
+//           return 40;
+//    }
+
     return proposed;
-}
+} // withProposedHeight
 
 
 - (BOOL)preferencesTable:(UIPreferencesTable *)aTable
     isLabelGroup:(int)group
 {
-    if (group == NUM_GROUPS-1)
-        return YES;
-        
+
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            if (group == 1)
+                return YES;
+            break;
+        case My_Display_Prefs_View:
+            if (group == 3)
+                return YES;
+            break;
+        case My_Scroll_Prefs_View:
+            if (group == 3)
+                return YES;
+            break;
+        case My_Search_Prefs_View:
+            if (group == 1)
+                return YES;
+            break;
+        default:
+        case My_Prefs_View:
+            if (group == 4)
+                return YES;
+            break;
+    }
+       
     return NO;
-}
+} // isLabelGroup
 
 
 - (void) killPicker {
@@ -288,122 +443,155 @@ NSString  *TextAlignmentNames[6];
         pickerView = nil;
     }
     
-    switch (i)
+    [[self cellAtRow:i column:0] setSelected:NO];
+    
+    switch ([trApp getCurrentView])
     {
-        case 1: // font
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_Font];
-                [pickerView setPrefs:self];
+        case My_Text_Prefs_View:
+            switch (i) {
+                case 1: // font
+                    {   
+                        //rect.origin.y = [fontCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_Font];
+                        [pickerView setPrefs:self];
 
-                [self addSubview:pickerView];       
-            }               
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+                case 2: // font Size
+                    {   
+                        //rect.origin.y = [fontSizeCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_FontSize];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+                case 4: // Encoding
+                    {   
+                        //rect.origin.y = [encodingCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_Encoding];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+                case 5: // Encoding2
+                    {   
+                        //rect.origin.y = [encoding2Cell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_Encoding2];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+                case 6: // Encoding3
+                    {   
+                        //rect.origin.y = [encoding3Cell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_Encoding3];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+                case 7: // Encoding4
+                    {   
+                        //rect.origin.y = [encoding4Cell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_Encoding4];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:fontCell animated:YES];                
+                    }               
+                    break;
+            }
             break;
+        case My_Display_Prefs_View:
+            switch (i) {
+                case 1: // Colors
+                    {   
+                        [self killPicker];
+                        [trApp showView:My_Color_View];
+                    }               
+                    break;
+                case 2: // Background
+                    {   
+                        //rect.origin.y = [bkgImageCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_BkgImage];
+                        [pickerView setPrefs:self];
 
-        case 2: // font Size
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_FontSize];
-                [pickerView setPrefs:self];
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:colorsCell animated:YES];
+                    }               
+                    break;
+                case 6: // textAlignment
+                    {   
+                        //rect.origin.y = [textAlignmentCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_TextAlignment];
+                        [pickerView setPrefs:self];
 
-                [self addSubview:pickerView];       
-            }               
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:colorsCell animated:YES];
+                    }               
+                    break;
+                case 7: // Indent Paragraphs
+                    {   
+                        //rect.origin.y = [indentParagraphsCell frame].origin.y;
+                        pickerView = [[MyPickerView alloc] initWithFrame:rect];
+                        [pickerView setDelegate: self];
+                        [pickerView setType:kPicker_Type_IndentParagraphs];
+                        [pickerView setPrefs:self];
+
+                        [self addSubview:pickerView];       
+                        [self scrollAndCenterTableCell:colorsCell animated:YES];
+                    }               
+                    break;
+            }        
             break;
-
-        case 4: // Encoding
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_Encoding];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
+        case My_Scroll_Prefs_View:
             break;
-
-
-
-        case 5: // Encoding2
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_Encoding2];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
+        case My_Search_Prefs_View:
             break;
-        case 6: // Encoding3
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_Encoding3];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
-            break;
-        case 7: // Encoding4
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_Encoding4];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
-            break;
-        case 10: // Colors
-            {   
-                [self killPicker];
-                [trApp showView:My_Color_View];
-            }               
-            break;
-            
-        case 11: // Background
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_BkgImage];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
-            break;
-
-        case 15: // textAlignment
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_TextAlignment];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
-            break;
-            
-        case 16: // Indent Paragraphs
-            {   
-                pickerView = [[MyPickerView alloc] initWithFrame:rect];
-                [pickerView setDelegate: self];
-                [pickerView setType:kPicker_Type_IndentParagraphs];
-                [pickerView setPrefs:self];
-
-                [self addSubview:pickerView];       
-            }               
-            break;
-            
         default:
-            [[self cellAtRow:i column:0] setSelected:NO];
-            return;
-            
-    } // switch
-    
-    // Scroll to top so picker is visible
-    [self scrollAndCenterTableCell:fontCell animated:YES];
-    
+        case My_Prefs_View:
+            switch (i) {
+                case 1: // text settings
+                    [trApp showView:My_Text_Prefs_View];
+                    break;
+                case 3: // display settings
+                    [trApp showView:My_Display_Prefs_View];
+                    break;
+                case 5: // scroll settings
+                    [trApp showView:My_Scroll_Prefs_View];
+                    break;
+                case 7: // search settings
+                    [trApp showView:My_Search_Prefs_View];
+                    break;
+            }
+            break;
+    }
+        
 } // tableRowSelected
 
 
@@ -482,183 +670,212 @@ NSString  *TextAlignmentNames[6];
 
     cell = [ [ UIPreferencesTableCell alloc ] init ];
     [ cell setEnabled: YES ];
-
-    switch (group) {
-        case (0):
-            switch (row) {
+    
+    
+    switch ([trApp getCurrentView])
+    {
+        case My_Text_Prefs_View:
+            switch (group) {
                 case (0):
-                    [ cell setTitle:_T(@"Font") ];
-                    [ cell setValue:[textView getFont] ];
-                    [ cell setShowDisclosure:YES];
-                    fontCell = cell;
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle:_T(@"Font") ];
+                            [ cell setValue:[textView getFont] ];
+                            [ cell setShowDisclosure:YES];
+                            fontCell = cell;
+                            break;
+                        case (1):
+                            [ cell setTitle:_T(@"Font Size") ];
+                            [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
+                            [ cell setShowDisclosure:YES];
+                            fontSizeCell = cell;
+                            break;
+                        case (2):
+                            [ cell setTitle:_T(@"Font Zoom") ];
+                            fontZoom = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ fontZoom setValue: [textView getFontZoom] ? 1 : 0 ];
+                            [ fontZoom addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: fontZoom ];
+                            break;
+                        case (3):
+                            [ cell setTitle:_T(@"Encoding") ];
+                            [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][0]] ];
+                            [ cell setShowDisclosure:YES];
+                            encodingCell = cell;
+                            break;
+                        case (4):
+                            [ cell setTitle:_T(@"2nd Encoding") ];
+                            [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][1]] ];
+                            [ cell setShowDisclosure:YES];
+                            encoding2Cell = cell;
+                            break;
+                        case (5):
+                            [ cell setTitle:_T(@"3rd Encoding") ];
+                            [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][2]] ];
+                            [ cell setShowDisclosure:YES];
+                            encoding3Cell = cell;
+                            break;
+                        case (6):
+                            [ cell setTitle:_T(@"4th Encoding") ];
+                            [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][3]] ];
+                            [ cell setShowDisclosure:YES];
+                            encoding4Cell = cell;
+                            break;
+                        case (7):
+                            [ cell setTitle:_T(@"Cache All Files") ];
+                            cacheAll = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ cacheAll setValue: [textView getCacheAll] ? 1 : 0 ];
+                            [ cacheAll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: cacheAll ];
+                            break;
+                   }
+                   break;
+                case (1):
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                            break;
+                        case (1):
+                            [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                            break;
+                    }
+                    break;
+            }
+            break;
+        case My_Display_Prefs_View:
+            switch (group) {
+                case (0):
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle:_T(@"Select Colors") ];
+                            [ cell setShowDisclosure:YES];
+                            colorsCell = cell;
+                            break;
+                        case (1):
+                            [ cell setTitle:_T(@"Background") ];
+                            [ cell setValue:[textView getBkgImage] ];
+                            [ cell setShowDisclosure:YES];
+                            bkgImageCell = cell;
+                            break;
+                        case (2):
+                            [ cell setTitle:_T(@"Invert Screen") ];
+                            invertScreen = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ invertScreen setValue: [textView getInvertColors] ? 1 : 0 ];
+                            [ invertScreen addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: invertScreen ];
+                            break;
+                        case (3):
+                            [ cell setTitle:_T(@"Show Cover Art") ];
+                            showCoverArt = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ showCoverArt setValue: [trApp getShowCoverArt] ? 1 : 0 ];
+                            [ showCoverArt addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: showCoverArt ];
+                            break;
+                        case (4):
+                            [ cell setTitle:_T(@"Pad Margins") ];
+                            padMargins = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
+                            [ padMargins addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: padMargins ];
+                            break;
+                        case (5):
+                            [ cell setTitle:_T(@"Align Text") ];
+                            [ cell setValue:TextAlignmentNames[[textView getTextAlignment]] ];
+                            [ cell setShowDisclosure:YES];
+                            textAlignmentCell = cell;
+                            break;
+                        case (6):
+                            [ cell setTitle:_T(@"Indent Paragraphs") ];
+                            [ cell setValue:[self stringFromIndent:[textView getIndentParagraphs]] ];
+                            [ cell setShowDisclosure:YES];
+                            indentParagraphsCell = cell;
+                            break;
+                    }
                     break;
                 case (1):
-                    [ cell setTitle:_T(@"Font Size") ];
-                    [ cell setValue:[NSString stringWithFormat:@"%d", [textView getFontSize]] ];
-                    [ cell setShowDisclosure:YES];
-                    fontSizeCell = cell;
+                    switch (row) {
+                        case (0):
+                            ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                            [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
+                            [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
+                            [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
+                            [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
+                            [ignoreSingleLF setDelegate:self];
+                            [cell addSubview: ignoreSingleLF ];
+                            [cell setDrawsBackground:NO];
+                            break;
+                    }
                     break;
                 case (2):
-                    [ cell setTitle:_T(@"Font Zoom") ];
-                    fontZoom = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ fontZoom setValue: [textView getFontZoom] ? 1 : 0 ];
-                    [ fontZoom addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: fontZoom ];
+                    switch (row) {
+                        case (0):
+                            showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                            [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
+                            [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
+                            [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
+                            [showStatus selectSegment:[trApp getShowStatus]];
+                            [showStatus setDelegate:self];
+                            [cell addSubview: showStatus ];
+                            [cell setDrawsBackground:NO];
+                            break;
+                    }
                     break;
                 case (3):
-                    [ cell setTitle:_T(@"Encoding") ];
-                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][0]] ];
-                    [ cell setShowDisclosure:YES];
-                    encodingCell = cell;
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                            break;
+                        case (1):
+                            [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                            break;
+                    }
                     break;
-                case (4):
-                    [ cell setTitle:_T(@"2nd Encoding") ];
-                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][1]] ];
-                    [ cell setShowDisclosure:YES];
-                    encoding2Cell = cell;
-                    break;
-                case (5):
-                    [ cell setTitle:_T(@"3rd Encoding") ];
-                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][2]] ];
-                    [ cell setShowDisclosure:YES];
-                    encoding3Cell = cell;
-                    break;
-                case (6):
-                    [ cell setTitle:_T(@"4th Encoding") ];
-                    [ cell setValue:[trApp stringFromEncoding:[textView getEncodings][3]] ];
-                    [ cell setShowDisclosure:YES];
-                    encoding4Cell = cell;
-                    break;
-                case (7):
-                    [ cell setTitle:_T(@"Cache All Files") ];
-                    cacheAll = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ cacheAll setValue: [textView getCacheAll] ? 1 : 0 ];
-                    [ cacheAll addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: cacheAll ];
-                    break;
-           }
-           break;
-        case (1):
-            switch (row) {
+            }
+            break;
+        case My_Scroll_Prefs_View:
+            switch (group) {
                 case (0):
-                    [ cell setTitle:_T(@"Select Colors") ];
-                    [ cell setShowDisclosure:YES];
-                    colorsCell = cell;
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle:_T(@"Reverse Tap Zones") ];
+                            reverseTap = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
+                            [ reverseTap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: reverseTap ];
+                            break;
+                        case (1):
+                            [ cell setTitle:_T(@"Repeat Previous Line") ];
+                            repeatLine = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ repeatLine setValue: [textView getRepeatLine] ? 1 : 0 ];
+                            [ repeatLine addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: repeatLine ];
+                            break;
+                        case (2):
+                            [ cell setTitle:_T(@"Smooth Scroll") ];
+                            swipeOK = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ swipeOK setValue: [trApp getSwipeOK] ? 1 : 0 ];
+                            [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: swipeOK ];
+                            break;
+                    }
                     break;
                 case (1):
-                    [ cell setTitle:_T(@"Background") ];
-                    [ cell setValue:[textView getBkgImage] ];
-                    [ cell setShowDisclosure:YES];
-                    bkgImageCell = cell;
-                    break;
-                case (2):
-                    [ cell setTitle:_T(@"Invert Screen") ];
-                    invertScreen = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ invertScreen setValue: [textView getInvertColors] ? 1 : 0 ];
-                    [ invertScreen addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: invertScreen ];
-                    break;
-                case (3):
-                    [ cell setTitle:_T(@"Show Cover Art") ];
-                    showCoverArt = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ showCoverArt setValue: [trApp getShowCoverArt] ? 1 : 0 ];
-                    [ showCoverArt addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: showCoverArt ];
-                    break;
-                case (4):
-                    [ cell setTitle:_T(@"Pad Margins") ];
-                    padMargins = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ padMargins setValue: [textView getPadMargins] ? 1 : 0 ];
-                    [ padMargins addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: padMargins ];
-                    break;
-                case (5):
-                    [ cell setTitle:_T(@"Align Text") ];
-                    [ cell setValue:TextAlignmentNames[[textView getTextAlignment]] ];
-                    [ cell setShowDisclosure:YES];
-                    textAlignmentCell = cell;
-                    break;
-                case (6):
-                    [ cell setTitle:_T(@"Indent Paragraphs") ];
-                    [ cell setValue:[self stringFromIndent:[textView getIndentParagraphs]] ];
-                    [ cell setShowDisclosure:YES];
-                    indentParagraphsCell = cell;
-                    break;
-            }
-            break;
-        case (2):
-            switch (row) {
-                case (0):
-                    ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                    [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
-                    [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
-                    [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
-                    [ignoreSingleLF selectSegment:[textView getIgnoreSingleLF]];
-                    [ignoreSingleLF setDelegate:self];
-                    [cell addSubview: ignoreSingleLF ];
-                    [cell setDrawsBackground:NO];
-                    break;
-            }
-            break;
-        case (3):
-            switch (row) {
-                case (0):
-                    showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
-                    [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
-                    [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
-                    [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
-                    [showStatus selectSegment:[trApp getShowStatus]];
-                    [showStatus setDelegate:self];
-                    [cell addSubview: showStatus ];
-                    [cell setDrawsBackground:NO];
-                    break;
-            }
-            break;
-        case (4):
-            switch (row) {
-                case (0):
-                    [ cell setTitle:_T(@"Reverse Tap Zones") ];
-                    reverseTap = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ reverseTap setValue: [trApp getReverseTap] ? 1 : 0 ];
-                    [ reverseTap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: reverseTap ];
-                    break;
-                case (1):
-                    [ cell setTitle:_T(@"Repeat Previous Line") ];
-                    repeatLine = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ repeatLine setValue: [textView getRepeatLine] ? 1 : 0 ];
-                    [ repeatLine addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: repeatLine ];
-                    break;
-                case (2):
-                    [ cell setTitle:_T(@"Smooth Scroll") ];
-                    swipeOK = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ swipeOK setValue: [trApp getSwipeOK] ? 1 : 0 ];
-                    [ swipeOK addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: swipeOK ];
-                    break;
-            }
-            break;
-            
-        case (5):
-            switch (row) {
-                case (0):
                     fileScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
                     [fileScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
                     [fileScroll insertSegment:VolScroll_Line withTitle:[NSString stringWithFormat:@"<%@<", _T(@"Left")] animated:NO];
@@ -668,12 +885,7 @@ NSString  *TextAlignmentNames[6];
                     [cell addSubview: fileScroll ];
                     [cell setDrawsBackground:NO];
                     break;
-            }
-            break;
-            
-        case (6):
-            switch (row) {
-                case (0):
+                case (2):
                     volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
                     [volumeScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
                     [volumeScroll insertSegment:VolScroll_Line withTitle:_T(@"Line") animated:NO];
@@ -683,42 +895,90 @@ NSString  *TextAlignmentNames[6];
                     [cell addSubview: volumeScroll ];
                     [cell setDrawsBackground:NO];
                     break;
+                case (3):
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                            break;
+                        case (1):
+                            [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                            break;
+                    }
+                    break;
             }
             break;
-            
-        case (7):
-            switch (row) {
+        case My_Search_Prefs_View:
+            switch (group) {
                 case (0):
-                    [ cell setTitle:_T(@"Match Whole Words") ];
-                    searchWord = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ searchWord setValue: [trApp getSearchWord] ? 1 : 0 ];
-                    [ searchWord addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: searchWord ];
-                    break;
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle:_T(@"Match Whole Words") ];
+                            searchWord = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ searchWord setValue: [trApp getSearchWord] ? 1 : 0 ];
+                            [ searchWord addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: searchWord ];
+                            break;
+                        case (1):
+                            [ cell setTitle:_T(@"Wrap Searches") ];
+                            searchWrap = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ searchWrap setValue: [trApp getSearchWrap] ? 1 : 0 ];
+                            [ searchWrap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: searchWrap ];
+                            break;
+                    }
+                    break;           
                 case (1):
-                    [ cell setTitle:_T(@"Wrap Searches") ];
-                    searchWrap = [ [ UISwitchControl alloc ]
-                        initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
-                    [ searchWrap setValue: [trApp getSearchWrap] ? 1 : 0 ];
-                    [ searchWrap addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
-                    [[ cell titleTextLabel] sizeToFit];
-                    [ cell addSubview: searchWrap ];
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                            break;
+                        case (1):
+                            [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                            break;
+                    }
                     break;
             }
-            break;           
-            
-        case (8):
-            switch (row) {
+            break;
+        default:
+        case My_Prefs_View:
+            switch (group) {
                 case (0):
-                    [ cell setTitle: _T(@" ") ];
+                    [ cell setTitle:_T(@"Text Settings") ];
+                    [ cell setShowDisclosure:YES];
+                    [ cell setDisclosureStyle: 3 ];
+                    textSettings = cell;
                     break;
                 case (1):
-                    [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                    [ cell setTitle:_T(@"Display Settings") ];
+                    [ cell setShowDisclosure:YES];
+                    [ cell setDisclosureStyle: 3 ];
+                    displaySettings = cell;
                     break;
                 case (2):
-                    [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                    [ cell setTitle:_T(@"Scroll Settings") ];
+                    [ cell setShowDisclosure:YES];
+                    [ cell setDisclosureStyle: 3 ];
+                    colorsCell = cell;
+                    break;
+                case (3):
+                    [ cell setTitle:_T(@"Search Settings") ];
+                    [ cell setShowDisclosure:YES];
+                    [ cell setDisclosureStyle: 3 ];
+                    searchSettings = cell;
+                    break;
+                case (4):
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle: TEXTREADER_HOMEPAGE ];
+                            break;
+                        case (1):
+                            [ cell setTitle: _T(@"email: iphonetextreader@gmail.com") ];
+                            break;
+                    }
                     break;
             }
             break;
@@ -752,11 +1012,6 @@ NSString  *TextAlignmentNames[6];
     }
     
 } // selectedSegmentChanged
-
-
-- (void) setTextReader:(textReader*)tr {
-    trApp = tr;
-} // setTextReader
 
 
 - (void) setTextView:(MyTextView*)tv {
@@ -807,8 +1062,27 @@ NSString  *TextAlignmentNames[6];
 
         case 1: // Done
             [self killPicker];
-            [trApp showView:My_Info_View];
-            break;
+            
+            switch ([trApp getCurrentView])
+            {
+                case My_Text_Prefs_View:
+                    [trApp showView:My_Prefs_View];
+                    break;
+                case My_Display_Prefs_View:
+                    [trApp showView:My_Prefs_View];
+                    break;
+                case My_Scroll_Prefs_View:
+                    [trApp showView:My_Prefs_View];
+                    break;
+                case My_Search_Prefs_View:
+                    [trApp showView:My_Prefs_View];
+                    break;
+                default:
+                case My_Prefs_View:
+                    [trApp showView:My_Info_View];
+                    break;
+            }
+            
     } // switch
     
 } // navigationBar

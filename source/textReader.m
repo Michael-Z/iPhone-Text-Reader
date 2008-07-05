@@ -383,14 +383,21 @@
 
 
 - (int) getDefaultStart:(NSString*)name {
+
+    int pos = 0;
+    
     if (name)
-        return [defaults integerForKey:name];
-    return 0;
+        pos = [defaults integerForKey:name];
+    
+    return pos;
+    
 } // getDefaultStart
 
 
 - (void) setDefaultStart:(NSString*)name start:(int)startChar {
+
     [defaults setInteger:startChar forKey:name];
+    
 } // setDefaultStart
 
 
@@ -550,7 +557,12 @@
 
     // Create title label ...    
     if ([textView getFileName])
-        [navBar setPrompt:[textView getFileName]];
+    {
+        if ([self getFileType:[textView getFileName]] == kTextFileTypeTRCache)
+            [navBar setPrompt:[[[textView getFileName] stringByDeletingPathExtension] stringByDeletingPathExtension]];
+        else
+            [navBar setPrompt:[[textView getFileName] stringByDeletingPathExtension]];
+    }
     else
         [navBar setPrompt:TEXTREADER_NAME];
         
@@ -792,15 +804,21 @@
             }
             break;
             
+        case My_Text_Prefs_View:
+        case My_Display_Prefs_View:
+        case My_Scroll_Prefs_View:
+        case My_Search_Prefs_View:
         case My_Prefs_View:
-            if (currentView != My_Prefs_View)
+            if (currentView != viewName)
             {           
                 // // Disable HUD since user might change settings ...            
                 [NSTimer scheduledTimerWithTimeInterval:0.4f target:self selector:@selector(enableVolumeHUD:) userInfo:nil repeats:NO];
 
-            
+                // Save the new current view so the prefs table can reference it
+                currentView = viewName;
+                
                 // A view with a NavBar and Prefs Table
-                UIView * prefsView = [[UIView alloc ] initWithFrame:FSrect];;
+                UIView * prefsView = [[UIView alloc ] initWithFrame:FSrect];
                 [prefsView setAutoresizingMask: kMainAreaResizeMask];
                 [prefsView setAutoresizesSubviews: YES];
 
@@ -815,8 +833,7 @@
                 FSrect = [self getOrientedViewRect];
                 FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
                 FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-                prefsTable = [ [ MyPreferencesTable alloc ] initWithFrame:FSrect];
-                [prefsTable setTextReader:self];
+                prefsTable = [ [ MyPreferencesTable alloc ] initWithFrame:FSrect trApp:self];
                 [prefsTable setTextView:textView];
                 [prefsTable reloadData];
                 
@@ -829,7 +846,6 @@
             
                 // Switch views
                 [transView transition:1 toView:prefsView];
-                currentView = My_Prefs_View;
 
                 [self redraw];
             }
@@ -1688,8 +1704,10 @@ DoSearch:
             NSArray  * contents;
             int        i;
             
+            // Get the list of visible files ...
+            contents = [self getVisibleFiles:path];
+            
             // Find where the current file is in the dir list
-            contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
             for (i = 0; i < [contents count]; i++)
             {
                 NSString * file = [contents  objectAtIndex:i];
@@ -1704,29 +1722,15 @@ DoSearch:
                 // Next or Prev?
                 if ((mouseDown.x < mouseUp.x && fileScroll == FileScroll_RtoL) ||
                     (mouseDown.x > mouseUp.x && fileScroll == FileScroll_LtoR))
-                {
-                    // Find the previous openable file ...
-                    while (--i >= 0)
-                    {
-                        if ([self isVisibleFile:[contents  objectAtIndex:i] path:path])
-                           break;
-                    }
-                    
-                    if (i >= 0)
+                {                    
+                    if (--i >= 0) // prev
                         [self openFile:[contents  objectAtIndex:i] path:path];
                 }
                 else if ( i < (int)[contents count]-1 &&
                           ((mouseDown.x > mouseUp.x && fileScroll == FileScroll_RtoL) ||
                            (mouseDown.x < mouseUp.x && fileScroll == FileScroll_LtoR)) )
-                {   
-                    // Find the next openable file ...
-                    while (++i < (int)[contents count])
-                    {
-                        if ([self isVisibleFile:[contents  objectAtIndex:i] path:path])
-                           break;
-                    }
-                    
-                    if (i < (int)[contents count])
+                {                       
+                    if (++i < (int)[contents count]) // next
                         [self openFile:[contents  objectAtIndex:i] path:path];
                 }
             }
@@ -1769,16 +1773,31 @@ DoSearch:
 
 // Force a resize/redraw as needed
 - (void) redraw {
-    if (currentView == My_Text_View || currentView == My_Info_View)
-        [textView setNeedsDisplay];
-    else if (currentView == My_File_View)
-        [fileTable resize];
-    else if (currentView == My_Prefs_View)
-        [prefsTable resize];
-    else if (currentView == My_Download_View)
-        [downloadTable resize];
-    else if (currentView == My_Color_View)
-        [colorTable resize];
+
+    switch (currentView)
+    {
+        case My_Text_Prefs_View:
+        case My_Display_Prefs_View:
+        case My_Scroll_Prefs_View:
+        case My_Search_Prefs_View:
+        case My_Prefs_View:
+            [prefsTable resize];
+            break;
+        case My_Color_View:
+            [colorTable resize];
+            break;
+        case My_File_View:
+            [fileTable resize];
+            break;
+        case My_Download_View:
+            [downloadTable resize];
+            break;
+        default:
+        case My_Text_View:
+        case My_Info_View:
+            [textView setNeedsDisplay];
+            break;
+    }
         
 } // redraw
 
@@ -2148,6 +2167,38 @@ DoSearch:
                                iwidth, iheight)];
     
 } // scaleImage
+
+
+
+int sortFiles(id str1, id str2, void *ctx)
+{
+    return [str1 compare:str2 options:NSCaseInsensitiveSearch|NSNumericSearch];
+} // sortFiles 
+
+
+- (NSMutableArray *) getVisibleFiles:(NSString *)path {
+
+    // Add files
+    NSMutableArray * files = [ [ NSMutableArray alloc] init ];
+    
+    NSArray *  contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
+    int i;
+    for (i = 0; i < [contents count]; i++)
+    {
+        NSString * file = [contents  objectAtIndex:i];
+
+        // Only add the file if we can open it ...
+        if ([self isVisibleFile:file path:path])
+            [files addObject:file];
+    }
+    
+    // Sort the list so files are in order
+    // file 1, file 2, ... file 10, file 11, ...
+    [files sortUsingFunction:&sortFiles context:NULL];
+    
+    return files;
+
+} // getVisibleFiles
 
 
 

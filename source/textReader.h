@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.1Beta3"
+#define TEXTREADER_VERSION          @"1.1Beta7"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -167,7 +167,13 @@ typedef enum _MyViewName {
     My_Info_View,
     My_Text_View,
     My_File_View,
+
     My_Prefs_View,
+    My_Text_Prefs_View,
+    My_Display_Prefs_View,
+    My_Scroll_Prefs_View,
+    My_Search_Prefs_View,
+
     My_Color_View,
     My_Download_View
 } MyViewName;
@@ -359,7 +365,7 @@ typedef enum _DialogButtons {
 
 - (void) rememberOpenFile:(NSString*)name path:(NSString*)path;
 
-- (bool) isVisibleFile:(NSString*)file path:(NSString*)path;
+- (NSMutableArray *) getVisibleFiles:(NSString *)path;
 
 - (void) showPercentage:(int)pos;
 

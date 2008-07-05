@@ -324,19 +324,19 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 - (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button 
 {
     switch (button) {
+    
         case 0: // Cancel
-            [trApp showView:My_Prefs_View];
             break;
 
         case 1: // Done
             // Apply New Colors !!!!!
             [textView setTextColors:&txtcolors];
-            
-            // Return to settings
-            [trApp showView:My_Prefs_View];
             break;
             
     } // switch
+    
+    // Return to the display prefs view
+    [trApp showView:My_Display_Prefs_View];
     
 } // navigationBar
 
