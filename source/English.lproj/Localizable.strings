@@ -263,8 +263,8 @@
   <string>Left</string>   
   <key>Right</key>
   <string>Right</string>   
-  <key>Search Options</key>
-  <string>Search Options</string>   
+  <key>Search Settings</key>
+  <string>Search Settings</string>   
   <key>Match Whole Words</key>
   <string>Match Whole Words</string>   
   <key>Wrap Searches</key>
