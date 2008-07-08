@@ -37,48 +37,94 @@
 
 @implementation FileTable
 
-- (id)initWithFrame:(struct CGRect)rect {
-    self = [ super initWithFrame: rect ];
-    if (nil != self) {
+
+// MAke a copy of the current path ...
+- (void) setPath:(NSString*)_path {
+
+    NSFileManager *fileManager = [ NSFileManager defaultManager ];
+
+    // Normalize the path ...
+    if (_path)
+    {
+        _path = [_path stringByStandardizingPath];
+        _path = [_path stringByResolvingSymlinksInPath];
+    }
+
+    // Make sure the path exists
+    if (!_path || [_path length] < 1 || [fileManager fileExistsAtPath:_path] == NO) {
+        _path = TEXTREADER_DEF_PATH;
+        [[NSFileManager defaultManager] createDirectoryAtPath:_path attributes:nil];
+    } 
+
+    // Clean up existing path storage
+    if (path)
+        [path release];
+
+    // Save a copy of the current path ...
+    path = [_path copy];
+
+} // setPath
 
 
+
+- (id)initWithFrame2:(struct CGRect)rect trApp:(textReader*)tr path:(NSString*)_path owner:(UIView*)owner {
+
+    self = [ super initWithFrame:rect ];
+    
+    if (self) 
+    {    
+        trApp = tr;
+        
         colFilename = [ [ UITableColumn alloc ]
                             initWithTitle: _T(@"Filename")
                             identifier:@"filename"
-                            width: rect.size.width];
+                            width:rect.size.width];
 
-        [ self addTableColumn: colFilename ];
+        [ self addTableColumn:colFilename ];
 
-        [ self setSeparatorStyle: 1 ];
-        [ self setDelegate: self ];
-        [ self setDataSource: self ];
-        [ self setRowHeight: 64 ];
+        [ self setSeparatorStyle:1 ];
+        [ self setDelegate:self ];
+        [ self setDataSource:self ];
+        [ self setRowHeight:64 ];
         
         fileList = [ [ NSMutableArray alloc] init ];
+        
+        [self setPath:_path];
+        
+        // Create the navbar for this file table    
+        struct CGRect FSrect = [trApp getOrientedViewRect];
+        
+        FSrect.origin.y     += [UIHardware statusBarHeight];
+        FSrect.size.height   = [UINavigationBar defaultSizeWithPrompt].height;    
+    
+        navBar = [[UINavigationBar alloc] initWithFrame:FSrect];
+        [navBar setBarStyle: 0];
+        // [navBar showButtonsWithLeft:_T(@"..Up..") right:_T(@"Cancel") leftBack:YES];
+
+        // Get the parent directory ..
+        NSString * up = nil;
+        
+        // Can we actually go up?!?!
+        if ([path length] > 1)
+            up = [[path stringByDeletingLastPathComponent] lastPathComponent];
+
+        [navBar showButtonsWithLeft:up
+                              right:_T(@"Cancel") 
+                           leftBack:YES];
+        
+        [navBar pushNavigationItem:[[UINavigationItem alloc] initWithTitle: _T(@"Open Text File")]];
+        [navBar setAutoresizingMask:kTopBarResizeMask];
+    
+        [navBar setDelegate:self];
+        [owner  addSubview:navBar];  
+        
+        [owner addSubview:self];
+        
     }
     
-    path = nil;
-
     return self;
+    
 } // initWithFrame
-
-- (void) setNavBar:(UINavigationBar*)bar {
-    navBar = bar;
-}
-
-
-- (void) setPath:(NSString *)_path {
-
-    if (!_path || [_path length] < 1)
-        _path = TEXTREADER_DEF_PATH;
-
-
-    NSString * newPath = [_path copy];
-    if (path)
-        [path release];
-        
-    path = newPath;
-} // setPath
 
 
 - (NSString *)getPath {
@@ -87,7 +133,7 @@
 
 
 - (void) reloadData {
-    NSFileManager *fileManager = [ NSFileManager defaultManager ];
+
     NSArray * contents;
     
     NSString * openFile = [trApp getFileName];
@@ -95,21 +141,11 @@
     int highlight = -1;
     int i;
     
-    // Normalize the path ...
-    [self setPath:[path stringByStandardizingPath]];
-    [self setPath:[path stringByResolvingSymlinksInPath]];
-
-    // Make sure the path exists
-    if (!path || [fileManager fileExistsAtPath:path] == NO) {
-        [self setPath:TEXTREADER_DEF_PATH];
-        [[NSFileManager defaultManager] createDirectoryAtPath:path attributes:nil];    
-    } 
-
     // Clean out the old entries
     [ fileList removeAllObjects ];
 
     // Update the path in the nav Bar (shorten path if possible)
-    [navBar pushNavigationItem:[[UINavigationItem alloc] initWithTitle:[path stringByAbbreviatingWithTildeInPath]]];
+    [navBar setPrompt:[path stringByAbbreviatingWithTildeInPath]];
 
     // Add download option to list
     [fileList addObject:TEXTREADER_DOWNLOAD_TITLE];
@@ -412,6 +448,7 @@ typedef enum _RowType {
 } // table
 
 
+
 - (int)swipe:(int)type withEvent:(struct __GSEvent *)event;
 {
     struct CGRect FSrect = [trApp getOrientedViewRect];
@@ -421,7 +458,7 @@ typedef enum _RowType {
 
     point = [trApp getOrientedPoint:point];
 
-    point.y -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    point.y -= [UIHardware statusBarHeight] + [UINavigationBar defaultSizeWithPrompt].height;
     point.y += offset.y;
 
     int row = [self rowAtPoint:point];
@@ -455,29 +492,6 @@ typedef enum _RowType {
     return [ super swipe:type withEvent:event ];
     
 } // swipe
-
-
-- (void)_willDeleteRow:(int)row 
-    forTableCell:(id)cell
-    viaEdge:(int)edge
-    animateOthers:(BOOL)animate 
-{
-    BOOL isDir = true;
-    
-    // Remember, we *can* delete directories if they are a trCache!
-    if (row != 0 && // Download
-        [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
-        [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
-        true/*([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache || !isDir)*/)// directory
-    {
-        //[ fileList removeObjectAtIndex: row ]; // now done in delete cell
-        [ super _willDeleteRow:row forTableCell:cell viaEdge:edge animateOthers:animate ];
-        if (row >= [fileList count])
-            [self reloadData];
-    }
-    
-} // _willDeleteRow
-
 
 
 // ------------------------------
@@ -632,6 +646,31 @@ typedef enum _RowType {
 // ------------------------------
 
 
+// Handle navBar buttons ...
+- (void) navigationBar:(UINavigationBar*)navBar buttonClicked:(int) button 
+{
+
+    switch (button) {
+        case 0: // Cancel
+            [trApp showView:My_Info_View];
+            break;
+
+        case 1: // "..Up.."
+            {
+                NSString * newPath = [[path stringByAppendingPathComponent:@".."] stringByStandardizingPath];
+
+                // If user said to delete cache dir and we are leaving a cache dir, delete it
+                if ([trApp getDeleteCacheDir] && [trApp getFileType:path] == kTextFileTypeTRCache)
+                    [[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
+
+                [trApp showFileTable:newPath];
+            }
+            break;
+            
+    } // switch
+    
+} // navigationBar
+
 
 
 - (void)tableRowSelected:(NSNotification *)notification {
@@ -650,13 +689,8 @@ typedef enum _RowType {
     }
     else if ([fileName compare:TEXTREADER_PARENT_DIR] == NSOrderedSame) // folderup
     {
-        NSString * newPath = [[path stringByAppendingPathComponent:fileName] stringByStandardizingPath];
-        
-        // If user said to delete cache dir and we are leaving a cache dir, delete it
-        if ([trApp getDeleteCacheDir] && [trApp getFileType:path] == kTextFileTypeTRCache)
-            [[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
-    
-        [trApp showFileTable:newPath];
+        // Select the "..up.." button
+        [self navigationBar:nil buttonClicked:1];
     }
     else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
               isDir) // directory
@@ -706,6 +740,7 @@ typedef enum _RowType {
 
 
 - (void)dealloc {
+    [ path release ];
     [ colFilename release ];
     [ fileList release ];
     [ super dealloc ];
@@ -730,12 +765,21 @@ typedef enum _RowType {
 - (void) resize {
     struct CGRect FSrect = [trApp getOrientedViewRect];
 
-    FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-    FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
+    FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSizeWithPrompt].height;
+    FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSizeWithPrompt].height;
     [self setFrame:FSrect];
     [self _updateVisibleCellsImmediatelyIfNecessary];
     
 } // resize
+
+
+
+
+- (void)table:(UITable *) table deleteRow:(int) row 
+{
+} // deleteRow
+
+
 
 
 

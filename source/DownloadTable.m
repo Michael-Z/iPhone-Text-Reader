@@ -138,7 +138,8 @@
                   msg:_T(@"Save complete!") 
                buttons:DialogButtons_OK];
     
-    [trApp showView:My_File_View];
+    // [trApp showView:My_File_View];
+    [trApp openFile:toFileName path:TEXTREADER_DEF_PATH];
 }
 
 - (void) threadShowSaveErr {
@@ -197,6 +198,14 @@
             [self performSelectorOnMainThread:@selector(threadShowSaveErr) 
                                     withObject:nil waitUntilDone:YES];
             hadError = true;
+        }
+        else
+        {
+            // Delete the cache for this file if it exists
+            [[NSFileManager defaultManager] 
+             removeFileAtPath:[fullPath 
+                               stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] 
+                               handler:nil];
         }
     }
 
@@ -264,6 +273,13 @@
                 toFileName = [[toFileName stringByAppendingPathExtension:[urlAddress pathExtension]] copy]; 
                 saveAsType = urlType;
             }
+            
+            // Save the URL and Save As name if requested
+            if ([trApp getRememberURL])
+            {
+                [[NSUserDefaults standardUserDefaults] setObject:urlAddress forKey:TEXTREADER_LASTURL];
+                [[NSUserDefaults standardUserDefaults] setObject:toFileName forKey:TEXTREADER_LASTURLSAVEAS];
+            }
 
             // Get the URL
             theURL =[[NSURL alloc] initWithString:urlAddress];
@@ -315,7 +331,15 @@
                     [ cell release ];
                     cell = [ [ UIPreferencesTextTableCell alloc ] init ];
                     [ cell setTitle:@"URL:" ];
-                    [ cell setValue:@"http://" ];
+                    NSString * lastURL = [[NSUserDefaults standardUserDefaults] stringForKey:TEXTREADER_LASTURL];
+                    if ([trApp getRememberURL] && lastURL)
+                    {
+                        [ cell setValue:lastURL ];
+                    }
+                    else
+                    {
+                        [ cell setValue:@"http://" ];
+                    }
                     
                     [ cell setShowDisclosure:YES];
                     urlCell = cell;
@@ -331,9 +355,18 @@
                 case (1):
                     [ cell release ];
                     cell = [ [ UIPreferencesTextTableCell alloc ] init ];
+                    
                     [ cell setTitle:_T(@"Save As:") ];
-                    [ cell setValue:@"" ];
-
+                    NSString * lastURLSaveAs = [[NSUserDefaults standardUserDefaults] stringForKey:TEXTREADER_LASTURLSAVEAS];
+                    if ([trApp getRememberURL] && lastURLSaveAs)
+                    {
+                        [ cell setValue:lastURLSaveAs ];
+                    }
+                    else
+                    {
+                        [ cell setValue:@"" ];
+                    }
+                    
                     [ cell setShowDisclosure:YES];
                     saveAsCell = cell;
                     break;
@@ -348,6 +381,7 @@
                     [ cell setTitle:_T(@"Download File Now") ];
                     [ cell setValue:@"" ];
                     [ cell setShowDisclosure:YES];
+                    [ cell setDisclosureStyle: 3 ];
                     downloadCell = cell;
                     break;
             }

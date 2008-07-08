@@ -113,7 +113,7 @@ typedef enum _PickerType {
     UIPreferencesTableCell *textSettings;
     UIPreferencesTableCell *displaySettings;
     UIPreferencesTableCell *scrollSettings;
-    UIPreferencesTableCell *searchSettings;
+    UIPreferencesTableCell *otherSettings;
 
 
     UISwitchControl    *invertScreen;
@@ -127,6 +127,7 @@ typedef enum _PickerType {
     UISwitchControl    *deleteCacheDir;
     UISwitchControl    *searchWrap;
     UISwitchControl    *searchWord;
+    UISwitchControl    *rememberURL;
 
     textReader         *trApp;
     MyTextView         *textView;

@@ -82,20 +82,18 @@
     searchWrap          = false;
     searchWord          = false;
     deleteCacheDir      = false;
+    rememberURL         = false;
     
     [super init];
     
 } // init
 
 
-- (void) setReverseTap:(bool)rtap {
-    reverseTap = rtap;
-} // setReverseTap
+- (void) setReverseTap:(bool)rtap { reverseTap = rtap; }
+- (void) setSwipeOK:(bool)sw { swipeOK = sw; }
 
-
-- (void) setSwipeOK:(bool)sw {
-    swipeOK = sw;
-} // setSwipeOK
+- (void) setRememberURL:(bool)remember { rememberURL = remember; }
+- (bool) getRememberURL  { return rememberURL; }
 
 - (void) setDeleteCacheDir:(bool)dcd { deleteCacheDir = dcd; }
 - (bool) getDeleteCacheDir { return deleteCacheDir; }
@@ -106,12 +104,11 @@
 - (void) setSearchWord:(bool)sw { searchWord = sw; }
 - (bool) getSearchWord { return searchWord; }
 
+
 // Turn on the volume hud
 // Called from a timer to prevent the hud from appearing when we turn on 
 // a volume setting ...
-- (void)enableVolumeHUD:(id)unused {  
-    [self setSystemVolumeHUDEnabled:YES];
-} // enableVolumeHUD
+- (void)enableVolumeHUD:(id)unused {  [self setSystemVolumeHUDEnabled:YES]; }
 
 
 // Make sure the current volume is within bounds
@@ -332,6 +329,8 @@
     
     [defaults setInteger:swipeOK forKey:TEXTREADER_SWIPE];
     
+    [defaults setInteger:rememberURL forKey:TEXTREADER_REMEMBERURL];
+    
     [defaults setInteger:showStatus forKey:TEXTREADER_SHOWSTATUS];
     
     [defaults setInteger:volScroll forKey:TEXTREADER_VOLSCROLL];
@@ -490,6 +489,8 @@
 
     [self setSwipeOK:[defaults integerForKey:TEXTREADER_SWIPE]];
 
+    [self setRememberURL:[defaults integerForKey:TEXTREADER_REMEMBERURL]];
+
     [self setShowStatus:[defaults integerForKey:TEXTREADER_SHOWSTATUS]];
 
     [self setVolScroll:[defaults integerForKey:TEXTREADER_VOLSCROLL]];
@@ -619,6 +620,7 @@
 } // recreateSlider
 
 
+
 - (void) showFileTable:(NSString*)path
 {           
     struct CGRect FSrect     = [self getOrientedViewRect];
@@ -628,29 +630,16 @@
     [fileView setAutoresizingMask: kMainAreaResizeMask];
     [fileView setAutoresizesSubviews: YES];
 
-    FSrect.origin.y += [UIHardware statusBarHeight];
-    FSrect.size.height = [UINavigationBar defaultSize].height;
-    UINavigationBar * fileBar   = [[UINavigationBar alloc] initWithFrame:FSrect];
-    [fileBar setBarStyle: 0];
-    [fileBar setDelegate: self];
-    [fileBar showButtonsWithLeft: _T(@"Back") right: nil leftBack: YES];
-    [fileBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Open Text File")]];
-    [fileBar setAutoresizingMask: kTopBarResizeMask];
-
-    FSrect = [self getOrientedViewRect];
+    // Leave room for a navbar at the top ...
     FSrect.origin.y    += [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
     FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
-    fileTable = [ [ FileTable alloc ] initWithFrame:FSrect];
+    fileTable = [ [ FileTable alloc ] initWithFrame2:FSrect trApp:self path:path owner:fileView];
+    [fileTable setAutoresizingMask: kMainAreaResizeMask];
+    [fileTable setAutoresizesSubviews: YES];
 
-    [fileTable setNavBar:fileBar];
-
-    [fileTable setPath:path];
-
-    [fileTable setTextReader:self];
-    [fileTable reloadData];
-
-    [fileView addSubview:fileBar];  
     [fileView addSubview:fileTable];
+    
+    [fileTable reloadData];
 
     [super showStatusBar:ShowStatus_Light];
 
@@ -814,7 +803,7 @@
         case My_Text_Prefs_View:
         case My_Display_Prefs_View:
         case My_Scroll_Prefs_View:
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
         case My_Prefs_View:
             if (currentView != viewName)
             {           
@@ -1758,22 +1747,15 @@ DoSearch:
 // Handle navBar buttons ...
 - (void) navigationBar: (UINavigationBar*) navBar buttonClicked: (int) button 
 {
-    if (currentView == My_File_View)
-    {
-        [self showView:My_Info_View];
-    }
-    else
-    {
-        switch (button) {
-            case 0: // Settings
-                [self showView:My_Prefs_View];
-                break;
+    switch (button) {
+        case 0: // Settings
+            [self showView:My_Prefs_View];
+            break;
 
-            case 1: // Open
-                [self showView:My_File_View];
-                break;
-        } // switch
-    }
+        case 1: // Open
+            [self showView:My_File_View];
+            break;
+    } // switch
     
 } // navigationBar
 
@@ -1786,7 +1768,7 @@ DoSearch:
         case My_Text_Prefs_View:
         case My_Display_Prefs_View:
         case My_Scroll_Prefs_View:
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
         case My_Prefs_View:
             [prefsTable resize];
             break;
@@ -2041,12 +2023,17 @@ DoSearch:
             return;
         }
         
-        if (dlgButtons & DialogButtons_Website)
-        {
-           // Button 2 is handle Website
-           NSURL *url = [NSURL URLWithString:TEXTREADER_HOMEPAGE];
-           [UIApp openURL:url];
-        }
+        // Refresh the file list ...
+        if (currentView == My_File_View)
+            [fileTable reloadData];
+        
+     }
+     
+     if (dlgButtons & DialogButtons_Website)
+     {
+        // Button 2 is handle Website
+        NSURL *url = [NSURL URLWithString:TEXTREADER_HOMEPAGE];
+        [UIApp openURL:url];
      }
   }
 

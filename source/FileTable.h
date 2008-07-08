@@ -52,14 +52,14 @@ int extract_chm(char * chmfile, char * outfile);
     textReader *trApp;
     UINavigationBar * navBar;
 }
-- (id)initWithFrame:(struct CGRect)rect;
+
+- (id)initWithFrame2:(struct CGRect)rect trApp:(textReader*)tr path:(NSString*)_path owner:(UIView*)owner;
+
 - (void)setPath:(NSString *)_path;
 - (NSString *)getPath;
 - (void)reloadData;
-- (int)swipe:(int)type withEvent:(struct __GSEvent *)event;
 - (int)numberOfRowsInTable:(UITable *)_table;
 - (UITableCell *)table:(UITable *)table cellForRow:(int)row column:(UITableColumn *)col;
-- (void)_willDeleteRow:(int)row forTableCell:(id)cell viaEdge:(int)edge animateOthers:(BOOL)animate;
 - (void)dealloc;
 
 - (void) resize;
@@ -67,6 +67,6 @@ int extract_chm(char * chmfile, char * outfile);
 - (NSMutableArray *) getFileList;
 
 - (void) setTextReader:(textReader*)tr;
-- (void) setNavBar:(UINavigationBar*)bar;
+
 @end
 

@@ -120,7 +120,7 @@ NSString  *TextAlignmentNames[6];
         textSettings = nil;
         displaySettings = nil;
         scrollSettings = nil;
-        searchSettings = nil;
+        otherSettings = nil;
 
         invertScreen = nil;
         padMargins = nil;
@@ -149,6 +149,7 @@ NSString  *TextAlignmentNames[6];
         showStatus = nil;
         volumeScroll = nil;
         fileScroll = nil;
+        rememberURL = nil;
 
     }
 
@@ -165,7 +166,7 @@ NSString  *TextAlignmentNames[6];
             break;
         case My_Scroll_Prefs_View:
             break;
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
             break;
         default:
         case My_Prefs_View:
@@ -186,8 +187,8 @@ NSString  *TextAlignmentNames[6];
         case My_Scroll_Prefs_View:
             return 4;
             
-        case My_Search_Prefs_View:
-            return 2;
+        case My_Other_Prefs_View:
+            return 3;
 
         default:
         case My_Prefs_View:
@@ -262,13 +263,16 @@ NSString  *TextAlignmentNames[6];
                     return 2;
             }
             break;
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
             switch (group) {
                 case(0):
                     // search wrap
                     // search word
                     return 2;
                 case(1):
+                    // remember URL
+                    return 1;
+                case(2):
                     // Web Site
                     // Email address
                     return 2;
@@ -287,7 +291,7 @@ NSString  *TextAlignmentNames[6];
                     // scroll settings
                     return 1;
                 case(3):
-                    // search settings
+                    // other settings
                     return 1;
                 case(4):
                     // Web Site
@@ -331,9 +335,11 @@ NSString  *TextAlignmentNames[6];
             else if (group == 2)
                [ groupcell[group] setTitle: _T(@"Volume Button Scroll") ];
             break;
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
             if (group == 0)
-               [ groupcell[group] setTitle: _T(@"Search Settings") ];
+               [ groupcell[group] setTitle: _T(@"Other Settings") ];
+            else if (group == 1)
+               [ groupcell[group] setTitle: _T(@"Download Settings") ];
             break;
         default:
         case My_Prefs_View:
@@ -366,8 +372,8 @@ NSString  *TextAlignmentNames[6];
                 if (group < 3)
                     return 40;
                 return 8;
-            case My_Search_Prefs_View:
-                if (group == 0)
+            case My_Other_Prefs_View:
+                if (group < 2)
                     return 40;
                 return 8;
             default:
@@ -407,8 +413,8 @@ NSString  *TextAlignmentNames[6];
             if (group == 3)
                 return YES;
             break;
-        case My_Search_Prefs_View:
-            if (group == 1)
+        case My_Other_Prefs_View:
+            if (group == 2)
                 return YES;
             break;
         default:
@@ -573,7 +579,7 @@ NSString  *TextAlignmentNames[6];
             break;
         case My_Scroll_Prefs_View:
             break;
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
             break;
         default:
         case My_Prefs_View:
@@ -587,8 +593,8 @@ NSString  *TextAlignmentNames[6];
                 case 5: // scroll settings
                     [trApp showView:My_Scroll_Prefs_View];
                     break;
-                case 7: // search settings
-                    [trApp showView:My_Search_Prefs_View];
+                case 7: // other settings
+                    [trApp showView:My_Other_Prefs_View];
                     break;
             }
             break;
@@ -656,6 +662,9 @@ NSString  *TextAlignmentNames[6];
 
     else if (switchid == searchWord)
         [trApp setSearchWord:[searchWord value] ? 1 : 0];
+
+    else if (switchid == rememberURL)
+        [trApp setRememberURL:[rememberURL value] ? 1 : 0];
 
     else if (switchid == deleteCacheDir)
         [trApp setDeleteCacheDir:[deleteCacheDir value] ? 1 : 0];
@@ -921,7 +930,7 @@ NSString  *TextAlignmentNames[6];
                     break;
             }
             break;
-        case My_Search_Prefs_View:
+        case My_Other_Prefs_View:
             switch (group) {
                 case (0):
                     switch (row) {
@@ -946,6 +955,19 @@ NSString  *TextAlignmentNames[6];
                     }
                     break;           
                 case (1):
+                    switch (row) {
+                        case (0):
+                            [ cell setTitle:_T(@"Remember Last URL") ];
+                            rememberURL = [ [ UISwitchControl alloc ]
+                                initWithFrame:CGRectMake(205.0f, 9.0f, 120.0f, 30.0f) ];
+                            [ rememberURL setValue: [trApp getRememberURL] ? 1 : 0 ];
+                            [ rememberURL addTarget:self action:@selector(handleSwitch:) forEvents:kUIControlEventMouseUpInside ];
+                            [[ cell titleTextLabel] sizeToFit];
+                            [ cell addSubview: rememberURL ];
+                            break;
+                    }
+                    break;           
+                case (2):
                     switch (row) {
                         case (0):
                             [ cell setTitle: TEXTREADER_HOMEPAGE ];
@@ -979,10 +1001,10 @@ NSString  *TextAlignmentNames[6];
                     colorsCell = cell;
                     break;
                 case (3):
-                    [ cell setTitle:_T(@"Search Settings") ];
+                    [ cell setTitle:_T(@"Other Settings") ];
                     [ cell setShowDisclosure:YES];
                     [ cell setDisclosureStyle: 3 ];
-                    searchSettings = cell;
+                    otherSettings = cell;
                     break;
                 case (4):
                     switch (row) {
@@ -1088,7 +1110,7 @@ NSString  *TextAlignmentNames[6];
                 case My_Scroll_Prefs_View:
                     [trApp showView:My_Prefs_View];
                     break;
-                case My_Search_Prefs_View:
+                case My_Other_Prefs_View:
                     [trApp showView:My_Prefs_View];
                     break;
                 default:

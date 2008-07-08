@@ -56,7 +56,7 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"1.1Beta8"
+#define TEXTREADER_VERSION          @"1.1"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -104,6 +104,10 @@ struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float 
 #define TEXTREADER_OPENPATH         @"OpenFilePath"
 
 #define TEXTREADER_LASTSEARCH       @"lastSearch"
+
+#define TEXTREADER_LASTURL          @"lastURL"
+#define TEXTREADER_LASTURLSAVEAS    @"lastURLSaveAs"
+#define TEXTREADER_REMEMBERURL      @"rememberURL"
 
 #define TEXTREADER_TEXTRED          @"textRed"
 #define TEXTREADER_TEXTGREEN        @"textGreen"
@@ -173,7 +177,7 @@ typedef enum _MyViewName {
     My_Text_Prefs_View,
     My_Display_Prefs_View,
     My_Scroll_Prefs_View,
-    My_Search_Prefs_View,
+    My_Other_Prefs_View,
 
     My_Color_View,
     My_Download_View
@@ -273,6 +277,7 @@ typedef enum _DialogButtons {
 
     bool                     searchWrap;
     bool                     searchWord;
+    bool                     rememberURL;
 
     // Initial volume - we'll try to restore this level if possible
     float                    initVol;
@@ -307,6 +312,9 @@ typedef enum _DialogButtons {
 - (int)  getDefaultStart:(NSString*)name;
 - (void) setDefaultStart:(NSString*)name start:(int)startChar;
 - (void) removeDefaults:(NSString*)name;
+
+- (void) setRememberURL:(bool)remember;
+- (bool) getRememberURL;
 
 - (void) setReverseTap:(bool)rtap;
 - (bool) getReverseTap;
