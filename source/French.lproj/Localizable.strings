@@ -209,9 +209,6 @@
   <string>4eme Encodage</string>	
   <key>Show Cover Art</key>
   <string>Montrer la couverture</string>	
-
-
-
   <key>Unable to load background image %@</key>
   <string>Impossible de charger l'image de fond %@</string>   
   <key>Cache All Files</key>
@@ -249,6 +246,43 @@
   <key>6 blanks</key>
   <string>6 espace</string>   
 
+
+
+  <key>Unable to unrar file %@</key>
+  <string>Impossible d'extraire le fichier rar %@</string>   
+  <key>Error Caching RAR File</key>
+  <string>Erreur de cache (fichier RAR)</string>   
+  <key>Unable to unzip file %@</key>
+  <string>Impossible d'extraire le fichier zip %@</string>   
+  <key>Error Caching ZIP File</key>
+  <string>Erreur de cache (fichier ZIP)</string>   
+  <key>Unable to explode CHM file %@</key>
+  <string>Impossible d'extraire le fichier CHM %@</string>   
+  <key>Error Caching CHM File</key>
+  <string>Erreur de cache (fichier CHM)</string>   
+  <key>Scroll To Next File</key>
+  <string>Aller au fichier suivant</string>   
+  <key>Left</key>
+  <string>Gauche</string>   
+  <key>Right</key>
+  <string>Droite</string>   
+  <key>Search Settings</key>
+  <string>Paramètres de recherche</string>   
+  <key>Match Whole Words</key>
+  <string>Mots entiers</string>   
+  <key>Wrap Searches</key>
+  <string>Boucle la recherche</string>   
+  <key>Delete Cache Dir</key>
+  <string>Supprimer le cache</string>   
+
+
+
+  <key>Other Settings</key>
+  <string>Autres paramètres</string>
+  <key>Remember Last URL</key>
+  <string>Mémoriser dernière URL</string>   
+  <key>Download Settings</key>
+  <string>Paramètres de téléchargement</string>
 
 
 </dict>
