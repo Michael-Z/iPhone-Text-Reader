@@ -245,5 +245,42 @@
 
 
 
+  <key>Unable to unrar file %@</key>
+  <string>Kann nicht unrar-Datei %@</string>   
+  <key>Error Caching RAR File</key>
+  <string>Fehler beim Caching RAR-Datei</string>   
+  <key>Unable to unzip file %@</key>
+  <string>Fehler beim Entpacken Datei %@</string>   
+  <key>Error Caching ZIP File</key>
+  <string>Fehler beim Caching ZIP-Datei</string>   
+  <key>Unable to explode CHM file %@</key>
+  <string>Fehler beim Ausbau CHM-Datei %@</string>   
+  <key>Error Caching CHM File</key>
+  <string>Fehler beim Caching CHM-Datei</string>   
+  <key>Scroll To Next File</key>
+  <string>Blättern Sie zur nächsten Datei</string>   
+  <key>Left</key>
+  <string>Verließ</string>   
+  <key>Right</key>
+  <string>Richtig</string>   
+  <key>Search Settings</key>
+  <string>Such-Einstellungen</string>   
+  <key>Match Whole Words</key>
+  <string>Match ganze Wörter</string>   
+  <key>Wrap Searches</key>
+  <string>Wrap-Suchergebnisse</string>   
+  <key>Delete Cache Dir</key>
+  <string>Cache-Richt</string>   
+
+
+
+  <key>Other Settings</key>
+  <string>Andere Einstellungen</string>
+  <key>Remember Last URL</key>
+  <string>Halten Sie URL</string>   
+  <key>Download Settings</key>
+  <string>Download-Einstellungen</string>
+
+
 </dict>
 </plist>
