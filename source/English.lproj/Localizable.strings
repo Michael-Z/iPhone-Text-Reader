@@ -53,7 +53,7 @@
   <key>The Save As file name can not contain slashes.</key>
   <string>The Save As file name can not contain slashes.</string>
   <key>The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt</key>
-  <string>The URL or the Save As file name must have an extension of .pdb, .prc, .fb2, .htm, .html, .text, or .txt</string>
+  <string>The URL or the Save As file name must have an extension of .pdb, .prc, .rtf, .zip, .rar, .chm, .fb2, .htm, .html, .text, or .txt</string>
   <key>Error Invalid URL</key>
   <string>Error Invalid URL</string>
   <key>Invalid URL %@</key>
@@ -67,7 +67,7 @@
   <key>Download File Now</key>
   <string>Download File Now</string>
   <key>Enter the complete URL of the Text or PalmDoc file you want to download</key>
-  <string>Enter the complete URL of the Text, FB2, HTML, PRC, ή PDB file you want to download</string>
+  <string>Enter the complete URL of the Text, FB2, HTML, RTF, CHM, ZIP, RAR, PRC, or PDB file you want to download</string>
   <key>and the Name you want it saved as locally.</key>
   <string>and the Name you want it saved as locally.</string>
   <key>If you leave name blank</key>
@@ -81,7 +81,7 @@
   <key>is</key>
   <string>is</string>
   <key>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</key>
-  <string>is only able to open unencrypted Mobipocket, Plucker, and Palm Doc PDB files.</string>
+  <string>is only able to open unencrypted Mobipocket, eReader, Plucker, and Palm Doc PDB files.</string>
   <key>Sorry ...</key>
   <string>Sorry ...</string>
   <key>Unable to Open PDB File!</key>
@@ -254,7 +254,7 @@
   <key>Error Caching ZIP File</key>
   <string>Error Caching ZIP File</string>   
   <key>Unable to explode CHM file %@</key>
-  <string>Unable to explode CHM file %@</string>   
+  <string>Unable to expand CHM file %@</string>   
   <key>Error Caching CHM File</key>
   <string>Error Caching CHM File</string>   
   <key>Scroll To Next File</key>
@@ -272,6 +272,14 @@
   <key>Delete Cache Dir</key>
   <string>Delete Cache Dir</string>   
 
+
+
+  <key>Other Settings</key>
+  <string>Other Settings</string>
+  <key>Remember Last URL</key>
+  <string>Remember Last URL</string>   
+  <key>Download Settings</key>
+  <string>Download Settings</string>
 
 
 </dict>
