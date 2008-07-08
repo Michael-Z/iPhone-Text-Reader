@@ -56,6 +56,8 @@
 	<string>Διαυγής</string>
 	<key>Colors</key>
 	<string>Χρώματα</string>
+	<key>Delete Cache Dir</key>
+	<string>Διαγραφή cache dir</string>
 	<key>Delete Cache File</key>
 	<string>Διαγραφή φυλασσόμενου αρχείου</string>
 	<key>Delete Original File</key>
@@ -84,6 +86,12 @@
 	<string>Εισάγετε κείμενο για αναζήτηση ...</string>
 	<key>Error</key>
 	<string>Σφάλμα</string>
+	<key>Error Caching CHM File</key>
+	<string>Σφάλμα φύλαξης αρχείου CHM</string>
+	<key>Error Caching RAR File</key>
+	<string>Σφάλμα φύλαξης αρχείου RAR</string>
+	<key>Error Caching ZIP File</key>
+	<string>Σφάλμα φύλαξης αρχείου ZIP</string>
 	<key>Error Invalid Save As File Name</key>
 	<string>Σφάλμα άκυρης αποθήκευσης ονόματος αρχείου</string>
 	<key>Error Invalid URL</key>
@@ -107,7 +115,7 @@
 	<key>Font Size</key>
 	<string>Μέγεθος γραμματοσειράς</string>
 	<key>Font Zoom</key>
-	<string>Εστίαση Μέγεθος</string>
+	<string>Εστίαση γραμματοσειράς</string>
 	<key>Format</key>
 	<string>Καθορισμός</string>
 	<key>Green</key>
@@ -124,10 +132,14 @@
 	<string>Αναστροφή χρωμάτων</string>
 	<key>Keep Original File</key>
 	<string>Διατήρηση προτώτυπου αρχείου</string>
+	<key>Left</key>
+	<string>Αριστερά</string>
 	<key>Line</key>
 	<string>Γραμμή</string>
 	<key>Loading ...</key>
 	<string>Φόρτωση ...</string>
+	<key>Match Whole Words</key>
+	<string>Αντιστοίχηση λέξεων</string>
 	<key>No Encoding Specified</key>
 	<string>Δεν καθορίστηκε</string>
 	<key>None</key>
@@ -156,6 +168,8 @@
 	<string>Τελευταία γραμμή</string>
 	<key>Reverse Tap Zones</key>
 	<string>Αναστροφή κρούσης</string>
+	<key>Right</key>
+	<string>Δεξιά</string>
 	<key>Save</key>
 	<string>Αποθήκευση</string>
 	<key>Save As:</key>
@@ -168,6 +182,10 @@
 	<string>Αποθήκευση σε %@</string>
 	<key>Scroll Settings</key>
 	<string>Ρυθμίσεις ανακύλισης</string>
+	<key>Scroll To Next File</key>
+	<string>Ανακύλιση στο επόμενο αρχείο</string>
+	<key>Search Settings</key>
+	<string>Ρυθμίσεις αναζήτησης</string>
 	<key>Search text not found ...</key>
 	<string>Το κείμενο δεν βρέθηκε ...</string>
 	<key>Select Colors</key>
@@ -206,6 +224,8 @@
 	<string>Αδυναμία δημιουργίας γραμματοσειράς %@</string>
 	<key>Unable to delete file</key>
 	<string>Αδυναμία διαγραφής αρχείου</string>
+	<key>Unable to explode CHM file %@</key>
+	<string>Αδυναμία απεικόνισης αρχείου CHM %@</string>
 	<key>Unable to load background image %@</key>
 	<string>Αδυναμία φόρτωσης εικόνας φόντου %@</string>
 	<key>Unable to load file from URL %@"</key>
@@ -216,6 +236,10 @@
 	<string>Αδυναμία ανοίγματος αρχείου!</string>
 	<key>Unable to save file as %@</key>
 	<string>Αδύνατη η αποθήκευση αρχείου ως %@</string>
+	<key>Unable to unrar file %@</key>
+	<string>Αδυναμία αποσυμπίεσης αρχείου rar %@</string>
+	<key>Unable to unzip file %@</key>
+	<string>Αδυναμία αποσυμπίεσης αρχείου zip %@</string>
 	<key>Version</key>
 	<string>Έκδοση</string>
 	<key>Visit Website</key>
@@ -224,6 +248,8 @@
 	<string>Ανακύλιση (πλήκτρο έντασης φωνής)</string>
 	<key>Word Justified</key>
 	<string>Πλήρης στοίχιση λέξεων</string>
+	<key>Wrap Searches</key>
+	<string>Σύνοψη αναζητήσεων</string>
 	<key>Written by Jim Beesley</key>
 	<string>Γράφτηκε από τον Jim Beesley</string>
 	<key>and the Name you want it saved as locally.</key>
@@ -242,5 +268,16 @@
 	<string>έχει τη δυνατότητα να ανοίγει μόνο αποκρυπτογραφημένα αρχεία Mobipocket, Plucker, και Palm Doc PDB.</string>
 	<key>will try to figure out the name and extension based on the URL.</key>
 	<string>θα προσπαθήσει να προσδιορίσει το όνομα και την κατάληξη με βάση την διεύθυνση URL.</string>
+
+
+
+  <key>Other Settings</key>
+  <string>Άλλες Ρυθμίσεις</string>
+  <key>Remember Last URL</key>
+  <string>Κρατήστε URL</string>   
+  <key>Download Settings</key>
+  <string>Κατεβάστε Ρυθμίσεις</string>
+
+
 </dict>
 </plist>
