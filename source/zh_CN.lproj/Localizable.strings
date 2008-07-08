@@ -206,9 +206,6 @@
 	<string>第四编码</string>	
 	<key>Show Cover Art</key>
 	<string>显示封面</string>	
-
-
-
 	<key>Unable to load background image %@</key>
 	<string>无法装载背景图片 %@</string>   
 	<key>Cache All Files</key>
@@ -246,6 +243,41 @@
 	<key>6 blanks</key>
 	<string>缩进6个空格</string>	
 
+	<key>Unable to unrar file %@</key>
+	<string>无法解压RAR文件 %@</string>   
+	<key>Error Caching RAR File</key>
+	<string>缓存RAR文件错误</string>   
+	<key>Unable to unzip file %@</key>
+	<string>无法解压ZIP文件 %@</string>   
+	<key>Error Caching ZIP File</key>
+	<string>缓存ZIP文件错误</string>   
+	<key>Unable to explode CHM file %@</key>
+	<string>无法打开CHM文件 %@</string>   
+	<key>Error Caching CHM File</key>
+	<string>缓存CHM文件错误</string>   
+	<key>Scroll To Next File</key>
+	<string>指划打开下一文件</string>   
+	<key>Left</key>
+	<string>从右往左</string>   
+	<key>Right</key>
+	<string>从左往右</string>   
+	<key>Search Settings</key>
+	<string>搜索设定</string>   
+	<key>Match Whole Words</key>
+	<string>整字匹配</string>   
+	<key>Wrap Searches</key>
+	<string>循环搜索</string>   
+	<key>Delete Cache Dir</key>
+	<string>删除缓存目录</string>   
+
+
+
+  <key>Other Settings</key>
+  <string>其他设置</string>
+  <key>Remember Last URL</key>
+  <string>记得上次网址</string>   
+  <key>Download Settings</key>
+  <string>下载设置</string>
 
 
 </dict>
