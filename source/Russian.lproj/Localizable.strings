@@ -208,9 +208,6 @@
   <string>4-я Кодировка</string>	
   <key>Show Cover Art</key>
   <string>Показать обложку</string>	
-
-
-
   <key>Unable to load background image %@</key>
   <string>Не могу загрузить фон %@</string>   
   <key>Cache All Files</key>
@@ -248,6 +245,43 @@
   <key>6 blanks</key>
   <string>6 пробелов</string>   
 
+
+
+  <key>Unable to unrar file %@</key>
+  <string>Не могу открыть RAR %@</string>   
+  <key>Error Caching RAR File</key>
+  <string>Ошибка кеширования RAR файла</string>   
+  <key>Unable to unzip file %@</key>
+  <string>Не могу раззиповать файл%@</string>   
+  <key>Error Caching ZIP File</key>
+  <string>Ошибка кеширования ZIP файла</string>   
+  <key>Unable to explode CHM file %@</key>
+  <string>Не могу расширять CHM файл %@</string>   
+  <key>Error Caching CHM File</key>
+  <string>Ошибка кеширования CHM файла</string>   
+  <key>Scroll To Next File</key>
+  <string>Прокрутка к следующему файлу</string>   
+  <key>Left</key>
+  <string>Влево</string>   
+  <key>Right</key>
+  <string>Впроаво</string>   
+  <key>Search Settings</key>
+  <string>Настройка поиска</string>   
+  <key>Match Whole Words</key>
+  <string>Целое слово</string>   
+  <key>Wrap Searches</key>
+  <string>Разбить поиск</string>   
+  <key>Delete Cache Dir</key>
+  <string>Удалить кеш каталог</string>   
+
+
+
+  <key>Other Settings</key>
+  <string>Другие настройки</string>
+  <key>Remember Last URL</key>
+  <string>Держите URL</string>   
+  <key>Download Settings</key>
+  <string>Параметры загрузки</string>
 
 
 </dict>
