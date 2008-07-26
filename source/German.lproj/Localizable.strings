@@ -242,45 +242,38 @@
   <string>5 Leerzeichen</string>   
   <key>6 blanks</key>
   <string>6 Leerzeichen</string>   
-
-
-
   <key>Unable to unrar file %@</key>
-  <string>Kann nicht unrar-Datei %@</string>   
+  <string>RAR-Datei %@ kann nicht entpackt werden</string>   
   <key>Error Caching RAR File</key>
-  <string>Fehler beim Caching RAR-Datei</string>   
+  <string>Fehler beim cachen der RAR-Datei</string>   
   <key>Unable to unzip file %@</key>
-  <string>Fehler beim Entpacken Datei %@</string>   
+  <string>ZIP-Datei %@ kann nicht entpackt werden</string>   
   <key>Error Caching ZIP File</key>
-  <string>Fehler beim Caching ZIP-Datei</string>   
+  <string>Fehler beim cachen der ZIP-Datei</string>   
   <key>Unable to explode CHM file %@</key>
-  <string>Fehler beim Ausbau CHM-Datei %@</string>   
+  <string>CHM-Datei %@ kann nicht entpackt werden</string>   
   <key>Error Caching CHM File</key>
-  <string>Fehler beim Caching CHM-Datei</string>   
+  <string>Fehler beim cachen der CHM-Datei</string>   
   <key>Scroll To Next File</key>
-  <string>Blättern Sie zur nächsten Datei</string>   
+  <string>Zur nächsten Datei scrollen</string>   
   <key>Left</key>
-  <string>Verließ</string>   
+  <string>Links</string>   
   <key>Right</key>
-  <string>Richtig</string>   
+  <string>Rechts</string>   
   <key>Search Settings</key>
   <string>Such-Einstellungen</string>   
   <key>Match Whole Words</key>
-  <string>Match ganze Wörter</string>   
+  <string>Ganzes Wort finden</string>   
   <key>Wrap Searches</key>
-  <string>Wrap-Suchergebnisse</string>   
+  <string>Eingebettete Suche</string>   
   <key>Delete Cache Dir</key>
-  <string>Cache-Richt</string>   
-
-
-
+  <string>Cache-Verzeichnis löschen</string>   
   <key>Other Settings</key>
   <string>Andere Einstellungen</string>
   <key>Remember Last URL</key>
-  <string>Halten Sie URL</string>   
+  <string>Letzte URL behalten</string>   
   <key>Download Settings</key>
-  <string>Download-Einstellungen</string>
-
+  <string>Einstellungen downloaden</string>
 
 </dict>
 </plist>
