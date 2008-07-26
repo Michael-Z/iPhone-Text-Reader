@@ -540,7 +540,7 @@ NSString  *TextAlignmentNames[6];
                 case 1: // Colors
                     {
                         [self killPicker];
-                        // [trApp showView:My_Color_View];
+                        [trApp showView:My_Color_View];
                     }
                     break;
                 case 2: // Background
@@ -780,7 +780,7 @@ NSString  *TextAlignmentNames[6];
                         case (0):
                             [ cell setTitle:_T(@"Select Colors") ];
                             [ cell setShowDisclosure:YES];
-                            [ cell setEnabled: NO ];
+                            [ cell setEnabled:YES ];
                             colorsCell = cell;
                             break;
                         case (1):

@@ -213,15 +213,12 @@ int trEncodingsL = (sizeof(trEncodings)/sizeof(*trEncodings));
     downloadTable       = nil;
     navBar              = nil;
     slider              = nil;
-//     settingsBtn         = nil;
-//     lockBtn             = nil;
-//     searchBtn           = nil;
+    toolBar             = nil;
     searchBox           = nil;
     lastSearch          = nil;
     coverArt            = nil;
     openname            = nil;
     openpath            = nil;
-    // bookmarkBtn         = nil;
     okDialog            = nil;
     currentView         = My_No_View;
     mouseDown           = CGPointMake(-1,-1);
@@ -561,65 +558,38 @@ int trEncodingsL = (sizeof(trEncodings)/sizeof(*trEncodings));
 
 
 
-- (void)fixButtons {
+- (void) fixButtons {
 
     struct CGSize viewSize   = [self getOrientedViewSize];
-    struct CGRect sbtnRect, lbtnRect;
+    struct CGRect ctlRect;
 
-    // Position settings button
-    sbtnRect.size.width  = 43;
-    sbtnRect.size.height = 30;
-    sbtnRect.origin.x = viewSize.width - sbtnRect.size.width - 8;
-    sbtnRect.origin.y = 37;
-//     [settingsBtn setFrame:sbtnRect];
+    int btnWidth = 41;
 
-    // Handle lock image
-    UIImageView *imgLock = [ [ UIImage alloc ]
-              initWithContentsOfFile: [ [ NSString alloc ]
-              initWithFormat: @"/Applications/%@.app/locked.png",
-                              TEXTREADER_NAME ] ];
-    UIImageView *imgUnlock = [ [ UIImage alloc ]
-              initWithContentsOfFile: [ [ NSString alloc ]
-              initWithFormat: @"/Applications/%@.app/unlocked.png",
-                              TEXTREADER_NAME ] ];
+    // Size and position toolBar
+    ctlRect.size.height = 33;
+    ctlRect.size.width  = btnWidth * 3;
+    ctlRect.origin.y    = 35;
+    ctlRect.origin.x    = viewSize.width - ctlRect.size.width - 5;
+    [toolBar setFrame:ctlRect];
+
+    UIImage * image;
 
     if ([self orientationLocked])
-    {
-//         [lockBtn setImage:imgLock forState:0];
-//         [lockBtn setImage:imgUnlock forState:1];
-    }
+       image = [[UIImage alloc]
+                initWithContentsOfFile:[[NSString alloc]
+                                        initWithFormat: @"/Applications/%@.app/locked.png",
+                                        TEXTREADER_NAME]];
     else
-    {
-//         [lockBtn setImage:imgUnlock forState:0];
-//         [lockBtn setImage:imgLock forState:1];
-    }
+       image = [[UIImage alloc]
+                initWithContentsOfFile:[[NSString alloc]
+                                        initWithFormat: @"/Applications/%@.app/unlocked.png",
+                                        TEXTREADER_NAME]];
+    [toolBar setImage:image forSegmentAtIndex:0];
 
-    // Position bookmark button
-    lbtnRect.size.width  = 45;
-    lbtnRect.size.height = 30;
-    lbtnRect.origin.x = sbtnRect.origin.x - lbtnRect.size.width;
-    lbtnRect.origin.y = sbtnRect.origin.y;
-//     [bookmarkBtn setFrame:lbtnRect];
-
-    // Position search button
-    // lbtnRect.size.width  = 45;
-    // lbtnRect.size.height = 30;
-//     lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
-    // lbtnRect.origin.y = sbtnRect.origin.y;
-//     [searchBtn setFrame:lbtnRect];
-
-    // Position lock button
-    // lbtnRect.size.width  = 45;
-    // lbtnRect.size.height = 30;
-    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
-    // lbtnRect.origin.y = sbtnRect.origin.y;
-//     [lockBtn setFrame:lbtnRect];
-
-    // Position "percent" label
-    lbtnRect.size.width  = 70;
-    lbtnRect.origin.x = lbtnRect.origin.x - lbtnRect.size.width;
-    // lbtnRect.origin.y = sbtnRect.origin.y;
-    [percent setFrame:lbtnRect];
+    // Size and position percentage display
+    ctlRect.size.width  = 70;
+    ctlRect.origin.x -= ctlRect.size.width;
+    [percent setFrame:ctlRect];
 
 } // fixButtons
 
@@ -744,7 +714,7 @@ int trEncodingsL = (sizeof(trEncodings)/sizeof(*trEncodings));
     if (currentView == My_Info_View)
     {
         struct CGRect FSrect = [self getOrientedViewRect];
-        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+        // CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 
         if ([textView getText] && [[textView getText] length])
         {
@@ -969,7 +939,7 @@ int trEncodingsL = (sizeof(trEncodings)/sizeof(*trEncodings));
                 UINavigationBar * prefsBar  = [[UINavigationBar alloc] initWithFrame:FSrect];
                 [prefsBar setBarStyle: 0];
                 [prefsBar showButtonsWithLeft: _T(@"Done") right:_T(@"About") leftBack: YES];
-                [prefsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle: _T(@"Settings")]];
+                [prefsBar pushNavigationItem: [[UINavigationItem alloc] initWithTitle:_T(@"Settings")]];
                 [prefsBar setAutoresizingMask: kTopBarResizeMask];
 
                 FSrect = [self getOrientedViewRect];
@@ -1070,57 +1040,30 @@ int trEncodingsL = (sizeof(trEncodings)/sizeof(*trEncodings));
 } // showView
 
 
-// // Show the settings page
-// - (void)showSettings:(UINavBarButton *)btn
-// {
-//     if (![btn isPressed])
-//         [self showView:My_Prefs_View];
-// }
+// Handle the search button
+- (void)showSearch
+{
+    CGRect FSrect = [self getOrientedViewRect];
+    CGRect searchRect = CGRectMake(0., 35., FSrect.size.width, [UISearchField defaultHeight]+3);
 
+    // Only search if we are not already searching, and there is text to search through
+    if (!searchBox &&
+        [textView getText] && [[textView getText] length])
+    {
+        searchBox = [[UISearchBar alloc] initWithFrame:searchRect];
+        [searchBox setDelegate:self];
 
-// // Handle the search button
-// - (void)showSearch:(UINavBarButton *)btn
-// {
-//     CGRect FSrect = [self getOrientedViewRect];
-//     CGRect searchRect = CGRectMake(1., 36., FSrect.size.width-2., [UISearchField defaultHeight]);
-//
-//     // Only search if we are not already searching, and there is text to search through
-//     if (![btn isPressed] && !searchBox &&
-//         [textView getText] && [[textView getText] length])
-//     {
-//         // Make a search box on the nav bar - have it cover the buttons
-//         searchBox = [[UISearchField alloc] initWithFrame:searchRect];
-//         [[searchBox textTraits] setEditingDelegate:self];
-//         [searchBox setDisplayEnabled: YES ];
-//
-//         //[searchBox setFont: [NSClassFromString(@"WebFontCache") createFontWithFamily:@"Helvetica" traits:2 size:16]];
-//
-//         //[searchBox setPaddingTop: 6];
-//         [searchBox setPaddingLeft: 3];
-//         [[searchBox textTraits] setReturnKeyType:6]; // Search
-//         [[searchBox textTraits] setEditingDelegate:self];
-//         if (lastSearch)
-//             [searchBox setText:lastSearch];
-//
-//         [searchBox setClearButtonStyle:2];
-//         [searchBox setTextCentersVertically:YES];
-//         [searchBox setPlaceholder:_T(@"Enter your search text ...")];
-//         [navBar addSubview:searchBox];
-//
-//         // Set focus to search
-//         [searchBox becomeFirstResponder];
-//
-//         // Create a keyboard ... at the bottom of the page
-//         keyboard = [[UIKeyboard alloc] initWithDefaultSize];
-//         CGRect kbdRect = [keyboard frame];
-//         kbdRect.origin.x = 0;
-//         kbdRect.origin.y = FSrect.size.height-kbdRect.size.height;
-//         [keyboard setFrame:kbdRect];
-//         [baseTextView addSubview:keyboard];
-//     }
-//
-//
-// } // showSearch
+        searchBox.placeholder = _T(@"Enter your search text ...");
+        [navBar addSubview:searchBox];
+
+        if (lastSearch)
+            searchBox.text = lastSearch;
+
+        // Set focus to search
+        [searchBox becomeFirstResponder];
+    }
+
+} // showSearch
 
 
 - (NSRange) findText:(NSString *)str range:(NSRange)cur {
@@ -1178,82 +1121,121 @@ DoSearch:
 } // findText
 
 
-// The keyboard is used for searching ...
--(BOOL) keyboardInput:(id)k shouldInsertText:(id)i isMarkedText:(int)b {
+- (void)searchBarSearchButtonClicked:(UISearchBar *)searchBar
+//- (void) searchBarTextDidEndEditing:(UISearchBar *)searchBar
+{
+    // Save the new search string
+    if (lastSearch)
+        [lastSearch release];
 
-    if ([i length] == 1 && [i characterAtIndex:0] == 0xA)
+    // Get the new search text
+    lastSearch = [searchBox.text copy];
+
+    // OK - try to find it in the current text starting at the current position ...
+    NSRange cur = {MIN((int)[textView getStart]+1,
+                       (int)[[textView getText] length]-1),
+                   MAX(0,
+                       (int)[[textView getText] length] - ((int)[textView getStart] + 1))};
+
+    NSRange found = [self findText:lastSearch range:cur];
+
+    // Wrap search?
+    if (found.location == NSNotFound && searchWrap)
     {
-        // Save the new search string
-        if (lastSearch)
-            [lastSearch release];
+        // Search from begining to current location
+        cur.location = 0;
+        cur.length   = MIN( (int)[[textView getText] length]-1,
+                            (int)[textView getStart]+(int)[lastSearch length] );
 
-        // Get the new search text
-        lastSearch = [[searchBox text] copy];
-
-        // OK - try to find it in the current text starting at the current position ...
-        NSRange cur = {MIN((int)[textView getStart]+1,
-                           (int)[[textView getText] length]-1),
-                       MAX(0,
-                           (int)[[textView getText] length] - ((int)[textView getStart] + 1))};
-
-        NSRange found = [self findText:lastSearch range:cur];
-
-        // Wrap search?
-        if (found.location == NSNotFound && searchWrap)
-        {
-            // Search from begining to current location
-            cur.location = 0;
-            cur.length   = MIN( (int)[[textView getText] length]-1,
-                                (int)[textView getStart]+(int)[lastSearch length] );
-
-            found = [self findText:lastSearch range:cur];
-        }
-
-        if (found.location == NSNotFound)
-        {
-            // Set text to not found
-            [navBar setPrompt:_T(@"Search text not found ...")];
-        }
-        else
-        {
-            // Set new start position
-            [textView setStart:found.location];
-
-            // Get rid of the search stuff
-            [self endSearch];
-
-            // Show the user where we found the text
-            [self showView:My_Text_View];
-        }
-
-       return NO;
+        found = [self findText:lastSearch range:cur];
     }
 
-    return YES;
-} // keyboardInput
+    if (found.location == NSNotFound)
+    {
+        // Set text to not found
+        [navBar setPrompt:_T(@"Search text not found ...")];
+    }
+    else
+    {
+        // Set new start position
+        [textView setStart:found.location];
+
+        // Get rid of the search stuff
+        [self endSearch];
+
+        // Show the user where we found the text
+        [self showView:My_Text_View];
+    }
+
+} // searchBarTextDidEndEditing
 
 
-// // Handle the bookmarks
-// - (void)showBookmark:(UINavBarButton *)btn
-// {
-//     if (![btn isPressed])
+
+
+// // The keyboard is used for searching ...
+// -(BOOL) keyboardInput:(id)k shouldInsertText:(id)i isMarkedText:(int)b {
+//
+//     if ([i length] == 1 && [i characterAtIndex:0] == 0xA)
 //     {
-//     }
-// } // showBookmark
-
-
-// - (void)toggleLock:(UINavBarButton *)btn
-// {
-//     if (![btn isPressed])
-//     {
-//         if ([self orientationLocked])
-//             [self unlockUIOrientation];
+//         // Save the new search string
+//         if (lastSearch)
+//             [lastSearch release];
+//
+//         // Get the new search text
+//         lastSearch = [[searchBox text] copy];
+//
+//         // OK - try to find it in the current text starting at the current position ...
+//         NSRange cur = {MIN((int)[textView getStart]+1,
+//                            (int)[[textView getText] length]-1),
+//                        MAX(0,
+//                            (int)[[textView getText] length] - ((int)[textView getStart] + 1))};
+//
+//         NSRange found = [self findText:lastSearch range:cur];
+//
+//         // Wrap search?
+//         if (found.location == NSNotFound && searchWrap)
+//         {
+//             // Search from begining to current location
+//             cur.location = 0;
+//             cur.length   = MIN( (int)[[textView getText] length]-1,
+//                                 (int)[textView getStart]+(int)[lastSearch length] );
+//
+//             found = [self findText:lastSearch range:cur];
+//         }
+//
+//         if (found.location == NSNotFound)
+//         {
+//             // Set text to not found
+//             [navBar setPrompt:_T(@"Search text not found ...")];
+//         }
 //         else
-//             [self lockUIOrientation];
-//         [self fixButtons];
-//         // [self showView:My_Text_View];
+//         {
+//             // Set new start position
+//             [textView setStart:found.location];
+//
+//             // Get rid of the search stuff
+//             [self endSearch];
+//
+//             // Show the user where we found the text
+//             [self showView:My_Text_View];
+//         }
+//
+//        return NO;
 //     }
-// }
+//
+//     return YES;
+// } // keyboardInput
+
+
+- (void)toggleLock
+{
+    if ([self orientationLocked])
+        [self unlockUIOrientation];
+    else
+        [self lockUIOrientation];
+
+    [self fixButtons];
+} // toggleLock
 
 
 - (void) pageText:(ScrollDir)dir
@@ -1456,78 +1438,41 @@ DoSearch:
     navBar  = [[[UINavigationBar alloc] initWithFrame: navBarRect] retain];
     [navBar setBarStyle: 0];
     [navBar setDelegate: self];
-    [navBar showButtonsWithLeft:_T(@"Open") right:_T(@"Settings") leftBack: YES];
+    [navBar showButtonsWithLeft:_T(@"Open") right:nil/* _T(@"Settings")*/ leftBack: YES];
 
     navItem = [[UINavigationItem alloc] initWithTitle:nil];
     [navBar pushNavigationItem:navItem];
     [navBar setAutoresizingMask: kTopBarResizeMask];
     [navBar setAlpha:0];
+
     [baseTextView addSubview:navBar];
 
-    // Add settings button
-//     settingsBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
-//     [settingsBtn setAutosizesToFit:NO];
-    UIImageView *image = [ [ UIImage alloc ]
-          initWithContentsOfFile: [ [ NSString alloc ]
-          initWithFormat: @"/Applications/%@.app/settings_up.png",
-                          TEXTREADER_NAME ] ];
-//     [settingsBtn setImage:image forState:0];
-    image = [ [ UIImage alloc ]
-          initWithContentsOfFile: [ [ NSString alloc ]
-          initWithFormat: @"/Applications/%@.app/settings_dn.png",
-                          TEXTREADER_NAME ] ];
-//     [settingsBtn setImage:image forState:1];
+    // Create the toolbar ...
+    toolBar = [[UISegmentedControl alloc] initWithFrame:navBarRect];
+    [toolBar setMomentaryClick:YES];
+    [toolBar setDelegate:self];
+    [navBar addSubview:toolBar];
 
-//     [settingsBtn setDrawContentsCentered:YES];
-//     [settingsBtn addTarget:self action:@selector(showSettings:) forEvents: (255)];
-//     [navBar addSubview:settingsBtn];
+    // Add segments to the toolbar
+    UIImageView *image;
 
-//     // Add bookmarks button
-//     bookmarkBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
-//     [bookmarkBtn setAutosizesToFit:NO];
-//     image = [ [ UIImage alloc ]
-//           initWithContentsOfFile: [ [ NSString alloc ]
-//           initWithFormat: @"/Applications/%@.app/bookmark_up.png",
-//                           TEXTREADER_NAME ] ];
-//     [bookmarkBtn setImage:image forState:0];
-//     image = [ [ UIImage alloc ]
-//           initWithContentsOfFile: [ [ NSString alloc ]
-//           initWithFormat: @"/Applications/%@.app/bookmark_dn.png",
-//                           TEXTREADER_NAME ] ];
-//     [bookmarkBtn setImage:image forState:1];
-//     [bookmarkBtn setDrawContentsCentered:YES];
-//     [bookmarkBtn addTarget:self action:@selector(showBookmark:) forEvents: (255)];
-//     [navBar addSubview:bookmarkBtn];
+    image = [[UIImage alloc] initWithContentsOfFile:[[NSString alloc]
+                                                      initWithFormat:@"/Applications/%@.app/locked.png",
+                                                     TEXTREADER_NAME ] ];
+    [toolBar insertSegment:0 withImage:image animated:NO];
 
-    // Add search button
-//     searchBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
-//     [searchBtn setAutosizesToFit:NO];
-    image = [ [ UIImage alloc ]
-          initWithContentsOfFile: [ [ NSString alloc ]
-          initWithFormat: @"/Applications/%@.app/search_up.png",
-                          TEXTREADER_NAME ] ];
-//     [searchBtn setImage:image forState:0];
-    image = [ [ UIImage alloc ]
-          initWithContentsOfFile: [ [ NSString alloc ]
-          initWithFormat: @"/Applications/%@.app/search_dn.png",
-                          TEXTREADER_NAME ] ];
-//     [searchBtn setImage:image forState:1];
-//     [searchBtn setDrawContentsCentered:YES];
-//     [searchBtn addTarget:self action:@selector(showSearch:) forEvents: (255)];
-//     [navBar addSubview:searchBtn];
+    image = [[UIImage alloc] initWithContentsOfFile:[[NSString alloc]
+                                                     initWithFormat:@"/Applications/%@.app/search.png",
+                                                     TEXTREADER_NAME ] ];
+    [toolBar insertSegment:1 withImage:image animated:NO];
 
-    // Add lock button
-//     lockBtn = [[UINavBarButton alloc] initWithFrame:navBarRect];
-//     [lockBtn setAutosizesToFit:NO];
-//     [lockBtn setDrawContentsCentered:YES];
-//     [lockBtn addTarget:self action:@selector(toggleLock:) forEvents: (255)];
-//     [navBar addSubview:lockBtn];
+    image = [[UIImage alloc] initWithContentsOfFile:[[NSString alloc]
+                                                     initWithFormat:@"/Applications/%@.app/settings.png",
+                                                     TEXTREADER_NAME ] ];
+    [toolBar insertSegment:2 withImage:image animated:NO];
 
     // Add "percent" label w/ transparent background
     percent = [[[UITextLabel alloc] initWithFrame:navBarRect] retain];
-//    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-//    float backParts[4] = {0, 0, 0, 0};
-//    [percent setBackgroundColor: CGColorCreate(colorSpace, backParts)];
     [percent setBackgroundColor:[UIColor clearColor]];
     [navBar addSubview:percent];
 
@@ -1542,29 +1487,29 @@ DoSearch:
 
     [super setInitialized: true];
 
-
-
-
-
-
-
-// NSString * str = (NSString*)CFStringGetNameOfEncoding (kCFStringEncodingISOLatin1 );
-// [self showDialog:_T(@"Debug") msg:str buttons:DialogButtons_OK];
-
-
-
-
-
-
-
-
-
-
-
-
     [self loadDefaults];
 
 } // applicationDidFinishLaunching
+
+
+- (void) segmentedControl:(UISegmentedControl *)segment selectedSegmentChanged:(int)seg
+{
+    switch (seg) {
+        case 0:
+            // Toggle Lock
+            [self toggleLock];
+            break;
+        case 1:
+            [self showSearch];
+            // Search
+            break;
+        case 2:
+            // Settings
+            [self showView:My_Prefs_View];
+            break;
+    }
+
+} // selectedSegmentChanged
 
 
 // We get this message when the slider is moved/touched

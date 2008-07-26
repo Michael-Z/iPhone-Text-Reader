@@ -59,14 +59,14 @@
     UIPreferencesTableCell *cells[NUM_COLOR_GROUPS][COLOR_CELLS_PER_GROUP];
     UIPreferencesTableCell *groupcell[NUM_COLOR_GROUPS];
 
-//    UISlider       *text_red;
-//    UISlider       *text_green;
-//    UISlider       *text_blue;
+    UISlider       *text_red;
+    UISlider       *text_green;
+    UISlider       *text_blue;
 //     UISliderControl       *text_alpha;
 
-//    UISlider       *bkg_red;
-//    UISlider       *bkg_green;
-//    UISlider       *bkg_blue;
+    UISlider       *bkg_red;
+    UISlider       *bkg_green;
+    UISlider       *bkg_blue;
 //     UISliderControl       *bkg_alpha;
 
     UIPreferencesTableCell *exampleCell;

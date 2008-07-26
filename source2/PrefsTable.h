@@ -89,20 +89,6 @@ typedef enum _PickerType {
 
 
 // **********************************************************************
-
-// Class for seg control
-@interface MySegControl : UISegmentedControl
-{
-    textReader         *trApp;
-}
-- (void) setTextReader:(textReader*)tr;
-// - (void)mouseDown:(struct __GSEvent *)event;
-- (void)mouseUp:(struct __GSEvent *)event;
-@end
-
-
-
-// **********************************************************************
 // Class for Preferences Page
 @interface MyPreferencesTable : UIPreferencesTable
 {

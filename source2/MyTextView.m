@@ -97,8 +97,8 @@
     // Make sure default directory exists
     [[NSFileManager defaultManager] createDirectoryAtPath:TEXTREADER_DEF_PATH attributes:nil];
 
-    [self setEnabledGestures:YES];
-    [self setGestureDelegate:self];
+    // [self setEnabledGestures:YES];
+    // [self setGestureDelegate:self];
 
     return [super initWithFrame:rect];
 
@@ -150,74 +150,85 @@
 - (NSString*) getBkgImage { return bkgImageName; };
 
 
-- (void) gestureChanged:(GSEvent*)event {
-
-    if (!fontZoom)
-        return;
-
-    // Get the distance between the 2 points
-    if (((GSEventStruct*)event)->numPoints > 1)
-    {
-        // Save the current distance
-        CGPoint vector = CGPointMake(
-            ((GSEventStruct*)event)->points[0].x -
-            ((GSEventStruct*)event)->points[1].x,
-            ((GSEventStruct*)event)->points[0].y -
-            ((GSEventStruct*)event)->points[1].y);
-        float gestureEnd = sqrtf(vector.x*vector.x + vector.y*vector.y);
-
-        // Do nothing if the difference is minimal
-        if (ABS(gestureEnd - gestureStart) < 30)
-            return;
-
-        // Larger or smaller?
-        if (gestureEnd > gestureStart)
-        {
-            [self setFont:[self getFont] size:[self getFontSize]+1];
-        }
-        else
-        {
-            [self setFont:[self getFont] size:[self getFontSize]-1];
-        }
-
-        // Save new starting point ...
-        gestureStart = gestureEnd;
-    }
-
-} // gestureEnded
-
-
-- (void) gestureEnded:(GSEvent*)event {
-//    gestureMode = false;
-} // gestureEnded
-
-
-- (void) gestureStarted:(GSEvent*)event {
-
-    if (!fontZoom)
-        return;
-
-    // Get the distance between the 2 points
-    if (((GSEventStruct*)event)->numPoints > 1)
-    {
-        gestureMode = true;
-
-        // Save the starting distance
-        CGPoint vector = CGPointMake(
-            ((GSEventStruct*)event)->points[0].x -
-            ((GSEventStruct*)event)->points[1].x,
-            ((GSEventStruct*)event)->points[0].y -
-            ((GSEventStruct*)event)->points[1].y);
-        gestureStart = sqrtf(vector.x*vector.x + vector.y*vector.y);
-    }
-
-} // gestureStarted
+// //  touchesMoved:withEvent
+// //- (void) gestureChanged:(GSEvent*)gsevent
+// - (void)touchesMoved:(NSSet *)touchset withEvent:(UIEvent *)event
+// {
+// //    UIEvent * event = (UIEvent*)gsevent;
+//
+//     if (!fontZoom)
+//         return;
+//
+//     NSArray *touches = [touchset allObjects];
+//
+//     if ([touches count] > 1)
+//     {
+//         UITouch * t1 = [touches objectAtIndex:0];
+//         UITouch * t2 = [touches objectAtIndex:1];
+//
+//         CGPoint l1 = [t1 locationInView:self];
+//         CGPoint l2 = [t2 locationInView:self];
+//
+//         // Save current distance between the 2 points ...
+//         CGPoint vector = CGPointMake(l1.x-l2.x, l1.y-l2.y);
+//
+//         float gestureEnd = sqrtf(vector.x*vector.x + vector.y*vector.y);
+//
+//         // Do nothing if the difference is minimal
+//          if (ABS(gestureEnd - gestureStart) < 30)
+//              return;
+//
+//         // Larger or smaller?
+//         if (gestureEnd > gestureStart)
+//         {
+//            [self setFont:[self getFont] size:[self getFontSize]+1];
+//         }
+//         else
+//         {
+//             [self setFont:[self getFont] size:[self getFontSize]-1];
+//         }
+//
+//         // Save new starting point ...
+//         gestureStart = gestureEnd;
+//
+//     }
+//
+// } // gestureEnded
 
 
-- (BOOL) canHandleGestures
-{
-  return YES;
-}
+
+// // touchesBegan:withEvent:
+// //- (void) gestureStarted:(GSEvent*)gsevent
+// - (void)touchesBegan:(NSSet *)touchset withEvent:(UIEvent *)event
+// {
+// //    UIEvent * event = (UIEvent*)gsevent;
+//
+//     if (!fontZoom)
+//         return;
+//
+//     NSArray *touches = [touchset allObjects];
+//
+//     if ([touches count] > 1)
+//     {
+//         UITouch * t1 = [touches objectAtIndex:0];
+//         UITouch * t2 = [touches objectAtIndex:1];
+//
+//         CGPoint l1 = [t1 locationInView:self];
+//         CGPoint l2 = [t2 locationInView:self];
+//
+//         // Save current distance between the 2 points ...
+//         CGPoint vector = CGPointMake(l1.x-l2.x, l1.y-l2.y);
+//
+//         gestureStart = sqrtf(vector.x*vector.x + vector.y*vector.y);
+//     }
+//
+// } // gestureStarted
+
+
+// - (BOOL) canHandleGestures
+// {
+//   return YES;
+// }
 
 
 - (BOOL) canHandleSwipes

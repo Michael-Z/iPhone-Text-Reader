@@ -51,14 +51,12 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         [ self setDelegate: self ];
     }
 
-//     text_red = nil;
-//     text_green = nil;
-//     text_blue = nil;
-//     text_alpha = nil;
-//     bkg_red = nil;
-//     bkg_green = nil;
-//     bkg_blue = nil;
-//     bkg_alpha = nil;
+    text_red = nil;
+    text_green = nil;
+    text_blue = nil;
+    bkg_red = nil;
+    bkg_green = nil;
+    bkg_blue = nil;
 
     exampleCell = nil;
 
@@ -156,70 +154,70 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
 
 - (void) setExampleTextColor {
 
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-
     [exampleCell setTitle:_T(@"This is how the text will look ...")];
 
     [[exampleCell titleTextLabel] sizeToFit];
     [[exampleCell valueTextLabel] sizeToFit];
 
-//     [[exampleCell titleTextLabel] setColor:CGColorCreate(colorSpace, &txtcolors.text_red)];
-//     [[exampleCell titleTextLabel] setBackgroundColor:CGColorCreate(colorSpace, &txtcolors.bkg_red)];
-//
-//     [[exampleCell valueTextLabel] setColor:CGColorCreate(colorSpace, &txtcolors.text_red)];
-//     [[exampleCell valueTextLabel] setBackgroundColor:CGColorCreate(colorSpace, &txtcolors.bkg_red)];
+    [[exampleCell titleTextLabel] setColor:[UIColor colorWithRed:txtcolors.text_red green:txtcolors.text_green blue:txtcolors.text_blue alpha:1]];
+    [[exampleCell titleTextLabel] setBackgroundColor:[UIColor colorWithRed:txtcolors.bkg_red green:txtcolors.bkg_green blue:txtcolors.bkg_blue alpha:1]];
+
+    [[exampleCell valueTextLabel] setColor:[UIColor colorWithRed:txtcolors.text_red green:txtcolors.text_green blue:txtcolors.text_blue alpha:1]];
+    [[exampleCell valueTextLabel] setBackgroundColor:[UIColor colorWithRed:txtcolors.bkg_red green:txtcolors.bkg_green blue:txtcolors.bkg_blue alpha:1]];
 
     [[exampleCell titleTextLabel] setNeedsDisplay];
 
 } // setExampleTextColor
 
 
-//// We get this message when the slider changes value
-// - (void) handleSlider:(id)sliderid
-// {
-//     float val = [(UISlider*)sliderid value];
-//
-//     if (sliderid == text_red)
-//         txtcolors.text_red = val;
-//     else if (sliderid == text_green)
-//         txtcolors.text_green = val;
-//     else if (sliderid == text_blue)
-//         txtcolors.text_blue = val;
-// //     else if (sliderid == text_alpha)
-// //         txtcolors.text_alpha = val;
-//
-//     else if (sliderid == bkg_red)
-//         txtcolors.bkg_red = val;
-//     else if (sliderid == bkg_green)
-//         txtcolors.bkg_green = val;
-//     else if (sliderid == bkg_blue)
-//         txtcolors.bkg_blue = val;
-// //     else if (sliderid == bkg_alpha)
-// //         txtcolors.bkg_alpha = val;
-//     else
-//         return;
-//
-//     [self setExampleTextColor];
-//
-// } // handleSwitch
+// We get this message when the slider changes value
+- (void) handleSlider:(id)sliderid
+{
+    UISlider * slider = (UISlider*)sliderid;
+
+    float val = /* [(UISlider*)sliderid value] */ slider.value;
+
+    if (sliderid == text_red)
+        txtcolors.text_red = val;
+    else if (sliderid == text_green)
+        txtcolors.text_green = val;
+    else if (sliderid == text_blue)
+        txtcolors.text_blue = val;
+
+    else if (sliderid == bkg_red)
+        txtcolors.bkg_red = val;
+    else if (sliderid == bkg_green)
+        txtcolors.bkg_green = val;
+    else if (sliderid == bkg_blue)
+        txtcolors.bkg_blue = val;
+    else
+        return;
+
+    [self setExampleTextColor];
+
+} // handleSwitch
 
 
-//- (UISlider*) addSliderToCell:(NSString*)title  forCell:(UIPreferencesTableCell*)cell init:(float)val
-//{
-//     UISlider * slider;
-//
-//     [ cell setTitle:title ];
-//     slider = [ [ UISlider alloc ]
-//         // initWithFrame:CGRectMake(85.0f, 9.0f, 215.0f, 30.0f) ];
-//         initWithFrame:CGRectMake(95.0f, 9.0f, 205.0f, 30.0f) ];
-//     [slider setMinValue:0.];
-//     [slider setMaxValue:1.];
-//     [slider setShowValue:YES];
-//     [slider addTarget:self action:@selector(handleSlider:) forEvents:7]; // 7=drag
-//     [slider addTarget:self action:@selector(handleSlider:) forEvents:2]; // 2=up
-//     [slider setValue:val];
-//     [cell addSubview:slider];
-//} // addSliderToCell
+- (UISlider*) addSliderToCell:(NSString*)title  forCell:(UIPreferencesTableCell*)cell init:(float)val
+{
+    UISlider * slider;
+
+    [ cell setTitle:title ];
+    slider = [ [ UISlider alloc ]
+               initWithFrame:CGRectMake(95.0f, 9.0f, 205.0f, 30.0f) ];
+
+    [slider addTarget:self action:@selector(handleSlider:) forControlEvents:UIControlEventValueChanged];
+    slider.minimumValue = 0.0;
+    slider.maximumValue = 1.0;
+    slider.continuous = YES;
+    slider.value = val;
+
+    [cell addSubview:slider];
+
+    return slider;
+
+} // addSliderToCell
+
 
 // Create the cells for the prefs table
 - (UIPreferencesTableCell *)preferencesTable:(UIPreferencesTable *)aTable
@@ -246,33 +244,27 @@ static const int kUIControlEventMouseUpInside = 1 << 6;
         case (0):
             switch (row) {
                 case (0):
-//                    text_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.text_red];
+                    text_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.text_red];
                     break;
                 case (1):
-//                    text_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.text_green];
+                    text_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.text_green];
                     break;
                 case (2):
-//                    text_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.text_blue];
+                    text_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.text_blue];
                     break;
-//                 case (3):
-//                     text_alpha = [self addSliderToCell:_T(@"Alpha") forCell:cell init:txtcolors.text_alpha];
-//                     break;
             }
             break;
         case (2):
             switch (row) {
                 case (0):
-//                    bkg_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.bkg_red];
+                    bkg_red = [self addSliderToCell:_T(@"Red") forCell:cell init:txtcolors.bkg_red];
                     break;
                 case (1):
-//                    bkg_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.bkg_green];
+                    bkg_green = [self addSliderToCell:_T(@"Green") forCell:cell init:txtcolors.bkg_green];
                     break;
                 case (2):
-//                    bkg_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.bkg_blue];
+                    bkg_blue = [self addSliderToCell:_T(@"Blue") forCell:cell init:txtcolors.bkg_blue];
                     break;
-//                 case (3):
-////                     bkg_alpha = [self addSliderToCell:_T(@"Alpha") forCell:cell init:txtcolors.bkg_alpha];
-//                     break;
             }
             break;
         case (3):

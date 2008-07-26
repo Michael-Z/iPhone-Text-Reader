@@ -37,34 +37,15 @@
 #import <UIKit/UIViewTapInfo.h>
 #import <UIKit/UIView-Geometry.h>
 #import <UIKit/UISlider.h>
-//#import <UIKit/UINavBarButton.h>
+#import <UIKit/UISegmentedControl.h>
 #import <UIKit/UIProgressHUD.h>
 #import <UIKit/UIProgressIndicator.h>
+#import <UIKit/UISearchBar.h>
 #import <Celestial/AVSystemController.h>
 
+#import <UIKit/UIEvent.h>
+#import <UIKit/UITouch.h>
 #import <UIKit/UIColor.h>
-
-// Missing Prototypes ...
-//struct __GSFont * GSFontCreateWithName( const char * fontname, int style, float ptsize);
-// bool CGFontGetGlyphsForUnichars(CGFontRef, unichar[], CGGlyph[], size_t);
-// extern CGFontRef CGContextGetFont(CGContextRef);
-// extern CGFontRef CGFontCreateWithFontName (CFStringRef name);
-
-
-// Slider kludge ...
-// #import <UIKit/UISliderControl.h>
-// @interface UISlider : UISliderControl
-// @property float value;                                 // default 0.0. this value will be pinned to min/max
-// @property float minimumValue;                          // default 0.0. the current value may change if outside new min value
-// @property float maximumValue;                          // default 1.0. the current value may change if outside new max value
-//
-// @property(retain) UIImage *minimumValueImage;          // default is nil. image that appears to left of control (e.g. speaker off)
-// @property(retain) UIImage *maximumValueImage;          // default is nil. image that appears to right of control (e.g. speaker max)
-// @end
-
-
-
-
 
 #import "UIOrientingApplication.h"
 
@@ -73,7 +54,7 @@
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"2.1Beta3 (Ugly)"
+#define TEXTREADER_VERSION          @"2.1 Beta 4"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -261,10 +242,12 @@ typedef struct _TREncoding {
 //    UINavBarButton          *lockBtn;
 //    UINavBarButton          *searchBtn;
 //    UINavBarButton          *bookmarkBtn;
+    UISegmentedControl      *toolBar;
     UITextLabel             *percent;
     UIImageView             *coverArt;
 
-    UISearchField           *searchBox;
+    // UISearchField           *searchBox;
+    UISearchBar             *searchBox;
     UIKeyboard              *keyboard;
     NSString                *lastSearch;
 
