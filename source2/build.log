@@ -1,7 +1,0 @@
-arm-apple-darwin9-gcc -c -I"/usr/include" -I "/var/include" -DVERSION='"2.1"' -O3 -funroll-loops   textReader.m -o textReader.o
-arm-apple-darwin9-gcc -framework Foundation -framework CoreFoundation -framework UIKit -framework QuartzCore -framework CoreGraphics -framework GraphicsServices -framework CoreSurface -framework CoreAudio -framework Celestial -framework AudioToolbox -lobjc -lz -L"/usr/lib" -F"/System/Library/Frameworks" -F"/System/Library/PrivateFrameworks" -bind_at_load -multiply_defined suppress  -o textReader UIOrientingApplication.o MyTextView.o FileTable.o UIDeletableCell.o main.o PrefsTable.o DownloadTable.o ColorTable.o peanut.o pdbfile.o unpluck.o txt2pdbdoc.o rtfactn.o rtfreadr.o chm_lib.o extract_chmLib.o lzx.o textReader.o
-/usr/bin/ld: Undefined symbols:
-_OBJC_CLASS_$_UISliderControl
-_OBJC_CLASS_$_UINavBarButton
-collect2: ld returned 1 exit status
-make: *** [textReader] Error 1
