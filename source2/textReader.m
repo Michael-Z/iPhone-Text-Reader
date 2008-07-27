@@ -1449,6 +1449,8 @@ DoSearch:
 
     // Create the toolbar ...
     toolBar = [[UISegmentedControl alloc] initWithFrame:navBarRect];
+    toolBar.segmentedControlStyle = UISegmentedControlStyleBar;
+    //toolBar.tintColor = [UIColor grayColor];
     [toolBar setMomentaryClick:YES];
     [toolBar setDelegate:self];
     [navBar addSubview:toolBar];

@@ -833,7 +833,7 @@ NSString  *TextAlignmentNames[6];
                 case (1):
                     switch (row) {
                         case (0):
-                            ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                            ignoreSingleLF = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 40.0f)] autorelease];
                             [ignoreSingleLF insertSegment:IgnoreLF_Off    withTitle:_T(@"Off")  animated:NO];
                             [ignoreSingleLF insertSegment:IgnoreLF_Single withTitle:_T(@"Single") animated:NO];
                             [ignoreSingleLF insertSegment:IgnoreLF_Format withTitle:_T(@"Format") animated:NO];
@@ -847,7 +847,7 @@ NSString  *TextAlignmentNames[6];
                 case (2):
                     switch (row) {
                         case (0):
-                            showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                            showStatus = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 40.0f)] autorelease];
                             [showStatus insertSegment:ShowStatus_Off    withTitle:_T(@"Off")   animated:NO];
                             [showStatus insertSegment:ShowStatus_Light  withTitle:_T(@"Solid") animated:NO];
                             [showStatus insertSegment:ShowStatus_Dark   withTitle:_T(@"Clear") animated:NO];
@@ -904,7 +904,7 @@ NSString  *TextAlignmentNames[6];
                     }
                     break;
                 case (1):
-                    fileScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    fileScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 40.0f)] autorelease];
                     [fileScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
                     [fileScroll insertSegment:VolScroll_Line withTitle:[NSString stringWithFormat:@"<%@<", _T(@"Left")] animated:NO];
                     [fileScroll insertSegment:VolScroll_Page withTitle:[NSString stringWithFormat:@">%@>", _T(@"Right")] animated:NO];
@@ -914,7 +914,7 @@ NSString  *TextAlignmentNames[6];
                     [cell setDrawsBackground:NO];
                     break;
                 case (2):
-                    volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 55.0f)] autorelease];
+                    volumeScroll = [[[UISegmentedControl alloc] initWithFrame:CGRectMake(10.0f, 3.0f, 300.0f, 40.0f)] autorelease];
                     [volumeScroll insertSegment:VolScroll_Off withTitle:_T(@"Off")  animated:NO];
                     [volumeScroll insertSegment:VolScroll_Line withTitle:_T(@"Line") animated:NO];
                     [volumeScroll insertSegment:VolScroll_Page withTitle:_T(@"Page") animated:NO];

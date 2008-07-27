@@ -68,11 +68,11 @@
 {
     switch (group) {
         case(0):
-            return 2; 
+            return 2;
 
         case(1):
             return 1;
-            
+
         case(2):
             return 2;
     }
@@ -110,7 +110,7 @@
 
 - (BOOL)preferencesTable:(UIPreferencesTable *)aTable
     isLabelGroup:(int)group
-{       
+{
     return (group == 2) ? YES : NO;
 }
 
@@ -129,23 +129,23 @@
 
     if ([trApp getDialog])
         [trApp releaseDialog];
-        
+
 } // threadShowSaving
 
 - (void) threadShowSaved {
 
-    [trApp showDialog:_T(@"Finished") 
-                  msg:_T(@"Save complete!") 
+    [trApp showDialog:_T(@"Finished")
+                  msg:_T(@"Save complete!")
                buttons:DialogButtons_OK];
-    
+
     // [trApp showView:My_File_View];
-    [trApp openFile:toFileName path:TEXTREADER_DEF_PATH];
+    // [trApp openFile:toFileName path:TEXTREADER_DEF_PATH];
 }
 
 - (void) threadShowSaveErr {
 
-    [trApp showDialog:_T(@"Error Saving File") 
-                  msg:[NSString stringWithFormat:_T(@"Unable to save file as %@"), fullPath] 
+    [trApp showDialog:_T(@"Error Saving File")
+                  msg:[NSString stringWithFormat:_T(@"Unable to save file as %@"), fullPath]
                buttons:DialogButtons_OK];
 }
 
@@ -161,7 +161,7 @@
 - (void)downLoadFile:(id)ignored
 {
     NSString  * file     = nil;
-    bool        hadError = false; 
+    bool        hadError = false;
 
 
     // Load the file ...
@@ -170,41 +170,41 @@
     if (!file || [file length] < 1)
     {
         // Get rid of the wait msg
-        [self performSelectorOnMainThread:@selector(threadReleaseWait) 
+        [self performSelectorOnMainThread:@selector(threadReleaseWait)
                                 withObject:nil waitUntilDone:YES];
-                                
+
         // Show error
-        [self performSelectorOnMainThread:@selector(threadShowURLErr) 
+        [self performSelectorOnMainThread:@selector(threadShowURLErr)
                                 withObject:nil waitUntilDone:YES];
         hadError = true;
     }
     else
-    {   
+    {
         // Figure out where to save the file
-        fullPath = [TEXTREADER_DEF_PATH stringByAppendingPathComponent:toFileName];                           
-                        
+        fullPath = [TEXTREADER_DEF_PATH stringByAppendingPathComponent:toFileName];
+
         // Switch to showing the saving ... msg
-        [self performSelectorOnMainThread:@selector(threadShowSaving) 
-                                withObject:nil waitUntilDone:YES];  
+        [self performSelectorOnMainThread:@selector(threadShowSaving)
+                                withObject:nil waitUntilDone:YES];
 
         // Write out the new file
         if (![file writeToFile:fullPath atomically:YES])
         {
             // Get rid of the wait msg
-            [self performSelectorOnMainThread:@selector(threadReleaseWait) 
+            [self performSelectorOnMainThread:@selector(threadReleaseWait)
                                     withObject:nil waitUntilDone:YES];
 
             // Show error
-            [self performSelectorOnMainThread:@selector(threadShowSaveErr) 
+            [self performSelectorOnMainThread:@selector(threadShowSaveErr)
                                     withObject:nil waitUntilDone:YES];
             hadError = true;
         }
         else
         {
             // Delete the cache for this file if it exists
-            [[NSFileManager defaultManager] 
-             removeFileAtPath:[fullPath 
-                               stringByAppendingPathExtension:TEXTREADER_CACHE_EXT] 
+            [[NSFileManager defaultManager]
+             removeFileAtPath:[fullPath
+                               stringByAppendingPathExtension:TEXTREADER_CACHE_EXT]
                                handler:nil];
         }
     }
@@ -212,14 +212,14 @@
     if (!hadError)
     {
         // Get rid of the wait msg
-        [self performSelectorOnMainThread:@selector(threadReleaseWait) 
+        [self performSelectorOnMainThread:@selector(threadReleaseWait)
                                 withObject:nil waitUntilDone:YES];
 
         // Show success
-        [self performSelectorOnMainThread:@selector(threadShowSaved) 
+        [self performSelectorOnMainThread:@selector(threadShowSaved)
                                 withObject:nil waitUntilDone:YES];
     }
-    
+
 } //  downloadFile
 
 // ---------------------------------------------
@@ -228,18 +228,18 @@
 
 
 
-- (void)tableRowSelected:(NSNotification *)notification 
+- (void)tableRowSelected:(NSNotification *)notification
 {
     switch ([self selectedRow])
     {
-        case 4: // Do the download!!            
-        
+        case 4: // Do the download!!
+
             // Get the address and name
             urlAddress = [urlCell value];
             toFileName = [saveAsCell value];
-            
+
             // Validate address and name!!!
-            
+
             // Name can not have embedded slashes
             if (toFileName && [toFileName rangeOfString:@"/"].location != NSNotFound)
             {
@@ -248,11 +248,11 @@
                            buttons:DialogButtons_OK];
                 return;
             }
-            
-            // Get the extensions (if any) on the name and on the 
+
+            // Get the extensions (if any) on the name and on the
             TextFileType urlType    = [trApp getFileType:urlAddress];
             TextFileType saveAsType = [trApp getFileType:toFileName];
-            
+
             if (!urlType && !saveAsType)
             {
                 [trApp showDialog:_T(@"Error Invalid Save As File Name")
@@ -260,7 +260,7 @@
                            buttons:DialogButtons_OK];
                 return;
             }
-            
+
             // Try to get the last part of the URL if the save as name is blank
             if ([toFileName length] < 1)
             {
@@ -270,10 +270,10 @@
             // Add URL extension to save as file name if needed
             else if (!saveAsType)
             {
-                toFileName = [[toFileName stringByAppendingPathExtension:[urlAddress pathExtension]] copy]; 
+                toFileName = [[toFileName stringByAppendingPathExtension:[urlAddress pathExtension]] copy];
                 saveAsType = urlType;
             }
-            
+
             // Save the URL and Save As name if requested
             if ([trApp getRememberURL])
             {
@@ -292,8 +292,8 @@
                            buttons:DialogButtons_OK];
                 return;
             }
-            
-            // Show the loading message box         
+
+            // Show the loading message box
             [trApp showDialog:_T(@"Downloading ...")
                             msg:[NSString stringWithFormat:
                                  _T(@"Downloading from URL %@"),
@@ -305,10 +305,10 @@
                                      toTarget:self
                                    withObject:nil];
             break;
-                    
+
     } // switch
-    
-    
+
+
 } // tableRowSelected
 
 
@@ -317,7 +317,7 @@
     inGroup:(int)group
 {
     UIPreferencesTableCell *cell;
-    
+
     if (cells[group][row] != NULL)
         return cells[group][row];
 
@@ -340,22 +340,22 @@
                     {
                         [ cell setValue:@"http://" ];
                     }
-                    
+
                     [ cell setShowDisclosure:YES];
                     urlCell = cell;
-                    
+
                     UITextField *tf = [(UIPreferencesTextTableCell*)cell textField];
-                    //[tf setPreferredKeyboardType:0];
-                    [tf setInitialSelectionBehavior:1];
-                    [tf setAutoCapsType:0];
-                    [tf setReturnKeyType:4];
-                    [tf setAutoEnablesReturnKey:NO];
-                    [cell addSubview:tf];                       
+//                    //[tf setPreferredKeyboardType:0];
+//                    [tf setInitialSelectionBehavior:1];
+//                    [tf setAutoCapsType:0];
+//                    [tf setReturnKeyType:4];
+//                    [tf setAutoEnablesReturnKey:NO];
+                    [cell addSubview:tf];
                     break;
                 case (1):
                     [ cell release ];
                     cell = [ [ UIPreferencesTextTableCell alloc ] init ];
-                    
+
                     [ cell setTitle:_T(@"Save As:") ];
                     NSString * lastURLSaveAs = [[NSUserDefaults standardUserDefaults] stringForKey:TEXTREADER_LASTURLSAVEAS];
                     if ([trApp getRememberURL] && lastURLSaveAs)
@@ -366,13 +366,13 @@
                     {
                         [ cell setValue:@"" ];
                     }
-                    
+
                     [ cell setShowDisclosure:YES];
                     saveAsCell = cell;
                     break;
            }
            break;
-           
+
         case (1):
             switch (row) {
                 case (0):
@@ -386,7 +386,7 @@
                     break;
             }
             break;
-            
+
         case (2):
             switch (row) {
                 case (0):
@@ -402,7 +402,7 @@
                     break;
             } // switch row
             break;
-            
+
     } // switch group
 
     [ cell setShowSelection: NO ];
@@ -423,13 +423,13 @@
     FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSize].height;
     [self setFrame:FSrect];
     [self _updateVisibleCellsImmediatelyIfNecessary];
-    
+
     [self setNeedsDisplay];
-    
+
 } // resize
 
 
-- (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button 
+- (void)navigationBar:(UINavigationBar*)navbar buttonClicked:(int)button
 {
     switch (button) {
         case 0: // Not used
@@ -439,7 +439,7 @@
             [trApp showView:My_File_View];
             break;
     } // switch
-    
+
 } // navigationBar
 
 

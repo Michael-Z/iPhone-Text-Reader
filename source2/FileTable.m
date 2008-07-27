@@ -54,7 +54,7 @@
     if (!_path || [_path length] < 1 || [fileManager fileExistsAtPath:_path] == NO) {
         _path = TEXTREADER_DEF_PATH;
         [[NSFileManager defaultManager] createDirectoryAtPath:_path attributes:nil];
-    } 
+    }
 
     // Clean up existing path storage
     if (path)
@@ -70,11 +70,11 @@
 - (id)initWithFrame2:(struct CGRect)rect trApp:(textReader*)tr path:(NSString*)_path owner:(UIView*)owner {
 
     self = [ super initWithFrame:rect ];
-    
-    if (self) 
-    {    
+
+    if (self)
+    {
         trApp = tr;
-        
+
         colFilename = [ [ UITableColumn alloc ]
                             initWithTitle: _T(@"Filename")
                             identifier:@"filename"
@@ -86,44 +86,44 @@
         [ self setDelegate:self ];
         [ self setDataSource:self ];
         [ self setRowHeight:64 ];
-        
+
         fileList = [ [ NSMutableArray alloc] init ];
-        
+
         [self setPath:_path];
-        
-        // Create the navbar for this file table    
+
+        // Create the navbar for this file table
         struct CGRect FSrect = [trApp getOrientedViewRect];
-        
+
         FSrect.origin.y     += [UIHardware statusBarHeight];
-        FSrect.size.height   = [UINavigationBar defaultSizeWithPrompt].height;    
-    
+        FSrect.size.height   = [UINavigationBar defaultSizeWithPrompt].height;
+
         navBar = [[UINavigationBar alloc] initWithFrame:FSrect];
         [navBar setBarStyle: 0];
         // [navBar showButtonsWithLeft:_T(@"..Up..") right:_T(@"Cancel") leftBack:YES];
 
         // Get the parent directory ..
         NSString * up = nil;
-        
+
         // Can we actually go up?!?!
         if ([path length] > 1)
             up = [[path stringByDeletingLastPathComponent] lastPathComponent];
 
         [navBar showButtonsWithLeft:up
-                              right:_T(@"Cancel") 
+                              right:_T(@"Cancel")
                            leftBack:YES];
-        
+
         [navBar pushNavigationItem:[[UINavigationItem alloc] initWithTitle: _T(@"Open Text File")]];
         [navBar setAutoresizingMask:kTopBarResizeMask];
-    
+
         [navBar setDelegate:self];
-        [owner  addSubview:navBar];  
-        
+        [owner  addSubview:navBar];
+
         [owner addSubview:self];
-        
+
     }
-    
+
     return self;
-    
+
 } // initWithFrame
 
 
@@ -135,12 +135,12 @@
 - (void) reloadData {
 
     NSArray * contents;
-    
+
     NSString * openFile = [trApp getFileName];
     NSString * openPath = [trApp getFilePath];
     int highlight = -1;
     int i;
-    
+
     // Clean out the old entries
     [ fileList removeAllObjects ];
 
@@ -149,12 +149,12 @@
 
     // Add download option to list
     [fileList addObject:TEXTREADER_DOWNLOAD_TITLE];
- 
+
     // Add parent directory option (unless we are at '/')
     if ([path length] > 1)
         [fileList addObject:TEXTREADER_PARENT_DIR];
 
-        
+
     // Add directories
     contents = [[NSFileManager defaultManager] directoryContentsAtPath:path];
     for (i = 0; i < [contents count]; i++)
@@ -166,16 +166,16 @@
         // Don't add cache directories here - add them in their proper spot ...
         if ([[NSFileManager defaultManager] fileExistsAtPath:fullpath isDirectory:&isDir] && isDir &&
             [trApp getFileType:fullpath] != kTextFileTypeTRCache) {
-            [fileList addObject:dir];            
+            [fileList addObject:dir];
         }
     }
 
     // Add visible files
     [fileList addObjectsFromArray:[trApp getVisibleFiles:path]];
-    
-    
+
+
     // Quick check to find the file that matches the currently open file ...
-    // If the paths are not the same, highlight the Download rather than looking for 
+    // If the paths are not the same, highlight the Download rather than looking for
     // a file match in thw wrong directory
     if (openPath && [path compare:openPath]==NSOrderedSame)
     {
@@ -189,9 +189,9 @@
             }
         }
     }
-    
+
     [ super reloadData ];
-    
+
     // Highlight the currently open book
     if (highlight > 0)
     {
@@ -203,7 +203,7 @@
         [self scrollRowToVisible:0];
         [self highlightRow:0];
     }
-    
+
 } // reloadData
 
 
@@ -225,7 +225,7 @@ typedef enum _RowType {
     RowType_TRCache  = 9,
     RowType_Download = 10,
     RowType_Parent   = 11,
-    RowType_Folder   = 12 
+    RowType_Folder   = 12
 } RowType;
 
 
@@ -238,30 +238,30 @@ typedef enum _RowType {
     // Set default images
     switch (rowType)
     {
-        case RowType_TXT:          
-        case RowType_PDB:          
-        case RowType_HTML:         
-        case RowType_FB2:          
-        case RowType_RTF:          
-        case RowType_CHM:          
-        case RowType_ZIP:          
-        case RowType_RAR:          
-        case RowType_TRCache:      
-        case RowType_Unknown:      
+        case RowType_TXT:
+        case RowType_PDB:
+        case RowType_HTML:
+        case RowType_FB2:
+        case RowType_RTF:
+        case RowType_CHM:
+        case RowType_ZIP:
+        case RowType_RAR:
+        case RowType_TRCache:
+        case RowType_Unknown:
             // These will be taken care of below
             break;
-            
-        case RowType_Download:     
+
+        case RowType_Download:
             iname = @"globedownload.png";
             break;
-        case RowType_Parent:       
+        case RowType_Parent:
             iname = @"folderup.png";
             break;
-        case RowType_Folder:       
+        case RowType_Folder:
             iname = @"folder.png";
             break;
     }
-    
+
     // Load cover image if requested and available
     if (!iname)
     {
@@ -269,76 +269,76 @@ typedef enum _RowType {
         if (iname)
             isCoverArt = true;
     }
-    
+
     // Pick out the icon for this file type ...
     if (!iname)
     {
         switch (rowType)
         {
-            case RowType_TXT:          
+            case RowType_TXT:
                 iname = @"txt.png";
                 break;
-            case RowType_PDB:          
+            case RowType_PDB:
                 iname = @"pdb.png";
                 break;
-            case RowType_CHM:          
+            case RowType_CHM:
                 iname = @"chm.png";
                 break;
-            case RowType_ZIP:          
+            case RowType_ZIP:
                 iname = @"zip.png";
                 break;
-            case RowType_RAR:          
+            case RowType_RAR:
                 iname = @"rar.png";
                 break;
-            case RowType_HTML:         
+            case RowType_HTML:
                 iname = @"html.png";
                 break;
-            case RowType_FB2:          
+            case RowType_FB2:
                 iname = @"fb2.png";
                 break;
-            case RowType_RTF:          
+            case RowType_RTF:
                 iname = @"rtf.png";
                 break;
-            case RowType_TRCache:      
+            case RowType_TRCache:
                 iname = @"cache.png";
                 break;
 
-            case RowType_Unknown:      
-            case RowType_Download:     
-            case RowType_Parent:       
-            case RowType_Folder:       
+            case RowType_Unknown:
+            case RowType_Download:
+            case RowType_Parent:
+            case RowType_Folder:
                 // These were taken care of above
                 break;
         }
     }
-    
+
     // Try to load the image
     if (iname)
     {
         UIImage *image = nil;
-        
+
         if (isCoverArt)
             image = [UIImage imageAtPath:iname];
         else
             image = [UIImage applicationImageNamed:iname];
-            
+
         [cell setImage: image];
-        
+
         // Scale the image if needed
         if (isCoverArt)
             [trApp scaleImage:[cell iconImageView] maxheight:63 maxwidth:63 yOffset:0];
     }
-    
+
 } // setRowImage
 
 
 - (void) setFileCell:(UIDeletableCell *)cell row:(int)row {
 
     NSString * file = [fileList objectAtIndex:row];
-    
+
     [cell setTitle:[file stringByDeletingPathExtension]];
     [cell setShowDisclosure:YES];
-    
+
     // We set a "fat" disclosure if the file has not been opened
     // (i.e. not the current one, and we don't have a position saved)
     if ([trApp getDefaultStart:file] < 1)
@@ -349,41 +349,41 @@ typedef enum _RowType {
            [ cell setDisclosureStyle: 3 ];
     }
 
-} // setFileCell 
+} // setFileCell
 
 
 // Populate the table's rows ...
-- (UITableCell *)table:(UITable *)table 
-  cellForRow:(int)row 
+- (UITableCell *)table:(UITable *)table
+  cellForRow:(int)row
   column:(UITableColumn *)col
-{  
+{
     RowType     rowType = RowType_Unknown;
-    
+
     if (col == colFilename) {
         BOOL isDir = true;
-        
+
         UIDeletableCell *cell = [ [ UIDeletableCell alloc ] init ];
         [ cell setTable: self ];
         [ cell setTextReader: trApp ];
-        
+
         // Set the icon for this row
-        if (row == 0) 
+        if (row == 0)
         {
-            rowType = RowType_Download;                                  
+            rowType = RowType_Download;
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
-        
+
         else if ([[fileList objectAtIndex:row] length] < 1) // ignore blank entries
         {
             // do nothing
         }
-        
+
         else if ([[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR]==NSOrderedSame) // handle parent/up ...
         {
             rowType = RowType_Parent;
             [ cell setTitle: [ fileList objectAtIndex: row ] ];
         }
-               
+
         else if ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache)
         {
             rowType = RowType_TRCache;
@@ -394,9 +394,9 @@ typedef enum _RowType {
         {
             rowType = RowType_Folder;
             [ cell setTitle: [fileList objectAtIndex:row] ];
-        }               
+        }
 
-        else 
+        else
         {
             // Handle the other types ...
             switch ([trApp getFileType:[fileList objectAtIndex:row]])
@@ -436,15 +436,15 @@ typedef enum _RowType {
 
                 default:
                     break;
-            }                                   
-        }        
-                
+            }
+        }
+
         // Specify the proper image for this row
         [self setRowImage:row cell:cell type:rowType];
-        
+
         return [ cell autorelease ];
-    } 
-    
+    }
+
 } // table
 
 
@@ -462,9 +462,9 @@ typedef enum _RowType {
     point.y += offset.y;
 
     int row = [self rowAtPoint:point];
-    
+
     BOOL isDir = true;
-    
+
     // We display the delete notification:
     //  If the starting point of the swipe is on the right 1/3 of the screen ...
     //  If this is NOT ".." up directory *and*
@@ -475,7 +475,7 @@ typedef enum _RowType {
     if (point.x > FSrect.origin.x + FSrect.size.width * 2 / 3 &&
         row != 0 && // Download
         [[fileList objectAtIndex:row] compare:TEXTREADER_PARENT_DIR] != NSOrderedSame && // folderup
-        [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] && 
+        [[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:[fileList objectAtIndex:row]] isDirectory:&isDir] &&
         ([trApp getFileType:[fileList objectAtIndex:row]] == kTextFileTypeTRCache || !isDir))
     {
         UIDeletableCell *cell = [self visibleCellForRow:row column:0];
@@ -490,7 +490,7 @@ typedef enum _RowType {
     }
 
     return [ super swipe:type withEvent:event ];
-    
+
 } // swipe
 
 
@@ -511,7 +511,7 @@ typedef enum _RowType {
 
     // Execute the unrar command ...
     system([unrar UTF8String]);
-    
+
     // If the dir exists, hop into it, otherwise assume disaster ...
     if (![[NSFileManager defaultManager] fileExistsAtPath:outdir isDirectory:&isDir] || !isDir)
     {
@@ -525,20 +525,20 @@ typedef enum _RowType {
         // Drop into the new directory ...
         [trApp showFileTable:outdir];
     }
-        
-    // Dismiss the wait spinner       
+
+    // Dismiss the wait spinner
     [trApp hideWait];
     [self setEnabled:YES];
-    
+
 } // extractRAR
 
 
 // We use the thread so we can pop the wait spinner, but then
 // we need to do the actual work on the main thread so we
 // don't mess up the Table ... sheesh ...
-- (void) thrdExtractRAR:(id)ignored 
-{   
-    [self performSelectorOnMainThread:@selector(extractRAR) 
+- (void) thrdExtractRAR:(id)ignored
+{
+    [self performSelectorOnMainThread:@selector(extractRAR)
                             withObject:nil waitUntilDone:YES];
 } // thrdExtractRAR
 // ------------------------------
@@ -564,7 +564,7 @@ typedef enum _RowType {
 
     // Execute the unzip command ...
     system([unzip UTF8String]);
-    
+
     // If the dir exists, hop into it, otherwise assume disaster ...
     if (![[NSFileManager defaultManager] fileExistsAtPath:outdir isDirectory:&isDir] || !isDir)
     {
@@ -578,20 +578,20 @@ typedef enum _RowType {
         // Drop into the new directory ...
         [trApp showFileTable:outdir];
     }
-        
-    // Dismiss the wait spinner       
+
+    // Dismiss the wait spinner
     [trApp hideWait];
     [self setEnabled:YES];
-    
+
 } // extractZIP
 
 
 // We use the thread so we can pop the wait spinner, but then
 // we need to do the actual work on the main thread so we
 // don't mess up the Table ... sheesh ...
-- (void) thrdExtractZIP:(id)ignored 
-{   
-    [self performSelectorOnMainThread:@selector(extractZIP) 
+- (void) thrdExtractZIP:(id)ignored
+{
+    [self performSelectorOnMainThread:@selector(extractZIP)
                             withObject:nil waitUntilDone:YES];
 } // thrdExtractZIP
 // ------------------------------
@@ -625,20 +625,20 @@ typedef enum _RowType {
         // Drop into the new directory ...
         [trApp showFileTable:outdir];
     }
-        
-    // Dismiss the wait spinner       
+
+    // Dismiss the wait spinner
     [trApp hideWait];
     [self setEnabled:YES];
-    
+
 } // extractCHM
 
 
 // We use the thread so we can pop the wait spinner, but then
 // we need to do the actual work on the main thread so we
 // don't mess up the Table ... sheesh ...
-- (void) thrdExtractCHM:(id)ignored 
-{   
-    [self performSelectorOnMainThread:@selector(extractCHM) 
+- (void) thrdExtractCHM:(id)ignored
+{
+    [self performSelectorOnMainThread:@selector(extractCHM)
                             withObject:nil waitUntilDone:YES];
 } // thrdExtractCHM
 // ------------------------------
@@ -647,7 +647,7 @@ typedef enum _RowType {
 
 
 // Handle navBar buttons ...
-- (void) navigationBar:(UINavigationBar*)navBar buttonClicked:(int) button 
+- (void) navigationBar:(UINavigationBar*)navBar buttonClicked:(int) button
 {
 
     switch (button) {
@@ -666,9 +666,9 @@ typedef enum _RowType {
                 [trApp showFileTable:newPath];
             }
             break;
-            
+
     } // switch
-    
+
 } // navigationBar
 
 
@@ -692,19 +692,19 @@ typedef enum _RowType {
         // Select the "..up.." button
         [self navigationBar:nil buttonClicked:1];
     }
-    else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] && 
+    else if ([[NSFileManager defaultManager] fileExistsAtPath:[path stringByAppendingPathComponent:fileName] isDirectory:&isDir] &&
               isDir) // directory
     {
         NSString * newPath = [[path stringByAppendingPathComponent:fileName] stringByStandardizingPath];
-        
+
         [trApp showFileTable:newPath];
     }
     else if ([trApp getFileType:fileName] == kTextFileTypeCHM)
     {
         // Disable input to the view and show spinner while we extract
         [trApp showWait];
-        
-        // Start the thread to 
+
+        // Start the thread to
         [NSThread detachNewThreadSelector:@selector(thrdExtractCHM:)
                                  toTarget:self
                                withObject:nil];
@@ -713,8 +713,8 @@ typedef enum _RowType {
     {
         // Disable input to the view and show spinner while we extract
         [trApp showWait];
-        
-        // Start the thread to 
+
+        // Start the thread to
         [NSThread detachNewThreadSelector:@selector(thrdExtractZIP:)
                                  toTarget:self
                                withObject:nil];
@@ -723,8 +723,8 @@ typedef enum _RowType {
     {
         // Disable input to the view and show spinner while we extract
         [trApp showWait];
-        
-        // Start the thread to 
+
+        // Start the thread to
         [NSThread detachNewThreadSelector:@selector(thrdExtractRAR:)
                                  toTarget:self
                                withObject:nil];
@@ -735,7 +735,7 @@ typedef enum _RowType {
         [trApp openFile:fileName path:path];
         [trApp showView:My_Text_View];
     }
-    
+
 } // tableRowSelected
 
 
@@ -769,13 +769,13 @@ typedef enum _RowType {
     FSrect.size.height -= [UIHardware statusBarHeight] + [UINavigationBar defaultSizeWithPrompt].height;
     [self setFrame:FSrect];
     [self _updateVisibleCellsImmediatelyIfNecessary];
-    
+
 } // resize
 
 
 
 
-- (void)table:(UITable *) table deleteRow:(int) row 
+- (void)table:(UITable *) table deleteRow:(int) row
 {
 } // deleteRow
 

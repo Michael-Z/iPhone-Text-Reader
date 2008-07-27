@@ -36,8 +36,6 @@
 #include "rtftype.h"
 #include "rtfdecl.h"
 
-
-//typedef unsigned int NSUInteger;
 #define NSRangeMake(s,l) {s, l}
 
 

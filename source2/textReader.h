@@ -54,7 +54,7 @@
 
 #define TEXTREADER_HOMEPAGE         @"http://code.google.com/p/iphonetextreader/"
 #define TEXTREADER_NAME             @"textReader"
-#define TEXTREADER_VERSION          @"2.1 Beta 4"
+#define TEXTREADER_VERSION          @"2.1 Beta 5"
 
 #define TEXTREADER_CACHE_EXT        @"trCache"
 
@@ -62,7 +62,7 @@
 #define TEXTREADER_PARENT_DIR       @".."
 #define TEXTREADER_DOWNLOAD_TITLE   _T(@"Download File via URL")
 
-#define TEXTREADER_DFLT_FONT        @"CourierNewBold"
+#define TEXTREADER_DFLT_FONT        @"Helvetica-Bold"
 #define TEXTREADER_DFLT_FONTSIZE    20
 #define TEXTREADER_DFLT_ENCODING    /* kCGEncodingMacRoman */ NSISOLatin1StringEncoding
 
@@ -238,15 +238,10 @@ typedef struct _TREncoding {
 
     UINavigationBar         *navBar;
     UINavigationItem        *navItem;
-//    UINavBarButton          *settingsBtn;
-//    UINavBarButton          *lockBtn;
-//    UINavBarButton          *searchBtn;
-//    UINavBarButton          *bookmarkBtn;
     UISegmentedControl      *toolBar;
     UITextLabel             *percent;
     UIImageView             *coverArt;
 
-    // UISearchField           *searchBox;
     UISearchBar             *searchBox;
     UIKeyboard              *keyboard;
     NSString                *lastSearch;

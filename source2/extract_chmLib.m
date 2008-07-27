@@ -139,7 +139,7 @@ int _extract_callback(struct chmFile *h,
         //printf("--> %s\n", ui->path);
         if ((fout = fopen(buffer, "wb")) == NULL)
     {
-        /* make sure that it isn't just a missing directory before we abort */ 
+        /* make sure that it isn't just a missing directory before we abort */
         char newbuf[32768];
         strcpy(newbuf, buffer);
         i = rindex(newbuf, '/');
@@ -186,11 +186,11 @@ int extract_chm(char * chmfile, char * outfile)
     if (h)
     {
         struct extract_context ec = {0};
-        
+
         ec.base_path = outfile;
         rc = !chm_enumerate(h,
-                            // CHM_ENUMERATE_ALL,
-                            CHM_ENUMERATE_NORMAL,
+                            CHM_ENUMERATE_ALL,
+                            //CHM_ENUMERATE_NORMAL,
                             _extract_callback,
                             (void *)&ec);
 
